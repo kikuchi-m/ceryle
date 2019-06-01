@@ -1,19 +1,28 @@
+import re
+
+from ceryle.util.capture import std_capture
 from ceryle.util.printutils import print_stream, StdoutPrinter, StderrPrinter
 
 
 def test_stdout_printlne():
     p = StdoutPrinter()
-    p.printline('default')
+    with std_capture() as (o, _):
+        p.printline('default')
+        assert 'default' == o.getvalue().rstrip()
 
 
 def test_stdout_printlne_warn():
     p = StdoutPrinter(warning_patterns=['^waruning'])
-    p.printline('warning some...')
+    with std_capture() as (o, _):
+        p.printline('warning some...')
+        assert 'warning some...' == o.getvalue().rstrip()
 
 
 def test_stderr_printlne():
     p = StderrPrinter()
-    p.printline('some error')
+    with std_capture() as (_, e):
+        p.printline('some error')
+        assert re.match('.*some error.*', e.getvalue().rstrip())
 
 
 def test_print_stream():
@@ -21,4 +30,6 @@ def test_print_stream():
         for l in ['foo', 'bar', 'baz']:
             yield l
 
-    print_stream(gen_lines())
+    with std_capture() as (o, _):
+        print_stream(gen_lines())
+        assert ['foo', 'bar', 'baz'] == o.getvalue().splitlines()
