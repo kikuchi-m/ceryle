@@ -17,19 +17,19 @@ class Command(Executable):
 
     def execute(self):
         cmd_log = self._cmd_log_message()
-        logger.info('run command: %s' % cmd_log)
+        logger.info(f'run command: {cmd_log}')
         proc = subprocess.Popen(
             self._cmd,
             cwd=self._cwd,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print_std_streams(proc.stdout, proc.stderr)
-        logger.info('finished %s' % cmd_log)
+        logger.info(f'finished {cmd_log}')
         return proc.wait()
 
     def _cmd_log_message(self):
         if self._cwd:
-            return '[%s] (%s)' % (self.cmd_str(), self._cwd)
-        return '[%s]' % self.cmd_str()
+            return f'[{self.cmd_str()}] ({self._cmd})'
+        return f'[{self.cmd_str()}]'
 
     @property
     def cmd(self):
@@ -41,7 +41,7 @@ class Command(Executable):
 
 def quote_if_needed(s):
     if ' ' in s:
-        return '"%s"' % s
+        return f'"{s}"'
     return s
 
 
