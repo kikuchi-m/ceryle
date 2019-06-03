@@ -16,9 +16,10 @@ class Task:
 
 
 class TaskGroup:
-    def __init__(self, name, tasks):
+    def __init__(self, name, tasks, dependencies=[]):
         self._name = name
         self._tasks = list(tasks)
+        self._dependencies = list(dependencies)
 
     def run(self):
         for t in self._tasks:
@@ -33,3 +34,7 @@ class TaskGroup:
     @property
     def tasks(self):
         return list(self._tasks)
+
+    @property
+    def dependencies(self):
+        return list(self._dependencies)
