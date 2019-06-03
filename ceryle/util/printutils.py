@@ -45,10 +45,14 @@ class StderrPrinter(Printer):
         self._font = font
 
     def printline(self, line):
-        print(decorate(line, self._font), file=sys.stderr)
+        print_err(line, font=self._font)
 
 
 def print_stream(s, error=False):
     printer = StderrPrinter() if error else StdoutPrinter()
     for l in s:
         printer.printline((l.decode() if isinstance(l, bytes) else l).rstrip())
+
+
+def print_err(*lines, font=ERROR_FONT):
+    print(*[decorate(l, font) for l in lines], file=sys.stderr)

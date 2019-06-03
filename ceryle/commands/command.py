@@ -28,7 +28,7 @@ class Command(Executable):
 
     def _cmd_log_message(self):
         if self._cwd:
-            return f'[{self.cmd_str()}] ({self._cmd})'
+            return f'[{self.cmd_str()}] ({self._cwd})'
         return f'[{self.cmd_str()}]'
 
     @property
