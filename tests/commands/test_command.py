@@ -1,4 +1,5 @@
 import os
+import pytest
 import re
 
 from ceryle import Command
@@ -19,6 +20,17 @@ def test_new_command():
     # sysntax sugar with double quoted
     command = Command('echo "a b"')
     assert command.cmd == ['echo', 'a b']
+
+
+def test_raise_if_invalid_command():
+    with pytest.raises(TypeError):
+        Command(None)
+
+    with pytest.raises(TypeError):
+        Command(1)
+
+    with pytest.raises(TypeError):
+        Command(object())
 
 
 def test_execute_command():

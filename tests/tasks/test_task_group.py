@@ -1,3 +1,5 @@
+import pytest
+
 from ceryle import Command, Task, TaskGroup
 
 def test_new_task_group():
@@ -7,6 +9,14 @@ def test_new_task_group():
 
     assert tg.name == 'new_task'
     assert tg.tasks == [t1, t2]
+
+
+def test_raise_if_not_executable():
+    with pytest.raises(TypeError):
+        Task(None)
+
+    with pytest.raises(TypeError):
+        Task('not an executable')
 
 
 def test_run_all_tasks(mocker):

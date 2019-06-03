@@ -5,7 +5,7 @@ import subprocess
 from concurrent.futures import ThreadPoolExecutor
 
 from ceryle.commands.executable import Executable
-from ceryle.util import print_stream
+from ceryle.util import assert_type, print_stream
 
 logger = logging.getLogger(__file__)
 
@@ -57,6 +57,7 @@ def extract_cmd(cmd):
             parts.append(s)
             trimmed = trimmed[seed:].lstrip()
         return parts
+    assert_type(cmd, list)
     return cmd
 
 

@@ -1,8 +1,10 @@
-from ceryle.util import print_err
+from ceryle import Executable
+from ceryle.util import assert_type, print_err
 
 
 class Task:
     def __init__(self, executable):
+        assert_type(executable, Executable)
         self._executable = executable
 
     def run(self):

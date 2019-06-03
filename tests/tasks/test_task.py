@@ -1,4 +1,4 @@
-from ceryle import Command, Executable, Task
+from ceryle import Command, Task
 
 def test_run_succeeded(mocker):
     executable = Command('do some')
