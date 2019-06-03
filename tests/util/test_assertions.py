@@ -5,18 +5,18 @@ from ceryle.util import assert_type
 
 
 def test_raise_if_not_type():
-    with pytest.raises(TypeError, match=r'2nd argument must be a type; passed .*'):
+    with pytest.raises(TypeError, match=r'not a type; .*'):
         assert_type('foo', 'not a type')
 
 
 def test_raise_if_not_match_type():
-    with pytest.raises(TypeError, match=r'not matched to type int; actual: str'):
+    with pytest.raises(TypeError, match=r'not matched to any type int; actual: str'):
         assert_type('foo', int)
 
-    with pytest.raises(TypeError, match=r'not matched to type Foo; actual: str'):
+    with pytest.raises(TypeError, match=r'not matched to any type Foo; actual: str'):
         assert_type('foo', Foo)
 
-    with pytest.raises(TypeError, match=r'not matched to type Executable; actual: str'):
+    with pytest.raises(TypeError, match=r'not matched to any type Executable; actual: str'):
         assert_type('foo', Executable)
 
 

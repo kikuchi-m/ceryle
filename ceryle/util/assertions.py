@@ -1,6 +1,11 @@
 
-def assert_type(value, value_type):
-    if not isinstance(value_type, type):
-        raise TypeError(f'2nd argument must be a type; passed {type(value_type)}')
-    if not isinstance(value, value_type):
-        raise TypeError(f'not matched to type {value_type.__name__}; actual: {type(value).__name__}')
+def assert_type(value, *types):
+    type_name_cache = []
+    for t in types:
+        if not isinstance(t, type):
+            raise TypeError(f'not a type; {t}')
+        if isinstance(value, types):
+            return
+        type_name_cache.append(t.__name__)
+    types_str = ', '.join(type_name_cache)
+    raise TypeError(f'not matched to any type {types_str}; actual: {type(value).__name__}')
