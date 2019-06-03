@@ -1,4 +1,4 @@
-import  pytest
+import pytest
 
 from ceryle import Command, Executable
 from ceryle.util import assert_type

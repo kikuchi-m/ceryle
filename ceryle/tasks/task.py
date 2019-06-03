@@ -9,7 +9,7 @@ class Task:
 
     def run(self):
         rc = self._executable.execute()
-        success = rc is 0
+        success = rc == 0
         if not success:
             print_err(f'task failed: {repr(self._executable)}')
         return success

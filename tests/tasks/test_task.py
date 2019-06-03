@@ -1,5 +1,6 @@
 from ceryle import Command, Task
 
+
 def test_run_succeeded(mocker):
     executable = Command('do some')
     mocker.patch.object(executable, 'execute', return_value=0)
