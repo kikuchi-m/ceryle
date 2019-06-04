@@ -12,7 +12,7 @@ def test_new_task_group():
     assert tg.tasks == [t1, t2]
 
 
-def test_new_task_group():
+def test_new_task_group_deps():
     tg = TaskGroup('build', [], dependencies=['setup', 'pre-build'])
     assert tg.dependencies == ['setup', 'pre-build']
 
