@@ -7,7 +7,7 @@ ERROR_FONT = '38;5;124'
 
 
 def sgr(p='0'):
-    return '\x1b[{p}m'
+    return f'\x1b[{p}m'
 
 
 def decorate(s, sgr_pattern):
