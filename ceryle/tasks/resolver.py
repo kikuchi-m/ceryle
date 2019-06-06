@@ -49,7 +49,7 @@ class DependencyChain:
     def depends_on(self, dep):
         assert_type(dep, DependencyChain)
         for d in self._deps:
-            if dep.task_name == d.task_name or d.depends_on(dep):
+            if dep == d or d.depends_on(dep):
                 return True
         return False
 
@@ -62,7 +62,7 @@ class DependencyChain:
 
     def _get_chain(self, chain, deps, dep):
         for d in deps:
-            if d.task_name == dep.task_name:
+            if d == dep:
                 return [d]
             c = self._get_chain(chain, d.deps, dep)
             if c:
@@ -79,6 +79,14 @@ class DependencyChain:
 
     def __str__(self):
         return f'DependencyChain({self.task_name}, {[d.task_name for d in self.deps]})'
+
+    def __repr__(self):
+        return str(self)
+
+    def __eq__(self, other):
+        if isinstance(other, DependencyChain):
+            return self.task_name == other.task_name and self.deps == other.deps
+        return False
 
 
 def dump_chain(dep_chain):

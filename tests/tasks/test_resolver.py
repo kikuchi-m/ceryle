@@ -114,6 +114,27 @@ def test_get_chain():
     assert c2.get_chain(c3, include_self=True) == [c2, c3]
 
 
+def test_dependency_chain_equality():
+    c1a = DependencyChain('t1')
+    c1b = DependencyChain('t1')
+
+    assert c1a == c1b
+    assert not c1a != c1b
+
+    c1a.add_dependency(DependencyChain('t2'))
+
+    assert not c1a == c1b
+    assert c1a != c1b
+
+    c1b.add_dependency(DependencyChain('t2'))
+
+    assert c1a == c1b
+    assert not c1a != c1b
+
+    assert c1a == c1b
+    assert not c1a != c1b
+
+
 def test_dump_chain():
 
     a11 = DependencyChain('t11')
