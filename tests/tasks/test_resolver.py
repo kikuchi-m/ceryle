@@ -53,6 +53,43 @@ def test_validate_fails_by_no_depnding_task():
     assert str(e.value) == 'task b depended by a is not defined'
 
 
+def test_consstruct_chain_map_no_dependency():
+    resolver = DependencyResolver({
+        'a': [],
+        'b': [],
+    })
+    resolver.validate()
+    chain_map = resolver.deps_chain_map()
+
+    assert len(chain_map) == 2
+    assert chain_map['a'].deps == []
+    assert chain_map['b'].deps == []
+
+
+def test_construct_chain_map():
+    resolver = DependencyResolver({
+        'a': ['b', 'c'],
+        'b': ['c'],
+        'c': [],
+    })
+    resolver.validate()
+    chain_map = resolver.deps_chain_map()
+
+    assert len(chain_map) == 3
+
+    chain_c = DependencyChain('c')
+
+    chain_b = DependencyChain('b')
+    chain_b.add_dependency(chain_c)
+
+    chain_a = DependencyChain('a')
+    chain_a.add_dependency(chain_b)
+
+    assert chain_map['a'] == chain_a
+    assert chain_map['b'] == chain_b
+    assert chain_map['c'] == chain_c
+
+
 def test_new_dependency_chain():
     c1 = DependencyChain('c1')
 
