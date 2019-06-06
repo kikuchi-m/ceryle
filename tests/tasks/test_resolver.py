@@ -93,20 +93,25 @@ def test_get_chain():
     c3 = DependencyChain('t3')
 
     assert c1.get_chain(c2) == []
+    assert c1.get_chain(c2, include_self=True) == [c1]
     assert c1.get_chain(c3) == []
     assert c2.get_chain(c3) == []
 
     c1.add_dependency(c2)
 
     assert c1.get_chain(c2) == [c2]
+    assert c1.get_chain(c2, include_self=True) == [c1, c2]
     assert c1.get_chain(c3) == []
     assert c2.get_chain(c3) == []
 
     c2.add_dependency(c3)
 
     assert c1.get_chain(c2) == [c2]
+    assert c1.get_chain(c2, include_self=True) == [c1, c2]
     assert c1.get_chain(c3) == [c2, c3]
+    assert c1.get_chain(c3, include_self=True) == [c1, c2, c3]
     assert c2.get_chain(c3) == [c3]
+    assert c2.get_chain(c3, include_self=True) == [c2, c3]
 
 
 def test_dump_chain():

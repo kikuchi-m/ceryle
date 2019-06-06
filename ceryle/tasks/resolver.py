@@ -22,7 +22,7 @@ class DependencyResolver:
                     if t == t_dep:
                         raise TaskDependencyError(f'cyclic dependency was found: {t} -> {t_dep}')
                     if t_dep_c.depends_on(c):
-                        chain_str = ' -> '.join([t, t_dep_c.task_name, *[c1.task_name for c1 in t_dep_c.get_chain(c)]])
+                        chain_str = ' -> '.join([t, *[c1.task_name for c1 in t_dep_c.get_chain(c, include_self=True)]])
                         raise TaskDependencyError(f'cyclic dependency was found: {chain_str}')
 
                     dcm[t_dep] = t_dep_c
@@ -53,9 +53,12 @@ class DependencyChain:
                 return True
         return False
 
-    def get_chain(self, dep):
+    def get_chain(self, dep, include_self=False):
         assert_type(dep, DependencyChain)
-        return self._get_chain([], self.deps, dep)
+        chain = self._get_chain([], self.deps, dep)
+        if include_self:
+            return [self, *chain]
+        return chain
 
     def _get_chain(self, chain, deps, dep):
         for d in deps:
