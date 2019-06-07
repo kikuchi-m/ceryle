@@ -1,7 +1,7 @@
 import pytest
 import re
 
-from ceryle.tasks import TaskDependencyError
+from ceryle import TaskDependencyError
 from ceryle.tasks.resolver import DependencyChain, DependencyResolver, dump_chain
 
 
