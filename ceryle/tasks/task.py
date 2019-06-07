@@ -1,4 +1,4 @@
-from ceryle import Executable
+from ceryle.commands.command import Executable
 from ceryle.util import assert_type, print_err
 
 

@@ -1,4 +1,5 @@
-from ceryle import TaskGroup, DependencyResolver
+from ceryle.tasks.resolver import DependencyResolver
+from ceryle.tasks.task import TaskGroup
 from ceryle.util import assert_type
 
 
