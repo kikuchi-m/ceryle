@@ -14,6 +14,10 @@ class Task:
             print_err(f'task failed: {repr(self._executable)}')
         return success
 
+    @property
+    def executable(self):
+        return self._executable
+
 
 class TaskGroup:
     def __init__(self, name, tasks, dependencies=[]):

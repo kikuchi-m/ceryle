@@ -1,0 +1,33 @@
+# context from this file (optional, default: '.')
+context = '.'
+
+# default task group to execute (optional)
+default = 'foo'
+
+{
+    # task groups (at least one)
+    'foo': {
+        'dependencies': ['bar'],
+        'tasks': [{
+            'run': command(['ls']),
+        }, {
+            'run': command(['ls', '-l']),
+        }],
+    },
+
+    'bar': {
+        'tasks': [{
+            'run': command(['ls'])
+        }],
+    },
+
+    'simple': {
+        'tasks': [
+            command('ls -l'),
+        ],
+    },
+
+    'shorten': [
+        command('ls -l'),
+    ],
+}
