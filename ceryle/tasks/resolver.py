@@ -1,5 +1,6 @@
+import ceryle.util as util
+
 from . import TaskDependencyError
-from ceryle.util import assert_type
 
 
 class DependencyResolver:
@@ -55,21 +56,21 @@ class DependencyChain:
         self._deps = []
 
     def add_dependency(self, dep):
-        assert_type(dep, DependencyChain)
+        util.assert_type(dep, DependencyChain)
         if not self.depends_on(dep):
             self._deps = [*self._deps, dep]
             return True
         return False
 
     def depends_on(self, dep):
-        assert_type(dep, DependencyChain)
+        util.assert_type(dep, DependencyChain)
         for d in self._deps:
             if dep == d or d.depends_on(dep):
                 return True
         return False
 
     def get_chain(self, dep, include_self=False):
-        assert_type(dep, DependencyChain)
+        util.assert_type(dep, DependencyChain)
         chain = self._get_chain([], self._deps, dep)
         if include_self:
             return [self, *chain]

@@ -1,11 +1,11 @@
 import ast
+import ceryle.util as util
 import collections
 import os
 
 from . import TaskFileError
 from ceryle.commands.command import Command
 from ceryle.dsl.parser import parse_tasks
-from ceryle.util import parse_to_ast
 
 
 class TaskFileLoader:
@@ -13,7 +13,7 @@ class TaskFileLoader:
         self._task_file = task_file
 
     def load(self):
-        module = parse_to_ast(self._task_file)
+        module = util.parse_to_ast(self._task_file)
 
         body = module.body
         if not body:

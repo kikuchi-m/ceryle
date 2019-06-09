@@ -1,13 +1,14 @@
+import ceryle.util as util
+
 from ceryle.tasks.resolver import DependencyResolver
 from ceryle.tasks.task import TaskGroup
-from ceryle.util import assert_type
 
 
 class TaskRunner:
     def __init__(self, task_groups):
-        assert_type(task_groups, list)
+        util.assert_type(task_groups, list)
         for g in task_groups:
-            assert_type(g, TaskGroup)
+            util.assert_type(g, TaskGroup)
 
         resolver = DependencyResolver(_deps_map(task_groups))
         resolver.validate()

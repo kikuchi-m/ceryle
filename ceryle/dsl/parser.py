@@ -1,14 +1,15 @@
+import ceryle.util as util
+
 from . import TaskFileError
 from ceryle.commands.executable import Executable
 from ceryle.tasks.task import Task, TaskGroup
-from ceryle.util import assert_type
 
 TASKS = 'tasks'
 RUN = 'run'
 
 
 def parse_tasks(raw_tasks):
-    assert_type(raw_tasks, dict)
+    util.assert_type(raw_tasks, dict)
 
     tasks = []
     for gn, raw_group in raw_tasks.items():

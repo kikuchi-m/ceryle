@@ -1,17 +1,18 @@
-from ceryle.commands.command import Executable
-from ceryle.util import assert_type, print_err
+import ceryle.util as util
+
+from ceryle.commands.executable import Executable
 
 
 class Task:
     def __init__(self, executable):
-        assert_type(executable, Executable)
+        util.assert_type(executable, Executable)
         self._executable = executable
 
     def run(self):
         rc = self._executable.execute()
         success = rc == 0
         if not success:
-            print_err(f'task failed: {repr(self._executable)}')
+            util.print_err(f'task failed: {repr(self._executable)}')
         return success
 
     @property
