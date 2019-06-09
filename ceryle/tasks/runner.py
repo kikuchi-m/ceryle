@@ -10,7 +10,7 @@ class TaskRunner:
         for g in task_groups:
             util.assert_type(g, TaskGroup)
 
-        resolver = DependencyResolver(_deps_map(task_groups))
+        resolver = DependencyResolver(dict([(g.name, [*g.dependencies]) for g in task_groups]))
         resolver.validate()
         self._deps_chain_map = resolver.deps_chain_map()
         self._groups = dict([(g.name, g) for g in task_groups])
@@ -25,10 +25,3 @@ class TaskRunner:
             if not res:
                 return False
         return self._groups[chain.task_name].run()
-
-
-def _deps_map(task_groups):
-    deps_map = {}
-    for g in task_groups:
-        deps_map[g.name] = [*g.dependencies]
-    return deps_map

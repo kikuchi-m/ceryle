@@ -21,6 +21,9 @@ def test_new_command():
     command = Command('echo "a b"')
     assert command.cmd == ['echo', 'a b']
 
+    command = Command(' foo "a b" c  d  ')
+    assert command.cmd == ['foo', 'a b', 'c', 'd']
+
 
 def test_raise_if_invalid_command():
     with pytest.raises(TypeError):
