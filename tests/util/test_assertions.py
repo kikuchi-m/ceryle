@@ -21,11 +21,16 @@ def test_raise_if_not_match_type():
 
 
 def test_pass_assertion():
-    assert_type('foo', str)
+    assert assert_type('foo', str) == 'foo'
 
-    assert_type(Foo(), Foo)
-    assert_type(Bar(), Foo)
-    assert_type(Command('do some'), Executable)
+    foo = Foo()
+    assert assert_type(foo, Foo) == foo
+
+    bar = Bar()
+    assert assert_type(bar, Foo) == bar
+
+    cmd = Command('do some')
+    assert assert_type(cmd, Executable) == cmd
 
 
 class Foo:
