@@ -1,5 +1,6 @@
 import ceryle.util as util
 import logging
+import pathlib
 import re
 import subprocess
 
@@ -14,16 +15,26 @@ class Command(Executable):
         self._cmd = extract_cmd(cmd)
         self._cwd = cwd
 
-    def execute(self):
+    def execute(self, *args, context=None, **kwargs):
         cmd_log = self._cmd_log_message()
         logger.info(f'run command: {cmd_log}')
         proc = subprocess.Popen(
             self._cmd,
-            cwd=self._cwd,
+            cwd=self._get_cwd(context),
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print_std_streams(proc.stdout, proc.stderr)
         logger.info(f'finished {cmd_log}')
         return proc.wait()
+
+    def _get_cwd(self, context=None):
+        if self._cwd:
+            cwd = pathlib.Path(self._cwd)
+            if cwd.is_absolute():
+                return self._cwd
+            if context:
+                return str(pathlib.Path(context, self._cwd))
+            return self._cwd
+        return context
 
     def _cmd_log_message(self):
         if self._cwd:

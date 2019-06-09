@@ -31,10 +31,8 @@ class TaskFileLoader:
             exec(co, gvars, lvars)
 
         tasks = eval(compile(ast.Expression(task_node.value), self._task_file, 'eval'), gvars, lvars)
-        return TaskDefinition(
-            parse_tasks(tasks),
-            self._resolve_context(lvars.get('context')),
-            lvars.get('default'))
+        context = self._resolve_context(lvars.get('context'))
+        return TaskDefinition(parse_tasks(tasks, context), context, lvars.get('default'))
 
     def _resolve_context(self, context):
         if not context:

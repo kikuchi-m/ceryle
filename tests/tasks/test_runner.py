@@ -5,27 +5,27 @@ from ceryle import TaskDependencyError
 
 
 def test_new_task_runner():
-    g1_tasks = [Task(Command('do a'))]
+    g1_tasks = [Task(Command('do a'), 'context')]
     g1 = TaskGroup('g1', g1_tasks, dependencies=['g2'])
 
-    g2_tasks = [Task(Command('do b'))]
+    g2_tasks = [Task(Command('do b'), 'context')]
     g2 = TaskGroup('g2', g2_tasks, dependencies=[])
 
     TaskRunner([g1, g2])
 
 
 def test_raises_dependency_error():
-    g1_tasks = [Task(Command('do a'))]
+    g1_tasks = [Task(Command('do a'), 'context')]
     g1 = TaskGroup('g1', g1_tasks, dependencies=['g2'])
 
-    g2_tasks = [Task(Command('do b'))]
+    g2_tasks = [Task(Command('do b'), 'context')]
     g2 = TaskGroup('g2', g2_tasks, dependencies=['g3'])
 
     # no depending task 'g3'
     with pytest.raises(TaskDependencyError):
         TaskRunner([g1, g2])
 
-    g3_tasks = [Task(Command('do a'))]
+    g3_tasks = [Task(Command('do a'), 'context')]
     g3 = TaskGroup('g3', g3_tasks, dependencies=['g1'])
 
     # cyclic

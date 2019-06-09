@@ -4,12 +4,14 @@ from ceryle.commands.executable import Executable
 
 
 class Task:
-    def __init__(self, executable):
+    def __init__(self, executable, context):
         util.assert_type(executable, Executable)
+        util.assert_type(context, str)
         self._executable = executable
+        self._context = context
 
     def run(self):
-        rc = self._executable.execute()
+        rc = self._executable.execute(context=self._context)
         success = rc == 0
         if not success:
             util.print_err(f'task failed: {repr(self._executable)}')
@@ -18,6 +20,10 @@ class Task:
     @property
     def executable(self):
         return self._executable
+
+    @property
+    def context(self):
+        return self._context
 
 
 class TaskGroup:

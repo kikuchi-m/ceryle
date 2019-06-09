@@ -6,5 +6,5 @@ class Executable(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def execute(self):
+    def execute(self, *args, **kwargs):
         pass

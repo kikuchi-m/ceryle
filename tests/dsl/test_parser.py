@@ -19,7 +19,7 @@ def test_parse():
         },
     }
 
-    tasks = dict([(g.name, g) for g in parse_tasks(raw_tasks)])
+    tasks = dict([(g.name, g) for g in parse_tasks(raw_tasks, 'context')])
 
     assert len(tasks) == 2
 
@@ -31,8 +31,10 @@ def test_parse():
     assert len(g1.tasks) == 2
     assert isinstance(g1.tasks[0], Task)
     assert g1.tasks[0].executable.cmd == ['do', 'some']
+    assert g1.tasks[0].context == 'context'
     assert isinstance(g1.tasks[1], Task)
     assert g1.tasks[1].executable.cmd == ['do', 'some', 'more']
+    assert g1.tasks[1].context == 'context'
 
     g2 = tasks['g2']
     assert isinstance(g2, TaskGroup)
@@ -42,6 +44,7 @@ def test_parse():
     assert len(g2.tasks) == 1
     assert isinstance(g2.tasks[0], Task)
     assert g2.tasks[0].executable.cmd == ['do', 'awesome']
+    assert g2.tasks[0].context == 'context'
 
 
 def test_parse_syntax_suger():
@@ -58,7 +61,7 @@ def test_parse_syntax_suger():
         ],
     }
 
-    tasks = dict([(g.name, g) for g in parse_tasks(raw_tasks)])
+    tasks = dict([(g.name, g) for g in parse_tasks(raw_tasks, 'context')])
 
     assert len(tasks) == 2
 

@@ -1,6 +1,9 @@
 import os
+import pathlib
 import pytest
 import re
+import shutil
+import tempfile
 
 from ceryle import Command
 from ceryle.util import std_capture
@@ -66,3 +69,51 @@ def test_execute_script_with_error():
         command = Command('./scripts/stderr.sh', cwd=FILE_DIR)
         command.execute()
         assert re.match('.*sample error.*', e.getvalue().rstrip())
+
+
+def test_execute_with_context():
+    with tempfile.TemporaryDirectory() as tmpd:
+        context = pathlib.Path(tmpd)
+        script = pathlib.Path(context, 'sample1.sh')
+        shutil.copy(
+            str(pathlib.Path(FILE_DIR, 'scripts', 'sample1.sh')),
+            str(script))
+
+        with std_capture() as (o, e):
+            command = Command('./sample1.sh')
+            command.execute(context=str(context))
+            lines = [l.rstrip() for l in o.getvalue().splitlines()]
+            assert lines == ['hello', 'good-by']
+
+
+def test_execute_with_context_and_cwd():
+    with tempfile.TemporaryDirectory() as tmpd:
+        context = pathlib.Path(tmpd)
+        script = pathlib.Path(context, 'aa', 'sample1.sh')
+        script.parent.mkdir()
+        shutil.copy(
+            str(pathlib.Path(FILE_DIR, 'scripts', 'sample1.sh')),
+            str(script))
+
+        with std_capture() as (o, e):
+            command = Command('./sample1.sh', cwd='aa')
+            command.execute(context=str(context))
+            lines = [l.rstrip() for l in o.getvalue().splitlines()]
+            assert lines == ['hello', 'good-by']
+
+
+def test_execute_absolute_cwd():
+    with tempfile.TemporaryDirectory() as tmpd1, tempfile.TemporaryDirectory() as tmpd2:
+        context = pathlib.Path(tmpd1)
+        cwd = pathlib.Path(tmpd2, 'aa')
+        cwd.mkdir()
+        script = pathlib.Path(cwd, 'sample1.sh')
+        shutil.copy(
+            str(pathlib.Path(FILE_DIR, 'scripts', 'sample1.sh')),
+            str(script))
+
+        with std_capture() as (o, e):
+            command = Command('./sample1.sh', cwd=str(cwd))
+            command.execute(context=str(context))
+            lines = [l.rstrip() for l in o.getvalue().splitlines()]
+            assert lines == ['hello', 'good-by']
