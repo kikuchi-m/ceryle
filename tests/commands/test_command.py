@@ -42,24 +42,24 @@ def test_raise_if_invalid_command():
 def test_execute_command():
     with std_capture() as (o, e):
         command = Command('echo foo')
-        command.execute()
+        assert command.execute().return_code == 0
         assert o.getvalue().rstrip() == 'foo'
 
     with std_capture() as (o, e):
         command = Command('echo foo')
-        command.execute()
+        assert command.execute().return_code == 0
         assert o.getvalue().rstrip() == 'foo'
 
     with std_capture() as (o, e):
         command = Command('echo "foo bar"')
-        command.execute()
+        assert command.execute().return_code == 0
         assert o.getvalue().rstrip() == 'foo bar'
 
 
 def test_execute_script():
     with std_capture() as (o, e):
         command = Command('./scripts/sample1.sh', cwd=FILE_DIR)
-        command.execute()
+        assert command.execute().return_code == 0
         lines = [l.rstrip() for l in o.getvalue().splitlines()]
         assert lines == ['hello', 'good-by']
 
@@ -67,7 +67,7 @@ def test_execute_script():
 def test_execute_script_with_error():
     with std_capture() as (o, e):
         command = Command('./scripts/stderr.sh', cwd=FILE_DIR)
-        command.execute()
+        assert command.execute().return_code == 3
         assert re.match('.*sample error.*', e.getvalue().rstrip())
 
 
@@ -81,7 +81,7 @@ def test_execute_with_context():
 
         with std_capture() as (o, e):
             command = Command('./sample1.sh')
-            command.execute(context=str(context))
+            assert command.execute(context=str(context)).return_code == 0
             lines = [l.rstrip() for l in o.getvalue().splitlines()]
             assert lines == ['hello', 'good-by']
 
@@ -97,7 +97,7 @@ def test_execute_with_context_and_cwd():
 
         with std_capture() as (o, e):
             command = Command('./sample1.sh', cwd='aa')
-            command.execute(context=str(context))
+            assert command.execute(context=str(context)).return_code == 0
             lines = [l.rstrip() for l in o.getvalue().splitlines()]
             assert lines == ['hello', 'good-by']
 
@@ -114,6 +114,6 @@ def test_execute_absolute_cwd():
 
         with std_capture() as (o, e):
             command = Command('./sample1.sh', cwd=str(cwd))
-            command.execute(context=str(context))
+            assert command.execute(context=str(context)).return_code == 0
             lines = [l.rstrip() for l in o.getvalue().splitlines()]
             assert lines == ['hello', 'good-by']

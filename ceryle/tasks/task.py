@@ -11,8 +11,8 @@ class Task:
         self._context = context
 
     def run(self):
-        rc = self._executable.execute(context=self._context)
-        success = rc == 0
+        res = self._executable.execute(context=self._context)
+        success = res.return_code == 0
         if not success:
             util.print_err(f'task failed: {repr(self._executable)}')
         return success

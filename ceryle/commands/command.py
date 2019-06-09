@@ -4,7 +4,7 @@ import pathlib
 import re
 import subprocess
 
-from ceryle.commands.executable import Executable
+from ceryle.commands.executable import Executable, ExecutionResult
 from concurrent.futures import ThreadPoolExecutor
 
 logger = logging.getLogger(__file__)
@@ -24,7 +24,7 @@ class Command(Executable):
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print_std_streams(proc.stdout, proc.stderr)
         logger.info(f'finished {cmd_log}')
-        return proc.wait()
+        return ExecutionResult(proc.wait())
 
     def _get_cwd(self, context=None):
         if self._cwd:
