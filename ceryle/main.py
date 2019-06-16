@@ -1,6 +1,8 @@
+import argparse
 import ceryle
 import ceryle.util as util
 import os
+import sys
 
 
 def run(task=None):
@@ -16,3 +18,16 @@ def run(task=None):
     if res is not True:
         return 1
     return 0
+
+
+def parse_args(argv):
+    p = argparse.ArgumentParser()
+    # TODO: nargs
+    p.add_argument('-t', '--task', help='Task group to run.')
+
+    args = p.parse_args(argv)
+    return vars(args)
+
+
+def main(argv):
+    return run(**parse_args(argv))
