@@ -12,6 +12,8 @@ def run(task=None):
 
     loader = ceryle.TaskFileLoader(task_file)
     task_def = loader.load()
+    if task is None and task_def.default_task is None:
+        raise ceryle.TaskDefinitionError('default task is not declared, specify task to run')
 
     runner = ceryle.TaskRunner(task_def.tasks)
     res = runner.run(task or task_def.default_task)
