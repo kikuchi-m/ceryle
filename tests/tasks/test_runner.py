@@ -1,7 +1,7 @@
 import pytest
 
 from ceryle import Command, Task, TaskGroup, TaskRunner
-from ceryle import TaskDependencyError
+from ceryle import TaskDependencyError, TaskDefinitionError
 
 
 def test_new_task_runner():
@@ -58,6 +58,17 @@ def test_run_tasks(mocker):
     g2.run.assert_called_once_with()
     g3.run.assert_not_called()
     assert mock.mock_calls == expected_calls
+
+
+def test_run_raises_task_not_defined():
+    g1 = TaskGroup('g1', [], dependencies=['g2'])
+    g2 = TaskGroup('g2', [], dependencies=[])
+
+    runner = TaskRunner([g1, g2])
+
+    with pytest.raises(TaskDefinitionError) as e:
+        runner.run('g3')
+    assert str(e.value) == 'task g3 is not defined'
 
 
 def test_run_tasks_fails(mocker):

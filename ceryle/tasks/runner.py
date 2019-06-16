@@ -1,5 +1,6 @@
 import ceryle.util as util
 
+from ceryle.tasks import TaskDefinitionError
 from ceryle.tasks.resolver import DependencyResolver
 from ceryle.tasks.task import TaskGroup
 
@@ -17,6 +18,8 @@ class TaskRunner:
 
     def run(self, task_group):
         chain = self._deps_chain_map.get(task_group)
+        if chain is None:
+            raise TaskDefinitionError(f'task {task_group} is not defined')
         return self._run(chain)
 
     def _run(self, chain):
