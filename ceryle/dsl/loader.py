@@ -32,7 +32,7 @@ class TaskFileLoader:
 
         tasks = eval(compile(ast.Expression(task_node.value), self._task_file, 'eval'), gvars, lvars)
         context = self._resolve_context(lvars.get('context'))
-        return TaskDefinition(parse_tasks(tasks, context), context, lvars.get('default'))
+        return TaskDefinition(parse_tasks(tasks, context), lvars.get('default'))
 
     def _resolve_context(self, context):
         if not context:
@@ -45,5 +45,4 @@ class TaskFileLoader:
 TaskDefinition = collections.namedtuple(
     'TaskDefinition',
     ['tasks',
-     'context',
      'default_task'])

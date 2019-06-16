@@ -15,7 +15,6 @@ def test_load_task_file():
     loader = TaskFileLoader(file_path('dsl_spec'))
     task_def = loader.load()
 
-    assert task_def.context == SCRIPT_DIR
     assert task_def.default_task == 'foo'
 
     task_groups = dict([(g.name, g) for g in task_def.tasks])

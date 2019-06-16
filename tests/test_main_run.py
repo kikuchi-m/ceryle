@@ -14,7 +14,6 @@ def test_main_run_default_task_group(mocker):
         ceryle.TaskGroup('tg1', []),
         ceryle.TaskGroup('tg2', []),
     ]
-    task_def.context = '/foo/bar'
     task_def.default_task = 'tg1'
 
     loader = ceryle.TaskFileLoader(dummy_task_file)
@@ -48,7 +47,6 @@ def test_main_run_task_group(mocker):
         ceryle.TaskGroup('tg1', []),
         ceryle.TaskGroup('tg2', []),
     ]
-    task_def.context = '/foo/bar'
     task_def.default_task = 'tg1'
 
     loader = ceryle.TaskFileLoader(dummy_task_file)
@@ -81,7 +79,6 @@ def test_main_run_fails_by_task_failure(mocker):
     task_def.tasks = [
         ceryle.TaskGroup('tg1', []),
     ]
-    task_def.context = '/foo/bar'
     task_def.default_task = 'tg1'
 
     loader = ceryle.TaskFileLoader(dummy_task_file)
@@ -123,7 +120,6 @@ def test_main_run_raises_by_no_default_and_no_task_to_run(mocker):
     task_def.tasks = [
         ceryle.TaskGroup('tg1', []),
     ]
-    task_def.context = '/foo/bar'
     task_def.default_task = None
 
     loader = ceryle.TaskFileLoader(dummy_task_file)
