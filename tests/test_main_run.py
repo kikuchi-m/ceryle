@@ -130,3 +130,5 @@ def test_main_run_raises_by_no_default_and_no_task_to_run(mocker):
     with pytest.raises(TaskDefinitionError) as e:
         ceryle.main.run()
     assert str(e.value) == 'default task is not declared, specify task to run'
+    find_mock.assert_called_once_with(mocker.ANY)
+    loader_cls.assert_called_once_with(dummy_task_file)
