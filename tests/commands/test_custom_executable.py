@@ -16,10 +16,30 @@ def test_custom_executable():
     assert res.return_code == 0
 
 
+def test_custom_executable_returns_int():
+    @executable
+    def mycommand():
+        return 127
+
+    res = mycommand().execute()
+    assert isinstance(res, ExecutionResult)
+    assert res.return_code == 127
+
+
+def test_custom_executable_returns_none_object():
+    @executable
+    def mycommand():
+        pass
+
+    res = mycommand().execute()
+    assert isinstance(res, ExecutionResult)
+    assert res.return_code == 0
+
+
 def test_raises_when_returning_incorrect_object():
     @executable
     def mycommand():
-        return 0
+        return 'foo'
 
     with pytest.raises(RuntimeError) as e:
         mycommand().execute()

@@ -34,6 +34,9 @@ class ExecutableWrapper(Executable):
             exact_kwargs[k] = kwargs.get(k, self._kwargs.get(k, kwdefaults.get(k)))
 
         res = self._func(*self._args, **exact_kwargs)
+        if res is None or isinstance(res, int):
+            return ExecutionResult(res or 0)
+
         if not isinstance(res, ExecutionResult):
             raise RuntimeError(f'ExecutionResult was not returned by {self._func.__name__}')
         return res
