@@ -68,7 +68,7 @@ def extract_cmd(cmd):
             trimmed = trimmed[seed:].lstrip()
         return parts
     util.assert_type(cmd, list)
-    return cmd
+    return list(cmd)
 
 
 def next_part(cmdstr):

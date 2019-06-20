@@ -1,4 +1,4 @@
-from .commands.executable import Executable, ExecutionResult
+from .commands.executable import executable, Executable, ExecutionResult
 from .commands.command import Command
 from .dsl import TaskFileError
 from .dsl.loader import TaskFileLoader
