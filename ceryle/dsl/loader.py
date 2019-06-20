@@ -1,4 +1,5 @@
 import ast
+import ceryle
 import ceryle.util as util
 import collections
 import os
@@ -35,7 +36,7 @@ class TaskFileLoader:
 
     def _prepare_vars(self):
         gvars = dict(
-            ExecutionResult=ExecutionResult,
+            ceryle=ceryle,
         )
         lvars = dict(
             command=Command,

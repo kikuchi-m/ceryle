@@ -1,8 +1,8 @@
 @executable
 def my_cmd(a):
     if a == 1:
-        return ExecutionResult(0)
-    return ExecutionResult(127)
+        return ceryle.ExecutionResult(0)
+    return ceryle.ExecutionResult(127)
 
 
 {
