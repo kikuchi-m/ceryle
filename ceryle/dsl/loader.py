@@ -5,6 +5,7 @@ import os
 
 from . import TaskFileError
 from ceryle.commands.command import Command
+from ceryle.commands.executable import executable, ExecutionResult
 from ceryle.dsl.parser import parse_tasks
 
 
@@ -23,9 +24,7 @@ class TaskFileLoader:
         if not isinstance(task_node, ast.Expr) or not isinstance(task_node.value, ast.Dict):
             raise TaskFileError(f'task definition must be dict; file {self._task_file}')
 
-        gvars = dict()
-        lvars = dict(command=Command)
-
+        gvars, lvars = self._prepare_vars()
         if len(body) > 1:
             co = compile(ast.Module(body[:-1]), self._task_file, 'exec')
             exec(co, gvars, lvars)
@@ -33,6 +32,16 @@ class TaskFileLoader:
         tasks = eval(compile(ast.Expression(task_node.value), self._task_file, 'eval'), gvars, lvars)
         context = self._resolve_context(lvars.get('context'))
         return TaskDefinition(parse_tasks(tasks, context), lvars.get('default'))
+
+    def _prepare_vars(self):
+        gvars = dict(
+            ExecutionResult=ExecutionResult,
+        )
+        lvars = dict(
+            command=Command,
+            executable=executable,
+        )
+        return gvars, lvars
 
     def _resolve_context(self, context):
         if not context:
