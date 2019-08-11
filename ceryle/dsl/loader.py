@@ -6,7 +6,7 @@ import os
 
 from . import TaskFileError
 from ceryle.commands.command import Command
-from ceryle.commands.executable import executable, ExecutionResult
+from ceryle.commands.executable import executable
 from ceryle.dsl.parser import parse_tasks
 
 
