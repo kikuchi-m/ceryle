@@ -17,3 +17,7 @@ class AggregateTaskFileLoader:
             gvars = d.global_vars
             lvars = d.local_vars
         return ceryle.dsl.loader.TaskDefinition(list(tasks.values()), default)
+
+
+def load_task_files(files):
+    return AggregateTaskFileLoader(files).load()

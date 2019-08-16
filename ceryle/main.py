@@ -2,16 +2,14 @@ import argparse
 import ceryle
 import ceryle.util as util
 import os
-import sys
 
 
 def run(task=None):
-    task_file = util.find_task_file(os.getcwd())
-    if task_file is None:
+    task_files = util.collect_task_files(os.getcwd())
+    if not task_files:
         raise ceryle.TaskFileError('task file not found')
 
-    loader = ceryle.TaskFileLoader(task_file)
-    task_def = loader.load()
+    task_def = ceryle.load_task_files(task_files)
     if task is None and task_def.default_task is None:
         raise ceryle.TaskDefinitionError('default task is not declared, specify task to run')
 

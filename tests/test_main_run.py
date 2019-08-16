@@ -6,8 +6,12 @@ from ceryle import TaskDefinitionError, TaskFileError
 
 
 def test_main_run_default_task_group(mocker):
-    dummy_task_file = '/foo/bar/CERYLE_TASKS'
-    find_mock = mocker.patch('ceryle.util.find_task_file', return_value=dummy_task_file)
+    dummy_task_files = [
+        '/foo/home/.ceryle/tasks/a.ceryle',
+        '/foo/bar/TASK',
+        '/foo/bar/.ceryle/tasks/b.ceryle',
+    ]
+    collect_mock = mocker.patch('ceryle.util.collect_task_files', return_value=dummy_task_files)
 
     task_def = mocker.Mock()
     task_def.tasks = [
@@ -15,10 +19,7 @@ def test_main_run_default_task_group(mocker):
         ceryle.TaskGroup('tg2', []),
     ]
     task_def.default_task = 'tg1'
-
-    loader = ceryle.TaskFileLoader(dummy_task_file)
-    loader.load = mocker.Mock(return_value=task_def)
-    loader_cls = mocker.patch('ceryle.TaskFileLoader', return_value=loader)
+    load_mock = mocker.patch('ceryle.load_task_files', return_value=task_def)
 
     runner = mocker.Mock()
     runner.run = mocker.Mock(return_value=True)
@@ -29,18 +30,20 @@ def test_main_run_default_task_group(mocker):
 
     # verification
     assert res == 0
-    find_mock.assert_called_once_with(mocker.ANY)
-
-    loader_cls.assert_called_once_with(dummy_task_file)
-    loader.load.assert_called_once_with()
+    collect_mock.assert_called_once_with(mocker.ANY)
+    load_mock.assert_called_once_with(dummy_task_files)
 
     runner_cls.assert_called_once_with(task_def.tasks)
     runner.run.assert_called_once_with('tg1')
 
 
-def test_main_run_task_group(mocker):
-    dummy_task_file = '/foo/bar/CERYLE_TASKS'
-    find_mock = mocker.patch('ceryle.util.find_task_file', return_value=dummy_task_file)
+def test_main_run_specific_task_group(mocker):
+    dummy_task_files = [
+        '/foo/home/.ceryle/tasks/a.ceryle',
+        '/foo/bar/TASK',
+        '/foo/bar/.ceryle/tasks/b.ceryle',
+    ]
+    collect_mock = mocker.patch('ceryle.util.collect_task_files', return_value=dummy_task_files)
 
     task_def = mocker.Mock()
     task_def.tasks = [
@@ -48,10 +51,7 @@ def test_main_run_task_group(mocker):
         ceryle.TaskGroup('tg2', []),
     ]
     task_def.default_task = 'tg1'
-
-    loader = ceryle.TaskFileLoader(dummy_task_file)
-    loader.load = mocker.Mock(return_value=task_def)
-    loader_cls = mocker.patch('ceryle.TaskFileLoader', return_value=loader)
+    load_mock = mocker.patch('ceryle.load_task_files', return_value=task_def)
 
     runner = mocker.Mock()
     runner.run = mocker.Mock(return_value=True)
@@ -62,28 +62,27 @@ def test_main_run_task_group(mocker):
 
     # verification
     assert res == 0
-    find_mock.assert_called_once_with(mocker.ANY)
-
-    loader_cls.assert_called_once_with(dummy_task_file)
-    loader.load.assert_called_once_with()
+    collect_mock.assert_called_once_with(mocker.ANY)
+    load_mock.assert_called_once_with(dummy_task_files)
 
     runner_cls.assert_called_once_with(task_def.tasks)
     runner.run.assert_called_once_with('tg2')
 
 
 def test_main_run_fails_by_task_failure(mocker):
-    dummy_task_file = '/foo/bar/CERYLE_TASKS'
-    find_mock = mocker.patch('ceryle.util.find_task_file', return_value=dummy_task_file)
+    dummy_task_files = [
+        '/foo/home/.ceryle/tasks/a.ceryle',
+        '/foo/bar/TASK',
+        '/foo/bar/.ceryle/tasks/b.ceryle',
+    ]
+    collect_mock = mocker.patch('ceryle.util.collect_task_files', return_value=dummy_task_files)
 
     task_def = mocker.Mock()
     task_def.tasks = [
         ceryle.TaskGroup('tg1', []),
     ]
     task_def.default_task = 'tg1'
-
-    loader = ceryle.TaskFileLoader(dummy_task_file)
-    loader.load = mocker.Mock(return_value=task_def)
-    loader_cls = mocker.patch('ceryle.TaskFileLoader', return_value=loader)
+    load_mock = mocker.patch('ceryle.load_task_files', return_value=task_def)
 
     runner = mocker.Mock()
     runner.run = mocker.Mock(return_value=False)
@@ -94,41 +93,38 @@ def test_main_run_fails_by_task_failure(mocker):
 
     # verification
     assert res == 1
-    find_mock.assert_called_once_with(mocker.ANY)
-
-    loader_cls.assert_called_once_with(dummy_task_file)
-    loader.load.assert_called_once_with()
+    collect_mock.assert_called_once_with(mocker.ANY)
+    load_mock.assert_called_once_with(dummy_task_files)
 
     runner_cls.assert_called_once_with(task_def.tasks)
     runner.run.assert_called_once_with('tg1')
 
 
 def test_main_run_fails_by_task_file_not_found(mocker):
-    find_mock = mocker.patch('ceryle.util.find_task_file', return_value=None)
+    collect_mock = mocker.patch('ceryle.util.collect_task_files', return_value=[])
 
     with pytest.raises(TaskFileError) as e:
         ceryle.main.run()
     assert str(e.value) == 'task file not found'
-    find_mock.assert_called_once_with(mocker.ANY)
+    collect_mock.assert_called_once_with(mocker.ANY)
 
 
 def test_main_run_raises_by_no_default_and_no_task_to_run(mocker):
-    dummy_task_file = '/foo/bar/CERYLE_TASKS'
-    find_mock = mocker.patch('ceryle.util.find_task_file', return_value=dummy_task_file)
+    dummy_task_files = [
+        '/foo/bar/TASK',
+    ]
+    collect_mock = mocker.patch('ceryle.util.collect_task_files', return_value=dummy_task_files)
 
     task_def = mocker.Mock()
     task_def.tasks = [
         ceryle.TaskGroup('tg1', []),
     ]
     task_def.default_task = None
-
-    loader = ceryle.TaskFileLoader(dummy_task_file)
-    loader.load = mocker.Mock(return_value=task_def)
-    loader_cls = mocker.patch('ceryle.TaskFileLoader', return_value=loader)
+    load_mock = mocker.patch('ceryle.load_task_files', return_value=task_def)
 
     # excercise
     with pytest.raises(TaskDefinitionError) as e:
         ceryle.main.run()
     assert str(e.value) == 'default task is not declared, specify task to run'
-    find_mock.assert_called_once_with(mocker.ANY)
-    loader_cls.assert_called_once_with(dummy_task_file)
+    collect_mock.assert_called_once_with(mocker.ANY)
+    load_mock.assert_called_once_with(dummy_task_files)
