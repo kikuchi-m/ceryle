@@ -1,10 +1,8 @@
 import ast
 import ceryle
 import ceryle.util as util
-import collections
 import os
 
-from . import TaskFileError
 from ceryle.commands.command import Command
 from ceryle.commands.executable import executable
 from ceryle.dsl.parser import parse_tasks
@@ -18,21 +16,23 @@ class TaskFileLoader:
         module = util.parse_to_ast(self._task_file)
 
         body = module.body
-        if not body:
-            raise TaskFileError(f'no task definition in {self._task_file}')
-
-        task_node = body[-1]
-        if not isinstance(task_node, ast.Expr) or not isinstance(task_node.value, ast.Dict):
-            raise TaskFileError(f'task definition must be dict; file {self._task_file}')
+        if len(body) == 0:
+            return TaskDefinition([], None)
 
         gvars, lvars = self._prepare_vars()
-        if len(body) > 1:
-            co = compile(ast.Module(body[:-1]), self._task_file, 'exec')
-            exec(co, gvars, lvars)
+        task_node = body[-1]
+        if not isinstance(task_node, ast.Expr) or not isinstance(task_node.value, ast.Dict):
+            self._eval_task_file(body, gvars, lvars)
+            return TaskDefinition([], lvars.get('default'), gvars, lvars)
+        else:
+            self._eval_task_file(body[:-1], gvars, lvars)
+            tasks = eval(compile(ast.Expression(task_node.value), self._task_file, 'eval'), gvars, lvars)
+            context = self._resolve_context(lvars.get('context'))
+            return TaskDefinition(parse_tasks(tasks, context), lvars.get('default'), gvars, lvars)
 
-        tasks = eval(compile(ast.Expression(task_node.value), self._task_file, 'eval'), gvars, lvars)
-        context = self._resolve_context(lvars.get('context'))
-        return TaskDefinition(parse_tasks(tasks, context), lvars.get('default'))
+    def _eval_task_file(self, body, gvars, lvars):
+        co = compile(ast.Module(body), self._task_file, 'exec')
+        exec(co, gvars, lvars)
 
     def _prepare_vars(self):
         gvars = dict(
@@ -52,7 +52,25 @@ class TaskFileLoader:
         return os.path.abspath(os.path.join(os.path.dirname(self._task_file), context))
 
 
-TaskDefinition = collections.namedtuple(
-    'TaskDefinition',
-    ['tasks',
-     'default_task'])
+class TaskDefinition:
+    def __init__(self, tasks, default_task=None, global_vars={}, local_vars={}):
+        self._tasks = tasks.copy()
+        self._default = default_task
+        self._globals = global_vars.copy()
+        self._locals = local_vars.copy()
+
+    @property
+    def tasks(self):
+        return self._tasks.copy()
+
+    @property
+    def default_task(self):
+        return self._default
+
+    @property
+    def global_vars(self):
+        return self._globals.copy()
+
+    @property
+    def local_vars(self):
+        return self._locals.copy()

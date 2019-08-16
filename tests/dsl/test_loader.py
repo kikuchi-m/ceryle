@@ -2,7 +2,6 @@ import os
 import pytest
 
 from ceryle import ExecutionResult, TaskFileLoader, TaskGroup
-from ceryle import TaskFileError
 from ceryle.commands.executable import ExecutableWrapper
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -38,20 +37,20 @@ def test_load_task_file():
     assert shorten.name == 'shorten'
 
 
-def test_load_task_file_fails_by_no_task_def(mocker):
+def test_load_task_file_no_task_def(mocker):
     test_file = file_path('dsl_no_task_def')
     loader = TaskFileLoader(test_file)
-    with pytest.raises(TaskFileError) as e:
-        loader.load()
-    assert str(e.value) == f'no task definition in {test_file}'
+    task_def = loader.load()
+    assert len(task_def.tasks) == 0
+    assert task_def.default_task is None
 
 
-def test_load_task_file_fails_by_not_dict(mocker):
+def test_load_task_file_not_dict(mocker):
     test_file = file_path('dsl_not_dict')
     loader = TaskFileLoader(test_file)
-    with pytest.raises(TaskFileError) as e:
-        loader.load()
-    assert str(e.value) == f'task definition must be dict; file {test_file}'
+    task_def = loader.load()
+    assert len(task_def.tasks) == 0
+    assert task_def.default_task is None
 
 
 def test_load_task_file_contains_custome_executable():
@@ -68,3 +67,5 @@ def test_load_task_file_contains_custome_executable():
     exe_res = foo.tasks[0].executable.execute()
     assert isinstance(exe_res, ExecutionResult)
     assert exe_res.return_code == 127
+
+    assert 'my_cmd' in task_def.local_vars
