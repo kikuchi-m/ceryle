@@ -10,7 +10,7 @@ from ceryle.dsl.parser import parse_tasks
 
 class TaskFileLoader:
     def __init__(self, task_file):
-        self._task_file = task_file
+        self._task_file = util.assert_type(task_file, str)
 
     def load(self, global_vars={}, local_vars={}):
         module = util.parse_to_ast(self._task_file)

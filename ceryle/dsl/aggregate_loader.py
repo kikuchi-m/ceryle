@@ -1,9 +1,10 @@
 import ceryle
+import ceryle.util as util
 
 
 class AggregateTaskFileLoader:
     def __init__(self, files):
-        self._files = list(files)
+        self._files = util.assert_type(files, list)[:]
 
     def load(self):
         tasks = {}
