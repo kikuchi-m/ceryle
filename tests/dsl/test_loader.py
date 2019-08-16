@@ -1,5 +1,4 @@
 import os
-import pytest
 
 from ceryle import ExecutionResult, TaskFileLoader, TaskGroup
 from ceryle.commands.executable import ExecutableWrapper
@@ -69,3 +68,24 @@ def test_load_task_file_contains_custome_executable():
     assert exe_res.return_code == 127
 
     assert 'my_cmd' in task_def.local_vars
+
+
+def test_load_multiple():
+    loader1 = TaskFileLoader(file_path('dsl_multiple1'))
+    loader2 = TaskFileLoader(file_path('dsl_multiple2'))
+
+    task_def1 = loader1.load()
+    task_def2 = loader2.load(global_vars=task_def1.global_vars, local_vars=task_def1.local_vars)
+
+    foo = task_def2.tasks[0]
+
+    assert isinstance(foo, TaskGroup)
+    assert foo.name == 'foo'
+    assert len(foo.tasks) == 1
+    assert isinstance(foo.tasks[0].executable, ExecutableWrapper)
+
+    exe_res = foo.tasks[0].executable.execute()
+    assert isinstance(exe_res, ExecutionResult)
+    assert exe_res.return_code == 127
+
+    assert 'my_cmd' in task_def2.local_vars

@@ -1,0 +1,3 @@
+@executable
+def my_cmd():
+    return 127

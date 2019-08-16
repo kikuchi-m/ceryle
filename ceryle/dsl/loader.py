@@ -12,14 +12,14 @@ class TaskFileLoader:
     def __init__(self, task_file):
         self._task_file = task_file
 
-    def load(self):
+    def load(self, global_vars={}, local_vars={}):
         module = util.parse_to_ast(self._task_file)
 
         body = module.body
         if len(body) == 0:
             return TaskDefinition([], None)
 
-        gvars, lvars = self._prepare_vars()
+        gvars, lvars = self._prepare_vars(global_vars, local_vars)
         task_node = body[-1]
         if not isinstance(task_node, ast.Expr) or not isinstance(task_node.value, ast.Dict):
             self._eval_task_file(body, gvars, lvars)
@@ -34,11 +34,13 @@ class TaskFileLoader:
         co = compile(ast.Module(body), self._task_file, 'exec')
         exec(co, gvars, lvars)
 
-    def _prepare_vars(self):
-        gvars = dict(
+    def _prepare_vars(self, global_vars, local_vars):
+        gvars = global_vars.copy()
+        gvars.update(
             ceryle=ceryle,
         )
-        lvars = dict(
+        lvars = local_vars.copy()
+        lvars.update(
             command=Command,
             executable=executable,
         )
