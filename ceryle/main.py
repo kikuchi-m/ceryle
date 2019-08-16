@@ -23,10 +23,11 @@ def run(task=None):
 def parse_args(argv):
     p = argparse.ArgumentParser()
     # TODO: nargs
-    p.add_argument('-t', '--task', help='Task group to run.')
 
-    args = p.parse_args(argv)
-    return vars(args)
+    known_args, rest = p.parse_known_args(argv)
+    args = vars(known_args)
+    args['task'] = rest[0] if len(rest) > 0 else None
+    return args
 
 
 def main(argv):

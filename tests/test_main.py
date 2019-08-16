@@ -2,7 +2,7 @@ import ceryle.main
 
 
 def test_parse_args():
-    argv = ['-t', 'foo']
+    argv = ['foo']
     args = ceryle.main.parse_args(argv)
 
     assert args['task'] == 'foo'
