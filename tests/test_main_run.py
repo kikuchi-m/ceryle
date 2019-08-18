@@ -34,7 +34,7 @@ def test_main_run_default_task_group(mocker):
     load_mock.assert_called_once_with(dummy_task_files)
 
     runner_cls.assert_called_once_with(task_def.tasks)
-    runner.run.assert_called_once_with('tg1')
+    runner.run.assert_called_once_with('tg1', dry_run=False)
 
 
 def test_main_run_specific_task_group(mocker):
@@ -66,7 +66,7 @@ def test_main_run_specific_task_group(mocker):
     load_mock.assert_called_once_with(dummy_task_files)
 
     runner_cls.assert_called_once_with(task_def.tasks)
-    runner.run.assert_called_once_with('tg2')
+    runner.run.assert_called_once_with('tg2', dry_run=False)
 
 
 def test_main_run_fails_by_task_failure(mocker):
@@ -97,7 +97,7 @@ def test_main_run_fails_by_task_failure(mocker):
     load_mock.assert_called_once_with(dummy_task_files)
 
     runner_cls.assert_called_once_with(task_def.tasks)
-    runner.run.assert_called_once_with('tg1')
+    runner.run.assert_called_once_with('tg1', dry_run=False)
 
 
 def test_main_run_fails_by_task_file_not_found(mocker):

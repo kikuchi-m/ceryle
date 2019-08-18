@@ -41,8 +41,8 @@ def test_run_all_tasks(mocker):
     tg = TaskGroup('new_task', [t1, t2])
 
     assert tg.run() is True
-    t1.run.assert_called_once_with()
-    t2.run.assert_called_once_with()
+    t1.run.assert_called_once_with(dry_run=False)
+    t2.run.assert_called_once_with(dry_run=False)
 
 
 def test_run_fails_some_task(mocker):
@@ -55,5 +55,19 @@ def test_run_fails_some_task(mocker):
     tg = TaskGroup('new_task', [t1, t2])
 
     assert tg.run() is False
-    t1.run.assert_called_once_with()
+    t1.run.assert_called_once_with(dry_run=False)
     t2.run.assert_not_called()
+
+
+def test_dry_run_all_tasks(mocker):
+    t1 = Task(Command('do some'), 'context')
+    mocker.patch.object(t1, 'run', return_value=True)
+
+    t2 = Task(Command('do awwsome'), 'context')
+    mocker.patch.object(t2, 'run', return_value=True)
+
+    tg = TaskGroup('new_task', [t1, t2])
+
+    assert tg.run(dry_run=True) is True
+    t1.run.assert_called_once_with(dry_run=True)
+    t2.run.assert_called_once_with(dry_run=True)

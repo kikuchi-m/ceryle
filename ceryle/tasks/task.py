@@ -10,7 +10,10 @@ class Task:
         self._executable = executable
         self._context = context
 
-    def run(self):
+    def run(self, dry_run=False):
+        print(f'running [{self._executable}]')
+        if dry_run:
+            return True
         res = self._executable.execute(context=self._context)
         success = res.return_code == 0
         if not success:
@@ -32,9 +35,9 @@ class TaskGroup:
         self._tasks = list(tasks)
         self._dependencies = list(dependencies)
 
-    def run(self):
+    def run(self, dry_run=False):
         for t in self._tasks:
-            if not t.run():
+            if not t.run(dry_run=dry_run):
                 return False
         return True
 

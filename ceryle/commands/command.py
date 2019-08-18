@@ -48,6 +48,9 @@ class Command(Executable):
     def cmd_str(self):
         return ' '.join([quote_if_needed(p) for p in self._cmd])
 
+    def __str__(self):
+        return self.cmd_str()
+
 
 def quote_if_needed(s):
     if ' ' in s:

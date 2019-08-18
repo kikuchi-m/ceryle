@@ -6,6 +6,14 @@ def test_parse_args():
     args = ceryle.main.parse_args(argv)
 
     assert args['task'] == 'foo'
+    assert args['dry_run'] is False
+
+
+def test_parse_args_dry_run():
+    for argv in [['-n'], ['--dry-run']]:
+        args = ceryle.main.parse_args(argv)
+
+        assert args['dry_run'] is True
 
 
 def test_main(mocker):

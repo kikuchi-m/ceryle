@@ -16,15 +16,15 @@ class TaskRunner:
         self._deps_chain_map = resolver.deps_chain_map()
         self._groups = dict([(g.name, g) for g in task_groups])
 
-    def run(self, task_group):
+    def run(self, task_group, dry_run=False):
         chain = self._deps_chain_map.get(task_group)
         if chain is None:
             raise TaskDefinitionError(f'task {task_group} is not defined')
-        return self._run(chain)
+        return self._run(chain, dry_run=dry_run)
 
-    def _run(self, chain):
+    def _run(self, chain, dry_run=False):
         for c in chain.deps:
-            res = self._run(c)
+            res = self._run(c, dry_run=dry_run)
             if not res:
                 return False
-        return self._groups[chain.task_name].run()
+        return self._groups[chain.task_name].run(dry_run=dry_run)

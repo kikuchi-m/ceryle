@@ -21,3 +21,14 @@ def test_run_failed(mocker):
 
     assert success is False
     executable.execute.assert_called_once_with(context='context')
+
+
+def test_dry_run(mocker):
+    executable = Command('do some')
+    mocker.patch.object(executable, 'execute', return_value=ExecutionResult(1))
+
+    t = Task(executable, 'context')
+    success = t.run(dry_run=True)
+
+    assert success is True
+    executable.execute.assert_not_called()
