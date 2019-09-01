@@ -19,6 +19,8 @@ def test_parse_args_dry_run():
 def test_main(mocker):
     args = {
         'task': None,
+        'log_level': 'INFO',
+        'log_stream': False,
     }
     parse_mock = mocker.patch('ceryle.main.parse_args', return_value=args)
     run_mock = mocker.patch('ceryle.main.run', return_value=0)

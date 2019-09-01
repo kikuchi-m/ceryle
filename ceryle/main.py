@@ -1,7 +1,11 @@
 import argparse
+import logging
+import os
+
 import ceryle
 import ceryle.util as util
-import os
+
+logger = logging.getLogger(__name__)
 
 
 def run(task=None, dry_run=False):
@@ -24,6 +28,8 @@ def parse_args(argv):
     p = argparse.ArgumentParser()
     # TODO: nargs
     p.add_argument('-n', '--dry-run', action='store_true')
+    p.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARN', 'ERROR'], default='INFO')
+    p.add_argument('--log-stream', action='store_true')
 
     known_args, rest = p.parse_known_args(argv)
     args = vars(known_args)
@@ -32,4 +38,20 @@ def parse_args(argv):
 
 
 def main(argv):
-    return run(**parse_args(argv))
+    args = parse_args(argv)
+
+    ceryle.configure_logging(
+        level={
+            'DEBUG': logging.DEBUG,
+            'INFO': logging.INFO,
+            'WARN': logging.WARN,
+            'ERROR': logging.ERROR,
+        }[args.pop('log_level')],
+        console=args.pop('log_stream'))
+    logger.debug(f'arguments: {argv}')
+
+    try:
+        return run(**args)
+    except Exception as e:
+        logger.error(e)
+        raise e
