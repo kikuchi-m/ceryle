@@ -49,7 +49,7 @@ class Command(Executable):
         return ' '.join([quote_if_needed(p) for p in self._cmd])
 
     def __str__(self):
-        return self.cmd_str()
+        return self._cmd_log_message()
 
 
 def quote_if_needed(s):

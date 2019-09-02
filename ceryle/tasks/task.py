@@ -11,7 +11,7 @@ class Task:
         self._context = context
 
     def run(self, dry_run=False):
-        print(f'running [{self._executable}]')
+        print(f'running {self._executable}')
         if dry_run:
             return True
         res = self._executable.execute(context=self._context)
