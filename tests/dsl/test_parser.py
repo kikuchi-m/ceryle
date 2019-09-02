@@ -85,3 +85,21 @@ def test_parse_syntax_suger():
     assert g2.tasks[0].executable.cmd == ['do', 'awesome']
     assert isinstance(g2.tasks[1], Task)
     assert g2.tasks[1].executable.cmd == ['do', 'awesome', 'more']
+
+
+def test_parse_no_tasks():
+    raw_tasks = {
+        'g1': {
+        },
+    }
+
+    tasks = dict([(g.name, g) for g in parse_tasks(raw_tasks, 'context')])
+
+    assert len(tasks) == 1
+
+    g1 = tasks['g1']
+    assert isinstance(g1, TaskGroup)
+    assert g1.name == 'g1'
+    assert g1.dependencies == []
+
+    assert len(g1.tasks) == 0
