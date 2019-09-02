@@ -6,6 +6,7 @@ import os
 from ceryle.commands.command import Command
 from ceryle.commands.executable import executable
 from ceryle.dsl.parser import parse_tasks
+from . import support
 
 
 class TaskFileLoader:
@@ -43,6 +44,7 @@ class TaskFileLoader:
         lvars.update(
             command=Command,
             executable=executable,
+            path=support.joinpath,
         )
         return gvars, lvars
 
