@@ -51,6 +51,9 @@ class Command(Executable):
     def __str__(self):
         return self._cmd_log_message()
 
+    def __repr__(self):
+        return f'command([{self.cmd_str()}], cwd={self._cwd})'
+
 
 def quote_if_needed(s):
     if ' ' in s:
