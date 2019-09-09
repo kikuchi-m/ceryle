@@ -1,5 +1,6 @@
 from .commands.executable import executable, Executable, ExecutionResult
 from .commands.command import Command
+from .commands.copy import Copy
 from .dsl import TaskFileError
 from .dsl.loader import TaskFileLoader
 from .dsl.aggregate_loader import AggregateTaskFileLoader, load_task_files
