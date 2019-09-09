@@ -12,6 +12,8 @@ default = 'foo'
             'run': command(['ls']),
         }, {
             'run': command(['ls', '-l']),
+        }, {
+            'run': copy(path('a', 'b'), path('c', 'd')),
         }],
     },
 
@@ -24,6 +26,7 @@ default = 'foo'
     'simple': {
         'tasks': [
             command('ls -l'),
+            copy(path('a', 'b'), path('c', 'd')),
         ],
     },
 
