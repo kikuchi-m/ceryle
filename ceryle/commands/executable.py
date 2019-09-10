@@ -11,12 +11,22 @@ class Executable(abc.ABC):
 
 
 class ExecutionResult:
-    def __init__(self, return_code):
+    def __init__(self, return_code, stdout=[], stderr=[]):
         self._return_code = return_code
+        self._stdout = [*stdout]
+        self._stderr = [*stderr]
 
     @property
     def return_code(self):
         return self._return_code
+
+    @property
+    def stdout(self):
+        return [*self._stdout]
+
+    @property
+    def stderr(self):
+        return [*self._stderr]
 
 
 class ExecutableWrapper(Executable):

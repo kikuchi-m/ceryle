@@ -71,6 +71,24 @@ def test_execute_script_with_error():
         assert re.match('.*sample error.*', e.getvalue().rstrip())
 
 
+def test_execute_command_return_stdout():
+    command = Command('echo foo')
+    result = command.execute()
+    assert result.return_code == 0
+    assert len(result.stdout) == 1
+    assert result.stdout[0].rstrip() == 'foo'
+    assert len(result.stderr) == 0
+
+
+def test_execute_command_return_stderr():
+    command = Command('./scripts/stderr.sh', cwd=FILE_DIR)
+    result = command.execute()
+    assert result.return_code == 3
+    assert len(result.stdout) == 0
+    assert len(result.stderr) == 1
+    assert result.stderr[0].rstrip() == 'sample error'
+
+
 def test_execute_with_context():
     with tempfile.TemporaryDirectory() as tmpd:
         context = pathlib.Path(tmpd)

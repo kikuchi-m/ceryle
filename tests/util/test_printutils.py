@@ -31,5 +31,6 @@ def test_print_stream():
             yield l
 
     with std_capture() as (o, _):
-        print_stream(gen_lines())
+        out = print_stream(gen_lines())
         assert ['foo', 'bar', 'baz'] == o.getvalue().splitlines()
+        assert ['foo', 'bar', 'baz'] == out

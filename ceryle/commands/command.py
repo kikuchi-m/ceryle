@@ -22,9 +22,9 @@ class Command(Executable):
             self._cmd,
             cwd=self._get_cwd(context),
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print_std_streams(proc.stdout, proc.stderr)
+        sout, serr = print_std_streams(proc.stdout, proc.stderr)
         logger.info(f'finished {cmd_log}')
-        return ExecutionResult(proc.wait())
+        return ExecutionResult(proc.wait(), stdout=sout, stderr=serr)
 
     def _get_cwd(self, context=None):
         if self._cwd:
@@ -94,4 +94,4 @@ def next_part(cmdstr):
 
 def print_std_streams(stdout, stderr):
     with ThreadPoolExecutor(max_workers=2) as executor:
-        executor.map(util.print_stream, [stdout, stderr], [False, True])
+        return executor.map(util.print_stream, [stdout, stderr], [False, True])

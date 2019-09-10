@@ -55,8 +55,12 @@ class StderrPrinter(Printer):
 
 def print_stream(s, error=False):
     printer = StderrPrinter() if error else StdoutPrinter()
-    for l in s:
-        printer.printline((l.decode() if isinstance(l, bytes) else l).rstrip())
+    out = []
+    for line in s:
+        l = line.decode() if isinstance(line, bytes) else line
+        printer.printline(l.rstrip())
+        out.append(l)
+    return out
 
 
 def print_err(*lines, font=ERROR_FONT):
