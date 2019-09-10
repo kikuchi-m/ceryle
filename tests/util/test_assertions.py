@@ -19,6 +19,9 @@ def test_raise_if_not_match_type():
     with pytest.raises(TypeError, match=r'not matched to any type Executable; actual: str'):
         assert_type('foo', Executable)
 
+    with pytest.raises(TypeError, match=r'not matched to any type None, int; actual: str'):
+        assert_type('foo', None, int)
+
 
 def test_pass_assertion():
     assert assert_type('foo', str) == 'foo'
@@ -31,6 +34,10 @@ def test_pass_assertion():
 
     cmd = Command('do some')
     assert assert_type(cmd, Executable) == cmd
+
+    assert assert_type(None, None, str) == None
+
+    assert assert_type('foo', None, str) == 'foo'
 
 
 class Foo:
