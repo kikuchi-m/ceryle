@@ -1,9 +1,13 @@
 import abc
+import logging
+import os
 import re
 import sys
 
 WARN_FONT = '38;5;221'
 ERROR_FONT = '38;5;124'
+
+logger = logging.getLogger(__file__)
 
 
 def sgr(p='0'):
@@ -28,6 +32,7 @@ class StdoutPrinter(Printer):
         self._decorations = [(re.compile(p), f) for p, f in decorate_patterns]
 
     def printline(self, line):
+        logger.debug(line)
         print(self.decorate(line))
 
     def decorate(self, line):
@@ -55,4 +60,5 @@ def print_stream(s, error=False):
 
 
 def print_err(*lines, font=ERROR_FONT):
+    logger.debug(os.linesep.join(lines))
     print(*[decorate(l, font) for l in lines], file=sys.stderr)

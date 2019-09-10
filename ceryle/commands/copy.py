@@ -1,8 +1,11 @@
+import logging
 import pathlib
 import shutil
 
 import ceryle.util as util
 from ceryle.commands.executable import Executable, ExecutionResult
+
+logger = logging.getLogger(__file__)
 
 
 class Copy(Executable):
@@ -20,13 +23,15 @@ class Copy(Executable):
             return ExecutionResult(1)
 
         if self._glob:
+            logger.info(f'copying file(s) {self._src} to {self._dst} (glob: {self._glob})')
             _copy_glob(srcpath, dstpath, self._glob)
         else:
+            logger.info(f'copying file(s) {self._src} to {self._dst}')
             _copy_internal(srcpath, dstpath)
         return ExecutionResult(0)
 
     def __str__(self):
-        return f'copy(src={self._src}, dst={self._dst})'
+        return f'copy(src={self._src}, dst={self._dst}, glob={self._glob})'
 
 
 def _copy_internal(srcpath, dstpath):
