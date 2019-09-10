@@ -10,9 +10,9 @@ logger = logging.getLogger(__file__)
 
 class Copy(Executable):
     def __init__(self, src, dst, glob=None):
-        self._src = src
-        self._dst = dst
-        self._glob = glob
+        self._src = util.assert_type(src, str, pathlib.Path)
+        self._dst = util.assert_type(dst, str, pathlib.Path)
+        self._glob = util.assert_type(glob, None, str)
 
     def execute(self, *args, context=None, **kwargs):
         srcpath = pathlib.Path(context, self._src)

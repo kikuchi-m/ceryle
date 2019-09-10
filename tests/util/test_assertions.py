@@ -35,7 +35,7 @@ def test_pass_assertion():
     cmd = Command('do some')
     assert assert_type(cmd, Executable) == cmd
 
-    assert assert_type(None, None, str) == None
+    assert assert_type(None, None, str) is None
 
     assert assert_type('foo', None, str) == 'foo'
 
