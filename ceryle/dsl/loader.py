@@ -3,8 +3,7 @@ import ceryle
 import ceryle.util as util
 import os
 
-from ceryle.commands.command import Command
-from ceryle.commands.copy import Copy
+from ceryle import Command, Copy, Remove
 from ceryle.commands.executable import executable
 from ceryle.dsl.parser import parse_tasks
 from . import support
@@ -45,6 +44,7 @@ class TaskFileLoader:
         lvars.update(
             command=Command,
             copy=Copy,
+            remove=Remove,
             executable=executable,
             path=support.joinpath,
         )

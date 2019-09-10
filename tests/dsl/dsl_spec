@@ -27,6 +27,7 @@ default = 'foo'
         'tasks': [
             command('ls -l'),
             copy(path('a', 'b'), path('c', 'd')),
+            remove(path('a', 'b'), path('c', 'd')),
         ],
     },
 
