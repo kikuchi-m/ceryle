@@ -6,9 +6,10 @@ from ceryle.commands.executable import Executable, ExecutionResult
 
 
 class Copy(Executable):
-    def __init__(self, src, dst):
+    def __init__(self, src, dst, glob=None):
         self._src = src
         self._dst = dst
+        self._glob = glob
 
     def execute(self, *args, context=None, **kwargs):
         srcpath = pathlib.Path(context, self._src)
@@ -18,7 +19,10 @@ class Copy(Executable):
             util.print_err(f'copy source not found: {self._src}')
             return ExecutionResult(1)
 
-        _copy_internal(srcpath, dstpath)
+        if self._glob:
+            _copy_glob(srcpath, dstpath, self._glob)
+        else:
+            _copy_internal(srcpath, dstpath)
         return ExecutionResult(0)
 
     def __str__(self):
@@ -44,3 +48,9 @@ def _copy_file(srcpath, dstpath):
     else:
         dst = dstpath
     shutil.copyfile(srcpath, dst)
+
+
+def _copy_glob(srcpath, dstpath, pattern):
+    for p in srcpath.glob(pattern):
+        d = dstpath.joinpath(p.relative_to(srcpath))
+        _copy_internal(p, d)

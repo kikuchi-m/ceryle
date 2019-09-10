@@ -214,3 +214,78 @@ def test_copy_file_not_exists():
         assert isinstance(res, ExecutionResult)
         assert res.return_code == 1
         assert dstf.exists() is False
+
+
+def test_copy_glob_files():
+    '''
+    src: d1/
+      d1/f1.txt
+      d1/f2.py
+      d1/d2/d3/f3.txt
+    dst: dst_dir (not exists)
+    expected:
+      dst_dir/f1.txt
+    '''
+    with tempfile.TemporaryDirectory() as tmpd:
+        srcd1 = pathlib.Path(tmpd, 'd1')
+        srcd2 = srcd1.joinpath('d2')
+        srcd2.mkdir(parents=True)
+        srcf1 = srcd1.joinpath('f1.txt')
+        srcf2 = srcd1.joinpath('f2.py')
+        srcf3 = srcd2.joinpath('f3.txt')
+        for p in [srcf1, srcf2, srcf3]:
+            with open(p, 'w'):
+                pass
+
+        dstd = pathlib.Path(tmpd, 'dst_dir')
+
+        for p in [srcf1, srcf2, srcf3]:
+            assert p.is_file() is True
+        assert dstd.exists() is False
+
+        copy = Copy('d1', 'dst_dir', glob='*.txt')
+        res = copy.execute(context=tmpd)
+
+        assert isinstance(res, ExecutionResult)
+        assert res.return_code == 0
+        assert dstd.joinpath('f1.txt').is_file() is True
+        assert dstd.joinpath('f2.py').exists() is False
+        assert dstd.joinpath('d2', 'd3', 'f3.txt').exists() is False
+
+
+def test_copy_glob_files_recursive():
+    '''
+    src: d1/
+      d1/f1.txt
+      d1/f2.py
+      d1/d2/d3/f3.txt
+    dst: dst_dir (not exists)
+    expected:
+      dst_dir/f1.txt
+      dst_dir/d2/d3/f3.txt
+    '''
+    with tempfile.TemporaryDirectory() as tmpd:
+        srcd1 = pathlib.Path(tmpd, 'd1')
+        srcd2 = srcd1.joinpath('d2', 'd3')
+        srcd2.mkdir(parents=True)
+        srcf1 = srcd1.joinpath('f1.txt')
+        srcf2 = srcd1.joinpath('f2.py')
+        srcf3 = srcd2.joinpath('f3.txt')
+        for p in [srcf1, srcf2, srcf3]:
+            with open(p, 'w'):
+                pass
+
+        dstd = pathlib.Path(tmpd, 'dst_dir')
+
+        for p in [srcf1, srcf2, srcf3]:
+            assert p.is_file() is True
+        assert dstd.exists() is False
+
+        copy = Copy('d1', 'dst_dir', glob='**/*.txt')
+        res = copy.execute(context=tmpd)
+
+        assert isinstance(res, ExecutionResult)
+        assert res.return_code == 0
+        assert dstd.joinpath('f1.txt').is_file() is True
+        assert dstd.joinpath('f2.py').exists() is False
+        assert dstd.joinpath('d2', 'd3', 'f3.txt').is_file() is True
