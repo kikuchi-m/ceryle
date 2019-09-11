@@ -57,8 +57,8 @@ def print_stream(s, error=False):
     printer = StderrPrinter() if error else StdoutPrinter()
     out = []
     for line in s:
-        l = line.decode() if isinstance(line, bytes) else line
-        printer.printline(l.rstrip())
+        l = str.rstrip(line.decode() if isinstance(line, bytes) else line)
+        printer.printline(l)
         out.append(l)
     return out
 

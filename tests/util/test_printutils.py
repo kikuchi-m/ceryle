@@ -27,10 +27,20 @@ def test_stderr_printlne():
 
 def test_print_stream():
     def gen_lines():
-        for l in ['foo', 'bar', 'baz']:
+        lines = [
+            'plain',
+            'LF\n',
+            'CR\r',
+            'CRLF\r\n',
+            b'plain',
+            b'LF\n',
+            b'CR\r',
+            b'CRLF\r\n',
+        ]
+        for l in lines:
             yield l
 
     with std_capture() as (o, _):
         out = print_stream(gen_lines())
-        assert ['foo', 'bar', 'baz'] == o.getvalue().splitlines()
-        assert ['foo', 'bar', 'baz'] == out
+        assert ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF'] == o.getvalue().splitlines()
+        assert ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF'] == out
