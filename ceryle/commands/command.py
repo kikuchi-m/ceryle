@@ -1,5 +1,6 @@
 import ceryle.util as util
 import logging
+import os
 import pathlib
 import re
 import subprocess
@@ -15,16 +16,25 @@ class Command(Executable):
         self._cmd = extract_cmd(cmd)
         self._cwd = cwd
 
-    def execute(self, *args, context=None, **kwargs):
+    def execute(self, *args, context=None, inputs=[], timeout=None, **kwargs):
         cmd_log = self._cmd_log_message()
         logger.info(f'run command: {cmd_log}')
+
+        communicate = len(inputs) > 0
         proc = subprocess.Popen(
             self._cmd,
             cwd=self._get_cwd(context),
+            stdin=subprocess.PIPE if communicate else None,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        sout, serr = print_std_streams(proc.stdout, proc.stderr)
-        logger.info(f'finished {cmd_log}')
-        return ExecutionResult(proc.wait(), stdout=sout, stderr=serr)
+        if communicate:
+            stds = proc.communicate(input=os.linesep.join(inputs).encode(), timeout=timeout)
+            o, e = print_std_streams(*[std.decode().rstrip().split(os.linesep) for std in stds])
+        else:
+            o, e = print_std_streams(proc.stdout, proc.stderr)
+            proc.wait()
+
+        logger.info(f'finished with {proc.returncode} {cmd_log}')
+        return ExecutionResult(proc.returncode, stdout=o, stderr=e)
 
     def _get_cwd(self, context=None):
         if self._cwd:

@@ -1,5 +1,7 @@
 import abc
 
+import ceryle.util as util
+
 
 class Executable(abc.ABC):
     def __init__(self):
@@ -13,8 +15,8 @@ class Executable(abc.ABC):
 class ExecutionResult:
     def __init__(self, return_code, stdout=[], stderr=[]):
         self._return_code = return_code
-        self._stdout = [*stdout]
-        self._stderr = [*stderr]
+        self._stdout = [util.assert_type(l, str) for l in stdout]
+        self._stderr = [util.assert_type(l, str) for l in stderr]
 
     @property
     def return_code(self):

@@ -89,6 +89,19 @@ def test_execute_command_return_stderr():
     assert result.stderr[0].rstrip() == 'sample error'
 
 
+def test_execute_with_inputs():
+    with std_capture() as (o, e):
+        command = Command(['cat'])
+        result = command.execute(inputs=['foo', 'bar'], timeout=3)
+        assert result.return_code == 0
+        assert len(result.stdout) == 2
+        assert result.stdout[0].rstrip() == 'foo'
+        assert result.stdout[1].rstrip() == 'bar'
+
+        lines = [l.rstrip() for l in o.getvalue().splitlines()]
+        assert lines == ['foo', 'bar']
+
+
 def test_execute_with_context():
     with tempfile.TemporaryDirectory() as tmpd:
         context = pathlib.Path(tmpd)
