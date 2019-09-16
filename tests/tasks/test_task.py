@@ -51,6 +51,8 @@ def test_dry_run(mocker):
 
     assert success is True
     executable.execute.assert_not_called()
+    assert t.stdout() == []
+    assert t.stderr() == []
 
 
 def test_store_stds(mocker):

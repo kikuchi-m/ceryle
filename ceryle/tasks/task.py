@@ -17,6 +17,7 @@ class Task:
     def run(self, dry_run=False, inputs=[]):
         print(f'running {self._executable}')
         if dry_run:
+            self._res = ExecutionResult(0)
             return True
         self._res = self._executable.execute(context=self._context, inputs=inputs)
         success = self._res.return_code == 0
