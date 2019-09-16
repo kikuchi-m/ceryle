@@ -27,4 +27,10 @@ class TaskRunner:
             res = self._run(c, dry_run=dry_run)
             if not res:
                 return False
-        return self._groups[chain.task_name].run(dry_run=dry_run)
+        return self._run_group(self._groups[chain.task_name], dry_run=dry_run)
+
+    def _run_group(self, tg, dry_run=False):
+        for t in tg.tasks:
+            if not t.run(dry_run=dry_run):
+                return False
+        return True

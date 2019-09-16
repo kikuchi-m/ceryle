@@ -4,6 +4,20 @@ from ceryle import Command, ExecutionResult, Task
 from ceryle import IllegalOperation
 
 
+def test_raise_if_unacceptable_args():
+    with pytest.raises(TypeError):
+        Task(None, 'context')
+
+    with pytest.raises(TypeError):
+        Task('not an executable', 'context')
+
+    with pytest.raises(TypeError):
+        Task(Command('do some', None))
+
+    with pytest.raises(TypeError):
+        Task(Command('do some', 1))
+
+
 def test_run_succeeded(mocker):
     executable = Command('do some')
     mocker.patch.object(executable, 'execute', return_value=ExecutionResult(0))

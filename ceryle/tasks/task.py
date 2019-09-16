@@ -57,15 +57,9 @@ class Task:
 
 class TaskGroup:
     def __init__(self, name, tasks, dependencies=[]):
-        self._name = name
-        self._tasks = list(tasks)
-        self._dependencies = list(dependencies)
-
-    def run(self, dry_run=False):
-        for t in self._tasks:
-            if not t.run(dry_run=dry_run):
-                return False
-        return True
+        self._name = util.assert_type(name, str)
+        self._tasks = [util.assert_type(t, Task) for t in util.assert_type(tasks, list)]
+        self._dependencies = [util.assert_type(d, str) for d in util.assert_type(dependencies, list)]
 
     @property
     def name(self):
