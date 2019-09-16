@@ -1,6 +1,6 @@
 import ceryle.util as util
 
-from ceryle.tasks import TaskDefinitionError
+from ceryle.tasks import TaskDefinitionError, TaskIOError
 from ceryle.tasks.resolver import DependencyResolver
 from ceryle.tasks.task import TaskGroup
 
@@ -20,17 +20,25 @@ class TaskRunner:
         chain = self._deps_chain_map.get(task_group)
         if chain is None:
             raise TaskDefinitionError(f'task {task_group} is not defined')
-        return self._run(chain, dry_run=dry_run)
+        return self._run(chain, dry_run=dry_run)[0]
 
-    def _run(self, chain, dry_run=False):
+    def _run(self, chain, dry_run=False, register={}):
+        r = dict(register)
         for c in chain.deps:
-            res = self._run(c, dry_run=dry_run)
+            res, r = self._run(c, dry_run=dry_run, register=r)
             if not res:
-                return False
-        return self._run_group(self._groups[chain.task_name], dry_run=dry_run)
+                return False, r
+        return self._run_group(self._groups[chain.task_name], dry_run=dry_run, register=r)
 
-    def _run_group(self, tg, dry_run=False):
+    def _run_group(self, tg, dry_run=False, register={}):
+        r = dict(register)
         for t in tg.tasks:
-            if not t.run(dry_run=dry_run):
-                return False
-        return True
+            if t.input_key and t.input_key not in r:
+                raise TaskIOError(f'{t.input_key} is required by a task in {tg.name}, but not registered')
+            if not t.run(dry_run=dry_run, inputs=r.get(t.input_key, [])):
+                return False, r
+            if t.stdout_key:
+                r.update({t.stdout_key: t.stdout()})
+            if t.stderr_key:
+                r.update({t.stderr_key: t.stderr()})
+        return True, r

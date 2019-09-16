@@ -5,7 +5,7 @@ from .commands.remove import Remove
 from .dsl import TaskFileError
 from .dsl.loader import TaskFileLoader
 from .dsl.aggregate_loader import AggregateTaskFileLoader, load_task_files
-from .tasks import TaskDefinitionError, TaskDependencyError
+from .tasks import TaskDefinitionError, TaskDependencyError, TaskIOError
 from .tasks.task import Task, TaskGroup
 from .tasks.resolver import DependencyResolver, DependencyChain
 from .tasks.runner import TaskRunner

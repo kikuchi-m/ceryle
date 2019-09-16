@@ -1,7 +1,7 @@
 import ceryle
 import ceryle.util as util
 
-from ceryle.commands.executable import Executable
+from ceryle.commands.executable import Executable, ExecutionResult
 
 
 class Task:
