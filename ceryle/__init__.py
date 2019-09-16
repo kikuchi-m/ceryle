@@ -39,3 +39,7 @@ def configure_logging(level=logging.INFO, console=False):
         format='%(asctime)s [%(levelname)8s %(name)s] %(message)s (%(pathname)s:%(lineno)d %(funcName)s)',
         handlers=handlers,
     )
+
+
+class IllegalOperation(RuntimeError):
+    pass

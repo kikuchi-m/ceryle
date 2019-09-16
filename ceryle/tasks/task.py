@@ -1,21 +1,25 @@
+import ceryle
 import ceryle.util as util
 
 from ceryle.commands.executable import Executable
 
 
 class Task:
-    def __init__(self, executable, context):
-        util.assert_type(executable, Executable)
-        util.assert_type(context, str)
-        self._executable = executable
-        self._context = context
+    def __init__(self, executable, context,
+                 stdout=None, stderr=None, input=None):
+        self._executable = util.assert_type(executable, Executable)
+        self._context = util.assert_type(context, str)
+        self._stdout = util.assert_type(stdout, None, str)
+        self._stderr = util.assert_type(stderr, None, str)
+        self._input = util.assert_type(input, None, str)
+        self._res = None
 
-    def run(self, dry_run=False):
+    def run(self, dry_run=False, inputs=[]):
         print(f'running {self._executable}')
         if dry_run:
             return True
-        res = self._executable.execute(context=self._context)
-        success = res.return_code == 0
+        self._res = self._executable.execute(context=self._context, inputs=inputs)
+        success = self._res.return_code == 0
         if not success:
             util.print_err(f'task failed: {repr(self._executable)}')
         return success
@@ -27,6 +31,28 @@ class Task:
     @property
     def context(self):
         return self._context
+
+    @property
+    def stdout_key(self):
+        return self._stdout
+
+    @property
+    def stderr_key(self):
+        return self._stderr
+
+    @property
+    def input_key(self):
+        return self._input
+
+    def stdout(self):
+        if self._res is None:
+            raise ceryle.IllegalOperation('task is not run yet')
+        return self._res.stdout
+
+    def stderr(self):
+        if self._res is None:
+            raise ceryle.IllegalOperation('task is not run yet')
+        return self._res.stderr
 
 
 class TaskGroup:

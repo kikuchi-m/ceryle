@@ -16,24 +16,11 @@ def test_load_task_file():
 
     assert task_def.default_task == 'foo'
 
-    task_groups = dict([(g.name, g) for g in task_def.tasks])
-    assert len(task_groups) == 4
-
-    foo = task_groups['foo']
-    assert isinstance(foo, TaskGroup)
-    assert foo.name == 'foo'
-
-    bar = task_groups['bar']
-    assert isinstance(bar, TaskGroup)
-    assert bar.name == 'bar'
-
-    simple = task_groups['simple']
-    assert isinstance(simple, TaskGroup)
-    assert simple.name == 'simple'
-
-    shorten = task_groups['shorten']
-    assert isinstance(shorten, TaskGroup)
-    assert shorten.name == 'shorten'
+    tasks = dict([(g.name, g) for g in task_def.tasks])
+    task_names = tasks.keys()
+    for name in ['foo', 'bar', 'simple', 'shorten', 'pipe']:
+        assert name in task_names
+        assert isinstance(tasks[name], TaskGroup)
 
 
 def test_load_task_file_no_task_def(mocker):
