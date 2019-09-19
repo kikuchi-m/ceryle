@@ -1,0 +1,8 @@
+@executable
+def cmd_x():
+    return ceryle.ExecutionResult(0, stdout=['cmd_x'])
+
+
+@executable
+def cmd_y():
+    return ceryle.ExecutionResult(0, stdout=['cmd_y'])

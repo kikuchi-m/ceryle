@@ -49,12 +49,36 @@ def test_load_task_file_contains_custome_executable():
     assert foo.name == 'foo'
     assert len(foo.tasks) == 1
     assert isinstance(foo.tasks[0].executable, ExecutableWrapper)
+    assert 'my_cmd' in task_def.local_vars
 
     exe_res = foo.tasks[0].executable.execute()
     assert isinstance(exe_res, ExecutionResult)
     assert exe_res.return_code == 127
 
-    assert 'my_cmd' in task_def.local_vars
+
+def test_load_task_file_no_task_def_contains_custome_executable():
+    loader = TaskFileLoader(file_path('dsl_no_task_def_executable'))
+    task_def = loader.load()
+
+    assert len(task_def.tasks) == 0
+    assert 'cmd_x' in task_def.local_vars
+    assert 'cmd_y' in task_def.local_vars
+
+    cmd_x = task_def.local_vars['cmd_x']()
+    assert isinstance(cmd_x, ExecutableWrapper)
+
+    cmd_x_res = cmd_x.execute()
+    assert isinstance(cmd_x_res, ExecutionResult)
+    assert cmd_x_res.return_code == 0
+    assert cmd_x_res.stdout == ['cmd_x']
+
+    cmd_y = task_def.local_vars['cmd_y']()
+    assert isinstance(cmd_y, ExecutableWrapper)
+
+    cmd_y_res = cmd_y.execute()
+    assert isinstance(cmd_y_res, ExecutionResult)
+    assert cmd_y_res.return_code == 0
+    assert cmd_y_res.stdout == ['cmd_y']
 
 
 def test_load_multiple():
