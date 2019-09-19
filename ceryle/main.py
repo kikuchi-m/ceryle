@@ -12,8 +12,9 @@ def run(task=None, dry_run=False):
     task_files = util.collect_task_files(os.getcwd())
     if not task_files:
         raise ceryle.TaskFileError('task file not found')
+    extensions = util.collect_extension_files(os.getcwd())
 
-    task_def = ceryle.load_task_files(task_files)
+    task_def = ceryle.load_task_files(extensions + task_files)
     if task is None and task_def.default_task is None:
         raise ceryle.TaskDefinitionError('default task is not declared, specify task to run')
 
