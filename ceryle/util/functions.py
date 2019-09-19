@@ -2,6 +2,7 @@ import ast
 import pathlib
 
 from ceryle.const import DEFAULT_TASK_FILE, CERYLE_DIR, CERYLE_TASK_DIR, CERYLE_TASK_EXT
+from ceryle.const import CERYLE_EX_DIR, CERYLE_EX_FILE_EXT
 
 
 def getin(d, *keys, default=None):
@@ -49,3 +50,18 @@ def collect_task_files(start):
         ]
 
     return files
+
+
+def collect_extension_files(start):
+    home = pathlib.Path.home().joinpath(CERYLE_DIR, CERYLE_EX_DIR)
+    ex_files = sorted([str(p) for p in home.glob('*' + CERYLE_EX_FILE_EXT)])
+
+    default_task_file = find_task_file(start)
+    if default_task_file:
+        ex_dir = pathlib.Path(default_task_file).parent.joinpath(CERYLE_DIR, CERYLE_EX_DIR)
+        ex_files = [
+            *ex_files,
+            *sorted([str(p) for p in ex_dir.glob('*' + CERYLE_EX_FILE_EXT)]),
+        ]
+
+    return ex_files

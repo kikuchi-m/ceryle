@@ -1,8 +1,8 @@
 import pathlib
 import tempfile
 
-from ceryle.const import DEFAULT_TASK_FILE, CERYLE_DIR, CERYLE_TASK_DIR
-from ceryle.util import getin, find_task_file, collect_task_files
+from ceryle.const import DEFAULT_TASK_FILE, CERYLE_DIR, CERYLE_TASK_DIR, CERYLE_EX_DIR, CERYLE_EX_FILE_EXT
+from ceryle.util import getin, find_task_file, collect_task_files, collect_extension_files
 
 
 def test_getin():
@@ -23,22 +23,19 @@ def test_getin_returns_default():
     assert getin({'a': {'b': 2}}, 'a', 'b', 'c', default=-1) == -1
 
 
-def prepare_wd(d):
-    wd = pathlib.Path(d, 'aa/bb/cc')
-    wd.mkdir(parents=True)
-    return wd
-
-
 def test_find_task_file_not_found():
     with tempfile.TemporaryDirectory() as tmpd:
-        wd = prepare_wd(tmpd)
+        wd = pathlib.Path(tmpd, 'aa/bb/cc')
+        wd.mkdir(parents=True)
         assert pathlib.Path(wd).exists()
         assert find_task_file(wd) is None
 
 
 def test_find_task_file_found():
     with tempfile.TemporaryDirectory() as tmpd:
-        wd = prepare_wd(tmpd)
+        wd = pathlib.Path(tmpd, 'aa/bb/cc')
+        wd.mkdir(parents=True)
+
         task_file = pathlib.Path(wd, DEFAULT_TASK_FILE)
         task_file.touch()
 
@@ -46,7 +43,9 @@ def test_find_task_file_found():
         assert find_task_file(wd) == str(task_file)
 
     with tempfile.TemporaryDirectory() as tmpd:
-        wd = prepare_wd(tmpd)
+        wd = pathlib.Path(tmpd, 'aa/bb/cc')
+        wd.mkdir(parents=True)
+
         task_file = pathlib.Path(wd.parent.parent, DEFAULT_TASK_FILE)
         task_file.touch()
 
@@ -56,7 +55,8 @@ def test_find_task_file_found():
 
 def test_collect_task_files_no_task_files(mocker):
     with tempfile.TemporaryDirectory() as tmpd:
-        wd = prepare_wd(tmpd)
+        wd = pathlib.Path(tmpd, 'aa/bb/cc')
+        wd.mkdir(parents=True)
 
         home_task_dir = pathlib.Path(tmpd, 'home', CERYLE_DIR, CERYLE_TASK_DIR)
         home_task_dir.mkdir(parents=True, exist_ok=True)
@@ -68,7 +68,8 @@ def test_collect_task_files_no_task_files(mocker):
 
 def test_collect_task_files_only_default(mocker):
     with tempfile.TemporaryDirectory() as tmpd:
-        wd = prepare_wd(tmpd)
+        wd = pathlib.Path(tmpd, 'aa/bb/cc')
+        wd.mkdir(parents=True)
 
         task_file = pathlib.Path(wd, DEFAULT_TASK_FILE)
         task_file.touch()
@@ -86,7 +87,8 @@ def test_collect_task_files_only_default(mocker):
 
 def test_collect_task_files_additional_task_fils(mocker):
     with tempfile.TemporaryDirectory() as tmpd:
-        wd = prepare_wd(tmpd)
+        wd = pathlib.Path(tmpd, 'aa/bb/cc')
+        wd.mkdir(parents=True)
 
         task_file = pathlib.Path(wd, DEFAULT_TASK_FILE)
         task_file.touch()
@@ -113,7 +115,8 @@ def test_collect_task_files_additional_task_fils(mocker):
 
 def test_collect_task_files_in_home_ceryle_dir(mocker):
     with tempfile.TemporaryDirectory() as tmpd:
-        wd = prepare_wd(tmpd)
+        wd = pathlib.Path(tmpd, 'aa/bb/cc')
+        wd.mkdir(parents=True)
 
         task_file = pathlib.Path(wd, DEFAULT_TASK_FILE)
         task_file.touch()
@@ -132,4 +135,87 @@ def test_collect_task_files_in_home_ceryle_dir(mocker):
             str(task_file),
         ]
         assert collect_task_files(wd) == expected
+        home_mock.assert_called_once_with()
+
+
+def test_collect_extension_files_no_extensions():
+    with tempfile.TemporaryDirectory() as tmpd:
+        wd = pathlib.Path(tmpd, 'aa/bb/cc')
+        wd.mkdir(parents=True)
+
+        ceryle_dir = pathlib.Path(wd, CERYLE_DIR, CERYLE_EX_DIR)
+        ceryle_dir.mkdir(parents=True)
+
+        assert collect_extension_files(wd) == []
+
+
+def test_collect_extension_files_in_ceryle_dir():
+    with tempfile.TemporaryDirectory() as tmpd:
+        wd = pathlib.Path(tmpd, 'aa/bb/cc')
+        wd.mkdir(parents=True)
+
+        ex_dir = wd.joinpath(CERYLE_DIR, CERYLE_EX_DIR)
+        ex_dir.mkdir(parents=True)
+        task_file = wd.joinpath(DEFAULT_TASK_FILE)
+        task_file.touch()
+        for ex in ['a', 'b']:
+            p = ex_dir.joinpath(ex + CERYLE_EX_FILE_EXT)
+            p.touch()
+            assert p.is_file() is True
+
+        expected = [
+            str(ex_dir.joinpath('a' + CERYLE_EX_FILE_EXT)),
+            str(ex_dir.joinpath('b' + CERYLE_EX_FILE_EXT)),
+        ]
+        assert collect_extension_files(str(wd)) == expected
+
+
+def test_collect_extension_files_in_ceryle_dir_at_upper_hierarchy():
+    with tempfile.TemporaryDirectory() as tmpd:
+        wd = pathlib.Path(tmpd, 'aa/bb/cc')
+        wd.mkdir(parents=True)
+        ex_dir = wd.parent.parent.joinpath(CERYLE_DIR, CERYLE_EX_DIR)
+        ex_dir.mkdir(parents=True)
+        task_file = wd.parent.parent.joinpath(DEFAULT_TASK_FILE)
+        task_file.touch()
+        for ex in ['a', 'b']:
+            p = ex_dir.joinpath(ex + CERYLE_EX_FILE_EXT)
+            p.touch()
+            assert p.is_file() is True
+
+        expected = [
+            str(ex_dir.joinpath('a' + CERYLE_EX_FILE_EXT)),
+            str(ex_dir.joinpath('b' + CERYLE_EX_FILE_EXT)),
+        ]
+        assert collect_extension_files(str(wd)) == expected
+
+
+def test_collect_extension_files_in_home(mocker):
+    with tempfile.TemporaryDirectory() as tmpd:
+        wd = pathlib.Path(tmpd, 'aa/bb/cc')
+        wd.mkdir(parents=True)
+        ex_dir = wd.joinpath(CERYLE_DIR, CERYLE_EX_DIR)
+        ex_dir.mkdir(parents=True)
+        task_file = wd.joinpath(DEFAULT_TASK_FILE)
+        task_file.touch()
+        for ex in ['a', 'b']:
+            p = ex_dir.joinpath(ex + CERYLE_EX_FILE_EXT)
+            p.touch()
+            assert p.is_file() is True
+
+        home_ex_dir = pathlib.Path(tmpd, 'home').joinpath(CERYLE_DIR, CERYLE_EX_DIR)
+        home_ex_dir.mkdir(parents=True)
+        for ex in ['a', 'b']:
+            p = home_ex_dir.joinpath(ex + CERYLE_EX_FILE_EXT)
+            p.touch()
+            assert p.is_file() is True
+        home_mock = mocker.patch('pathlib.Path.home', return_value=pathlib.Path(tmpd, 'home'))
+
+        expected = [
+            str(home_ex_dir.joinpath('a' + CERYLE_EX_FILE_EXT)),
+            str(home_ex_dir.joinpath('b' + CERYLE_EX_FILE_EXT)),
+            str(ex_dir.joinpath('a' + CERYLE_EX_FILE_EXT)),
+            str(ex_dir.joinpath('b' + CERYLE_EX_FILE_EXT)),
+        ]
+        assert collect_extension_files(str(wd)) == expected
         home_mock.assert_called_once_with()
