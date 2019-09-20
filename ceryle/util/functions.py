@@ -1,8 +1,11 @@
 import ast
+import logging
 import pathlib
 
 from ceryle.const import DEFAULT_TASK_FILE, CERYLE_DIR, CERYLE_TASK_DIR, CERYLE_TASK_EXT
 from ceryle.const import CERYLE_EX_DIR, CERYLE_EX_FILE_EXT
+
+logger = logging.getLogger(__file__)
 
 
 def getin(d, *keys, default=None):
@@ -22,6 +25,8 @@ def parse_to_ast(f):
 
 
 def find_task_file(start):
+    logger.debug(f'find task file from {start}')
+
     def dirs():
         wd = pathlib.Path(start).absolute()
         yield wd
@@ -30,7 +35,7 @@ def find_task_file(start):
 
     for d in dirs():
         t = pathlib.Path(d, DEFAULT_TASK_FILE)
-        if t.exists():
+        if t.is_file():
             return str(t)
     return None
 
@@ -41,6 +46,7 @@ def collect_task_files(start):
 
     default_task_file = find_task_file(start)
     if default_task_file:
+        logger.debug(f'task file found: {default_task_file}')
         files.append(default_task_file)
 
         root_dir = pathlib.Path(default_task_file).parent.joinpath(CERYLE_DIR, CERYLE_TASK_DIR)

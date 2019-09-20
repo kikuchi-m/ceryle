@@ -31,6 +31,16 @@ def test_find_task_file_not_found():
         assert find_task_file(wd) is None
 
 
+def test_find_task_file_not_found_if_directory():
+    with tempfile.TemporaryDirectory() as tmpd:
+        wd = pathlib.Path(tmpd, 'aa/bb/cc')
+        wd.mkdir(parents=True)
+        wd.joinpath(DEFAULT_TASK_FILE).mkdir()
+        assert pathlib.Path(wd).exists()
+        assert wd.joinpath(DEFAULT_TASK_FILE).is_dir()
+        assert find_task_file(wd) is None
+
+
 def test_find_task_file_found():
     with tempfile.TemporaryDirectory() as tmpd:
         wd = pathlib.Path(tmpd, 'aa/bb/cc')

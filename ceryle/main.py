@@ -10,9 +10,11 @@ logger = logging.getLogger(__name__)
 
 def run(task=None, dry_run=False):
     task_files = util.collect_task_files(os.getcwd())
+    logger.info(f'task files: {task_files}')
     if not task_files:
         raise ceryle.TaskFileError('task file not found')
     extensions = util.collect_extension_files(os.getcwd())
+    logger.info(f'extensions: {extensions}')
 
     task_def = ceryle.load_task_files(extensions + task_files)
     if task is None and task_def.default_task is None:
