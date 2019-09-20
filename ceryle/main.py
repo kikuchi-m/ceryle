@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import sys
 
 import ceryle
 import ceryle.util as util
@@ -61,3 +62,7 @@ def main(argv):
             util.print_err(str(e))
         else:
             raise e
+
+
+def entry_point():
+    sys.exit(main(sys.argv[1:]))
