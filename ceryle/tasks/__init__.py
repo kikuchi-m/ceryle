@@ -1,11 +1,13 @@
+from ceryle import CeryleException
 
-class TaskDependencyError(Exception):
+
+class TaskDependencyError(CeryleException):
     pass
 
 
-class TaskDefinitionError(Exception):
+class TaskDefinitionError(CeryleException):
     pass
 
 
-class TaskIOError(Exception):
+class TaskIOError(CeryleException):
     pass

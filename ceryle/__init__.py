@@ -1,3 +1,11 @@
+class CeryleException(Exception):
+    pass
+
+
+class IllegalOperation(CeryleException):
+    pass
+
+
 from .commands.executable import executable, Executable, ExecutionResult
 from .commands.command import Command
 from .commands.copy import Copy
@@ -39,7 +47,3 @@ def configure_logging(level=logging.INFO, console=False):
         format='%(asctime)s [%(levelname)8s %(name)s] %(message)s (%(pathname)s:%(lineno)d %(funcName)s)',
         handlers=handlers,
     )
-
-
-class IllegalOperation(RuntimeError):
-    pass

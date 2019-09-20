@@ -57,4 +57,7 @@ def main(argv):
         return run(**args)
     except Exception as e:
         logger.error(e)
-        raise e
+        if isinstance(e, ceryle.CeryleException):
+            util.print_err(str(e))
+        else:
+            raise e
