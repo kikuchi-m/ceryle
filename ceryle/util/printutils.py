@@ -63,6 +63,11 @@ def print_stream(s, error=False):
     return out
 
 
+def print_out(*lines):
+    logger.debug(os.linesep.join(lines))
+    print(*lines, sep=os.linesep)
+
+
 def print_err(*lines, font=ERROR_FONT):
     logger.debug(os.linesep.join(lines))
     print(*[decorate(l, font) for l in lines], file=sys.stderr)
