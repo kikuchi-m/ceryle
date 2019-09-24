@@ -1,6 +1,9 @@
 import abc
+import logging
 
 import ceryle.util as util
+
+logger = logging.getLogger(__name__)
 
 
 class Executable(abc.ABC):
@@ -36,6 +39,7 @@ class ExecutableWrapper(Executable):
         self._func = func
         self._args = list(args)
         self._kwargs = dict(kwargs)
+        logger.debug(f'ExecutableWrapper({func.__name__}, args={self._args}, kwargs={self._kwargs})')
 
     def execute(self, **kwargs):
         func_code = self._func.__code__
@@ -53,9 +57,15 @@ class ExecutableWrapper(Executable):
             raise RuntimeError(f'ExecutionResult was not returned by {self._func.__name__}')
         return res
 
+    def __str__(self):
+        args = ', '.join(self._args)
+        kwargs = ', '.join(self._kwargs) if self._kwargs else ''
+        return f'{self._func.__name__}({args}{kwargs})'
+
 
 def executable(func):
     def wrapper(*args, **kwargs):
+        logger.debug(f'ExecutableWrapper({func.__name__}, args={args}, kwargs={kwargs})')
         return ExecutableWrapper(func, *args, **kwargs)
 
     return wrapper

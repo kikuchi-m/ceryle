@@ -5,7 +5,7 @@ import pathlib
 import ceryle.util as util
 from ceryle.commands.executable import Executable, ExecutionResult
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 class Remove(Executable):

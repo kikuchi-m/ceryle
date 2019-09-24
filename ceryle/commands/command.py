@@ -8,7 +8,7 @@ import subprocess
 from ceryle.commands.executable import Executable, ExecutionResult
 from concurrent.futures import ThreadPoolExecutor
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 class Command(Executable):

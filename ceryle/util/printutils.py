@@ -7,7 +7,7 @@ import sys
 WARN_FONT = '38;5;221'
 ERROR_FONT = '38;5;124'
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 def sgr(p='0'):

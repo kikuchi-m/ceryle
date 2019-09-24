@@ -5,7 +5,7 @@ import pathlib
 from ceryle.const import DEFAULT_TASK_FILE, CERYLE_DIR, CERYLE_TASK_DIR, CERYLE_TASK_EXT
 from ceryle.const import CERYLE_EX_DIR, CERYLE_EX_FILE_EXT
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 def getin(d, *keys, default=None):

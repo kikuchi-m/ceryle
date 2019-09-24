@@ -1,8 +1,11 @@
+import logging
 import ceryle.util as util
 
 from ceryle.tasks import TaskDefinitionError, TaskIOError
 from ceryle.tasks.resolver import DependencyResolver
 from ceryle.tasks.task import TaskGroup
+
+logger = logging.getLogger(__name__)
 
 
 class TaskRunner:
@@ -31,6 +34,7 @@ class TaskRunner:
         return self._run_group(self._groups[chain.task_name], dry_run=dry_run, register=r)
 
     def _run_group(self, tg, dry_run=False, register={}):
+        logger.info(f'running task group {tg.name}')
         r = dict(register)
         for t in tg.tasks:
             if t.input_key and t.input_key not in r:

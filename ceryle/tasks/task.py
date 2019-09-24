@@ -1,7 +1,11 @@
+import logging
+
 import ceryle
 import ceryle.util as util
 
 from ceryle.commands.executable import Executable, ExecutionResult
+
+logger = logging.getLogger(__name__)
 
 
 class Task:
@@ -15,14 +19,16 @@ class Task:
         self._res = None
 
     def run(self, dry_run=False, inputs=[]):
-        print(f'running {self._executable}')
+        util.print_out(f'running {self._executable}')
         if dry_run:
             self._res = ExecutionResult(0)
             return True
+        logger.debug(f'context={self._context}')
+        logger.debug(f'inputs={inputs}')
         self._res = self._executable.execute(context=self._context, inputs=inputs)
         success = self._res.return_code == 0
         if not success:
-            util.print_err(f'task failed: {repr(self._executable)}')
+            util.print_err(f'task failed: {self._executable}')
         return success
 
     @property
