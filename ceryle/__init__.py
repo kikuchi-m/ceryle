@@ -13,6 +13,7 @@ from .commands.remove import Remove
 from .dsl import TaskFileError
 from .dsl.loader import TaskFileLoader
 from .dsl.aggregate_loader import AggregateTaskFileLoader, load_task_files
+from .dsl.support import joinpath as path
 from .tasks import TaskDefinitionError, TaskDependencyError, TaskIOError
 from .tasks.task import Task, TaskGroup
 from .tasks.resolver import DependencyResolver, DependencyChain
