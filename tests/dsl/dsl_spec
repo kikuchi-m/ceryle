@@ -45,4 +45,12 @@ default = 'foo'
         'run': command('cat'),
         'input': 'PIPE_OUTPUT',
     }],
+
+    'pipe2': {
+        'dependencies': ['pipe'],
+        'tasks': [{
+            'run': command('cat'),
+            'input': ('pipe', 'PIPE_OUTPUT'),
+        }],
+    },
 }

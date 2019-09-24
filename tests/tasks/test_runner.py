@@ -125,7 +125,7 @@ def test_dry_run(mocker):
 
 
 def test_run_task_with_stdout(mocker):
-    g1_t1 = Task(Command('do some'), 'context', input='EXEC_STDOUT')
+    g1_t1 = Task(Command('do some'), 'context', input=('g2', 'EXEC_STDOUT'))
     mocker.patch.object(g1_t1, 'stdout', return_value=[])
     mocker.patch.object(g1_t1, 'stderr', return_value=[])
     mocker.patch.object(g1_t1, 'run', return_value=True)
@@ -148,8 +148,32 @@ def test_run_task_with_stdout(mocker):
     g2_t1.stderr.assert_not_called()
 
 
+def test_run_task_with_stdout_from_same_group(mocker):
+    g1_t1 = Task(Command('do some'), 'context', stdout='EXEC_STDOUT')
+    mocker.patch.object(g1_t1, 'stdout', return_value=['foo', 'bar'])
+    mocker.patch.object(g1_t1, 'stderr', return_value=[])
+    mocker.patch.object(g1_t1, 'run', return_value=True)
+
+    g1_t2 = Task(Command('do some'), 'context', input='EXEC_STDOUT')
+    mocker.patch.object(g1_t2, 'stdout', return_value=[])
+    mocker.patch.object(g1_t2, 'stderr', return_value=[])
+    mocker.patch.object(g1_t2, 'run', return_value=True)
+
+    g1 = TaskGroup('g1', [g1_t1, g1_t2], dependencies=[])
+
+    runner = TaskRunner([g1])
+
+    assert runner.run('g1') is True
+    g1_t2.run.assert_called_once_with(dry_run=False, inputs=['foo', 'bar'])
+    g1_t2.stdout.assert_not_called()
+    g1_t2.stderr.assert_not_called()
+    g1_t1.run.assert_called_once_with(dry_run=False, inputs=[])
+    g1_t1.stdout.assert_called_once()
+    g1_t1.stderr.assert_not_called()
+
+
 def test_run_task_with_stderr(mocker):
-    g1_t1 = Task(Command('do some'), 'context', input='EXEC_STDERR')
+    g1_t1 = Task(Command('do some'), 'context', input=('g2', 'EXEC_STDERR'))
     mocker.patch.object(g1_t1, 'stdout', return_value=[])
     mocker.patch.object(g1_t1, 'stderr', return_value=[])
     mocker.patch.object(g1_t1, 'run', return_value=True)

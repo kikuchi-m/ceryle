@@ -15,7 +15,10 @@ class Task:
         self._context = util.assert_type(context, str)
         self._stdout = util.assert_type(stdout, None, str)
         self._stderr = util.assert_type(stderr, None, str)
-        self._input = util.assert_type(input, None, str)
+        self._input = util.assert_type(input, None, str, tuple, list)
+        if self._input and not isinstance(self._input, str):
+            if len([util.assert_type(k, str) for k in self._input]) != 2:
+                raise ValueError('input key must be str or str list with length 2')
         self._res = None
 
     def run(self, dry_run=False, inputs=[]):
