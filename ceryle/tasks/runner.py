@@ -41,16 +41,20 @@ class TaskRunner:
             inputs = []
             if t.input_key:
                 if isinstance(t.input_key, str):
+                    logger.debug(f'read {tg.name}.{t.input_key} from register')
                     inputs = util.getin(r, tg.name, t.input_key)
                 else:
+                    logger.debug(f'read {".".join(t.input_key)} from register')
                     inputs = util.getin(r, *t.input_key)
-                if not inputs:
+                if inputs is None:
                     raise TaskIOError(f'{t.input_key} is required by a task in {tg.name}, but not registered')
             if not t.run(dry_run=dry_run, inputs=inputs):
                 return False, r
             if t.stdout_key:
+                logger.debug(f'register {t.stdout_key}')
                 _update_register(r, tg.name, t.stdout_key, t.stdout())
             if t.stderr_key:
+                logger.debug(f'register {t.stderr_key}')
                 _update_register(r, tg.name, t.stderr_key, t.stderr())
         return True, r
 
