@@ -7,26 +7,24 @@ def test_parse_args():
 
     assert args['task'] == 'foo'
     assert args['dry_run'] is False
+    assert args['list_tasks'] is False
 
 
-def test_parse_args_dry_run():
-    for argv in [['-n'], ['--dry-run']]:
-        args = ceryle.main.parse_args(argv)
-
-        assert args['dry_run'] is True
-
-
-def test_main(mocker):
-    args = {
-        'task': None,
-        'log_level': 'INFO',
-        'log_stream': False,
-    }
-    parse_mock = mocker.patch('ceryle.main.parse_args', return_value=args)
+def test_main_run(mocker):
     run_mock = mocker.patch('ceryle.main.run', return_value=0)
 
     rc = ceryle.main.main([])
 
     assert rc == 0
-    parse_mock.assert_called_once_with(mocker.ANY)
-    run_mock.assert_called_once_with(task=None)
+    run_mock.assert_called_once()
+
+
+def test_main_list_tasks(mocker):
+    run_mock = mocker.patch('ceryle.main.run', return_value=0)
+    list_tasks_mock = mocker.patch('ceryle.main.list_tasks', return_value=0)
+
+    rc = ceryle.main.main(['--list-tasks'])
+
+    assert rc == 0
+    run_mock.assert_not_called()
+    list_tasks_mock.assert_called_once_with(verbose=mocker.ANY)
