@@ -39,13 +39,13 @@ def list_tasks(verbose=0):
     for g in groups:
         lines.append(f'{g.name}:')
         if g.dependencies:
-            lines.append(f'  dependencies:')
+            lines.append(util.indent_s('dependencies:', 2))
             for d in g.dependencies:
-                lines.append(f'    {d}')
+                lines.append(util.indent_s(str(d), 4))
         if verbose > 0 and g.tasks:
-            lines.append(f'  tasks:')
+            lines.append(util.indent_s('tasks:', 2))
             for t in g.tasks:
-                lines.append(f'    {t.executable}')
+                lines.append(util.indent_s(str(t.executable), 4))
     print(*lines, sep=os.linesep)
     return 0
 

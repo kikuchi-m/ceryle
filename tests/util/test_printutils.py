@@ -1,7 +1,8 @@
 import re
 
 from ceryle.util.capture import std_capture
-from ceryle.util.printutils import print_stream, StdoutPrinter, StderrPrinter
+from ceryle.util import print_stream, indent_s
+from ceryle.util.printutils import StdoutPrinter, StderrPrinter
 
 
 def test_stdout_printlne():
@@ -44,3 +45,8 @@ def test_print_stream():
         out = print_stream(gen_lines())
         assert ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF'] == o.getvalue().splitlines()
         assert ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF'] == out
+
+
+def test_indent_s():
+    assert indent_s('a', 0) == 'a'
+    assert indent_s('a', 4) == '    a'
