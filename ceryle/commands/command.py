@@ -45,7 +45,6 @@ class Command(Executable):
         logger.debug(res)
         return res
 
-
     def _get_cwd(self, context=None):
         if self._cwd:
             cwd = pathlib.Path(self._cwd)

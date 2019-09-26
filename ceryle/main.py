@@ -50,9 +50,36 @@ def list_tasks(verbose=0):
     return 0
 
 
+def show_tree(task=None, verbose=0):
+    task_def = load_tasks()
+    if task is None and task_def.default_task is None:
+        raise ceryle.TaskDefinitionError('default task is not declared, specify task to show info')
+
+    tg = task_def.find_task_group(task or task_def.default_task)
+    if tg is None:
+        raise ceryle.TaskDefinitionError(f'{task or task_def.default_task} not found')
+
+    lines = []
+
+    def _append(g, depth):
+        lines.append(util.indent_s(f'{g.name}:', depth * 4))
+        if g.dependencies:
+            lines.append(util.indent_s('dependencies:', depth * 4 + 2))
+        for d in g.dependencies:
+            _append(task_def.find_task_group(d), depth + 1)
+        if verbose > 0 and g.tasks:
+            lines.append(util.indent_s('tasks:', depth * 4 + 2))
+            for t in g.tasks:
+                lines.append(util.indent_s(f'{t.executable}', depth * 4 + 4))
+    _append(tg, 0)
+    print(*lines, sep=os.linesep)
+    return 0
+
+
 def parse_args(argv):
     p = argparse.ArgumentParser(allow_abbrev=False)
     p.add_argument('--list-tasks', action='store_true')
+    p.add_argument('--show', action='store_true')
     p.add_argument('-n', '--dry-run', action='store_true')
     p.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARN', 'ERROR'], default='INFO')
     p.add_argument('--log-stream', action='store_true')
@@ -80,6 +107,8 @@ def main(argv):
     try:
         if args.pop('list_tasks', False):
             return list_tasks(verbose=args['verbose'])
+        if args.pop('show', False):
+            return show_tree(task=args['task'], verbose=args['verbose'])
         return run(**args)
     except Exception as e:
         logger.error(e)

@@ -80,3 +80,10 @@ class TaskDefinition:
     @property
     def local_vars(self):
         return self._locals.copy()
+
+    def find_task_group(self, name):
+        util.assert_type(name, str)
+        for g in self._tasks:
+            if g.name == name:
+                return g
+        return None

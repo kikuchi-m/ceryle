@@ -8,6 +8,7 @@ def test_parse_args():
     assert args['task'] == 'foo'
     assert args['dry_run'] is False
     assert args['list_tasks'] is False
+    assert args['show'] is False
 
 
 def test_main_run(mocker):
@@ -28,3 +29,14 @@ def test_main_list_tasks(mocker):
     assert rc == 0
     run_mock.assert_not_called()
     list_tasks_mock.assert_called_once_with(verbose=mocker.ANY)
+
+
+def test_main_show_tree(mocker):
+    run_mock = mocker.patch('ceryle.main.run', return_value=0)
+    show_tree_mock = mocker.patch('ceryle.main.show_tree', return_value=0)
+
+    rc = ceryle.main.main(['--show'])
+
+    assert rc == 0
+    run_mock.assert_not_called()
+    show_tree_mock.assert_called_once_with(task=None, verbose=mocker.ANY)
