@@ -12,17 +12,24 @@ logger = logging.getLogger(__name__)
 
 
 class Command(Executable):
-    def __init__(self, cmd, cwd=None):
+    def __init__(self, cmd, cwd=None, inputs_as_args=False):
         self._cmd = extract_cmd(cmd)
         self._cwd = cwd
+        self._as_args = inputs_as_args
 
-    def execute(self, *args, context=None, inputs=[], timeout=None, **kwargs):
+    def execute(self, context=None, inputs=[], timeout=None, **kwargs):
         cmd_log = self._cmd_log_message()
         logger.info(f'run command: {cmd_log}')
 
-        communicate = len(inputs) > 0
+        communicate = False
+        cmd = self.cmd
+        if len(inputs) > 0:
+            if self._as_args:
+                cmd = cmd + inputs
+            else:
+                communicate = True
         proc = subprocess.Popen(
-            self._cmd,
+            cmd,
             cwd=self._get_cwd(context),
             stdin=subprocess.PIPE if communicate else None,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -33,8 +40,11 @@ class Command(Executable):
             o, e = print_std_streams(proc.stdout, proc.stderr)
             proc.wait()
 
+        res = ExecutionResult(proc.returncode, stdout=o, stderr=e)
         logger.info(f'finished with {proc.returncode} {cmd_log}')
-        return ExecutionResult(proc.returncode, stdout=o, stderr=e)
+        logger.debug(res)
+        return res
+
 
     def _get_cwd(self, context=None):
         if self._cwd:

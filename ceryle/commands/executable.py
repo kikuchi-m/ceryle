@@ -33,6 +33,9 @@ class ExecutionResult:
     def stderr(self):
         return [*self._stderr]
 
+    def __str__(self):
+        return f'{self.__class__.__name__}(return_code={self.return_code}, stdout={self.stdout}, stderr={self.stderr})'
+
 
 class ExecutableWrapper(Executable):
     def __init__(self, func, *args, **kwargs):

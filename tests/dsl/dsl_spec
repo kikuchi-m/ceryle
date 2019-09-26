@@ -49,7 +49,7 @@ default = 'foo'
     'pipe2': {
         'dependencies': ['pipe'],
         'tasks': [{
-            'run': command('cat'),
+            'run': command('echo', inputs_as_args=True),
             'input': ('pipe', 'PIPE_OUTPUT'),
         }],
     },

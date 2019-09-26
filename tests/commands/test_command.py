@@ -102,6 +102,18 @@ def test_execute_with_inputs():
         assert lines == ['foo', 'bar']
 
 
+def test_execute_with_inputs_as_args():
+    with std_capture() as (o, e):
+        command = Command(['echo'], inputs_as_args=True)
+        result = command.execute(inputs=['foo', 'bar'], timeout=3)
+        assert result.return_code == 0
+        assert len(result.stdout) == 1
+        assert result.stdout[0].rstrip() == 'foo bar'
+
+        lines = [l.rstrip() for l in o.getvalue().splitlines()]
+        assert lines == ['foo bar']
+
+
 def test_execute_with_context():
     with tempfile.TemporaryDirectory() as tmpd:
         context = pathlib.Path(tmpd)
