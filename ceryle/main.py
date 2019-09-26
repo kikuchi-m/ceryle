@@ -51,8 +51,7 @@ def list_tasks(verbose=0):
 
 
 def parse_args(argv):
-    p = argparse.ArgumentParser()
-    # TODO: nargs
+    p = argparse.ArgumentParser(allow_abbrev=False)
     p.add_argument('--list-tasks', action='store_true')
     p.add_argument('-n', '--dry-run', action='store_true')
     p.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARN', 'ERROR'], default='INFO')
