@@ -6,6 +6,10 @@ class IllegalOperation(CeryleException):
     pass
 
 
+class IllegalFormat(Exception):
+    pass
+
+
 from .commands.executable import executable, Executable, ExecutionResult
 from .commands.command import Command
 from .commands.copy import Copy

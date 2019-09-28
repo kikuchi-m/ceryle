@@ -41,7 +41,7 @@ def test_main_run_default_task_group(mocker):
     assert res == 0
     collect_tasks_mock.assert_called_once_with(mocker.ANY)
     collect_ex_mock.assert_called_once_with(mocker.ANY)
-    load_mock.assert_called_once_with(dummy_extensions + dummy_task_files)
+    load_mock.assert_called_once_with(dummy_extensions + dummy_task_files, additional_args={})
 
     util_expected_calls = [
         mocker.call.collect_tasks_mock(mocker.ANY),
@@ -86,7 +86,7 @@ def test_main_run_specific_task_group(mocker):
     assert res == 0
     collect_tasks_mock.assert_called_once_with(mocker.ANY)
     collect_ex_mock.assert_called_once_with(mocker.ANY)
-    load_mock.assert_called_once_with(dummy_extensions + dummy_task_files)
+    load_mock.assert_called_once_with(dummy_extensions + dummy_task_files, additional_args={})
 
     runner_cls.assert_called_once_with(task_def.tasks)
     runner.run.assert_called_once_with('tg2', dry_run=False)
@@ -124,7 +124,7 @@ def test_main_run_fails_by_task_failure(mocker):
     assert res == 1
     collect_tasks_mock.assert_called_once_with(mocker.ANY)
     collect_ex_mock.assert_called_once_with(mocker.ANY)
-    load_mock.assert_called_once_with(dummy_extensions + dummy_task_files)
+    load_mock.assert_called_once_with(dummy_extensions + dummy_task_files, additional_args={})
 
     runner_cls.assert_called_once_with(task_def.tasks)
     runner.run.assert_called_once_with('tg1', dry_run=False)
@@ -166,4 +166,4 @@ def test_main_run_raises_by_no_default_and_no_task_to_run(mocker):
     assert str(e.value) == 'default task is not declared, specify task to run'
     collect_tasks_mock.assert_called_once_with(mocker.ANY)
     collect_ex_mock.assert_called_once_with(mocker.ANY)
-    load_mock.assert_called_once_with(dummy_extensions + dummy_task_files)
+    load_mock.assert_called_once_with(dummy_extensions + dummy_task_files, additional_args={})

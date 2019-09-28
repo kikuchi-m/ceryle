@@ -9,6 +9,31 @@ def test_parse_args():
     assert args['dry_run'] is False
     assert args['list_tasks'] is False
     assert args['show'] is False
+    assert args['additional_args'] == {}
+
+
+def test_parse_args():
+    argv = [
+        '--arg', 'ARG1=aaa',
+        '--arg', 'ARG2="b c"',
+        '--arg', 'ARG3=\'b c\'',
+        '--arg', 'ARG4=\\"xyz\\"',
+        '--arg', 'ARG5=a"b',
+        'foo',
+    ]
+    args = ceryle.main.parse_args(argv)
+
+    assert args['task'] == 'foo'
+    assert args['dry_run'] is False
+    assert args['list_tasks'] is False
+    assert args['show'] is False
+    assert args['additional_args'] == {
+        'ARG1': 'aaa',
+        'ARG2': 'b c',
+        'ARG3': 'b c',
+        'ARG4': '"xyz"',
+        'ARG5': 'a"b',
+    }
 
 
 def test_main_run(mocker):

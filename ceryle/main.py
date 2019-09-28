@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import re
 import sys
 
 import ceryle
@@ -9,7 +10,7 @@ import ceryle.util as util
 logger = logging.getLogger(__name__)
 
 
-def load_tasks():
+def load_tasks(additional_args={}):
     task_files = util.collect_task_files(os.getcwd())
     logger.info(f'task files: {task_files}')
     if not task_files:
@@ -17,11 +18,11 @@ def load_tasks():
     extensions = util.collect_extension_files(os.getcwd())
     logger.info(f'extensions: {extensions}')
 
-    return ceryle.load_task_files(extensions + task_files)
+    return ceryle.load_task_files(extensions + task_files, additional_args=additional_args)
 
 
-def run(task=None, dry_run=False, **kwargs):
-    task_def = load_tasks()
+def run(task=None, dry_run=False, additional_args={}, **kwargs):
+    task_def = load_tasks(additional_args=additional_args)
     if task is None and task_def.default_task is None:
         raise ceryle.TaskDefinitionError('default task is not declared, specify task to run')
 
@@ -81,14 +82,35 @@ def parse_args(argv):
     p.add_argument('--list-tasks', action='store_true')
     p.add_argument('--show', action='store_true')
     p.add_argument('-n', '--dry-run', action='store_true')
+    p.add_argument('--arg', action='append', default=[])
     p.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARN', 'ERROR'], default='INFO')
     p.add_argument('--log-stream', action='store_true')
     p.add_argument('-v', '--verbose', action='count', default=0)
 
     known_args, rest = p.parse_known_args(argv)
     args = vars(known_args)
+    args['additional_args'] = read_args(args.pop('arg'))
     args['task'] = rest[0] if len(rest) > 0 else None
     return args
+
+
+def read_args(args):
+    res = {}
+    reg = re.compile('^([^=]+)=(.*)')
+    for a in args:
+        m = reg.match(a)
+        if not m:
+            raise IllegalFormat(f'{a} is illegal foramt for --arg option, must be NAME=VALUE')
+        res.update({m.group(1): remove_quotes_if_needed(m.group(2))})
+    return res
+
+
+def remove_quotes_if_needed(v):
+    if (v.startswith('"') and v.endswith('"')) or (v.startswith('\'') and v.endswith('\'')):
+        return v[1:-1]
+    if v.startswith('\\"') and v.endswith('\\"'):
+        return v[1:-2] + '"'
+    return v
 
 
 def main(argv):
