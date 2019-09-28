@@ -17,12 +17,12 @@ class Command(Executable):
         self._cwd = cwd
         self._as_args = inputs_as_args
 
-    def execute(self, context=None, inputs=[], timeout=None, **kwargs):
+    def execute(self, context=None, inputs=[], timeout=None):
         cmd_log = self._cmd_log_message()
         logger.info(f'run command: {cmd_log}')
 
         communicate = False
-        cmd = self.cmd
+        cmd = self.preprocess(self.cmd, {})[0]
         if len(inputs) > 0:
             if self._as_args:
                 cmd = cmd + inputs
@@ -75,9 +75,9 @@ class Command(Executable):
 
 
 def quote_if_needed(s):
-    if ' ' in s:
+    if isinstance(s, str) and ' ' in s:
         return f'"{s}"'
-    return s
+    return str(s)
 
 
 def extract_cmd(cmd):

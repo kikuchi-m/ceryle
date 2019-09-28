@@ -6,6 +6,7 @@ import shutil
 import tempfile
 
 from ceryle import Command
+from ceryle.dsl.support import Arg, Env
 from ceryle.util import std_capture
 
 FILE_DIR = os.path.dirname(__file__)
@@ -160,3 +161,12 @@ def test_execute_absolute_cwd():
             assert command.execute(context=str(context)).return_code == 0
             lines = [l.rstrip() for l in o.getvalue().splitlines()]
             assert lines == ['hello', 'good-by']
+
+
+def test_with_envs_and_args(mocker):
+    mocker.patch.dict('os.environ', {'ENV1': 'AAA'})
+    args = {'ARG1': 'BBB'}
+    command = Command(['echo', Env('ENV1'), Arg('ARG1', args)])
+    res = command.execute()
+    assert res.return_code == 0
+    assert res.stdout == ['AAA BBB']

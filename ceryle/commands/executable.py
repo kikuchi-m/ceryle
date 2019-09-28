@@ -2,6 +2,7 @@ import abc
 import logging
 
 import ceryle.util as util
+from ceryle.dsl.support import eval_arg
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,11 @@ class Executable(abc.ABC):
     @abc.abstractmethod
     def execute(self, *args, context=None, **kwargs):
         pass
+
+    def preprocess(self, args, kwargs):
+        processed_args = [eval_arg(v, fail_on_unknown=False) for v in args]
+        processed_kwargs = dict([(k, eval_arg(v, fail_on_unknown=False)) for k, v in kwargs.items()])
+        return processed_args, processed_kwargs
 
 
 class ExecutionResult:
@@ -52,7 +58,8 @@ class ExecutableWrapper(Executable):
         for k in [*self._kwargs.keys(), *kwdefaults.keys()]:
             exact_kwargs[k] = kwargs.get(k, self._kwargs.get(k, kwdefaults.get(k)))
 
-        res = self._func(*self._args, **exact_kwargs)
+        processed = self.preprocess(self._args, exact_kwargs)
+        res = self._func(*processed[0], **processed[1])
         if res is None or isinstance(res, int):
             return ExecutionResult(res or 0)
 

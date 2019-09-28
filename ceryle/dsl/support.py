@@ -39,17 +39,23 @@ class ArgumentBase(abc.ABC):
         pass
 
     def _eval_all(self, v):
-        r = (self._right and _eval(self._right)) or ''
-        l = (self._left and _eval(self._left)) or ''
-        return f'{l}{v}{r}'
+        rvar = (self._right and eval_arg(self._right)) or ''
+        lvar = (self._left and eval_arg(self._left)) or ''
+        return f'{lvar}{v}{rvar}'
+
+    @abc.abstractmethod
+    def __str__(self):
+        pass
 
 
-def _eval(a):
+def eval_arg(a, fail_on_unknown=True):
     if isinstance(a, str):
         return a
     if isinstance(a, ArgumentBase):
         return a.evaluate()
-    raise ValueError(f'not a str or ArgumentBase: {a}')
+    if fail_on_unknown:
+        raise ValueError(f'not a str or ArgumentBase: {a}')
+    return a
 
 
 class Env(ArgumentBase):
@@ -67,6 +73,9 @@ class Env(ArgumentBase):
 
     def _copy(self):
         return Env(self._name, default=self._default, allow_empty=self._allow_empty)
+
+    def __str__(self):
+        return f'env({self._name})'
 
 
 class Arg(ArgumentBase):
@@ -88,3 +97,6 @@ class Arg(ArgumentBase):
 
     def _copy(self):
         return Arg(self._name, self._args, default=self._default, allow_empty=self._allow_empty)
+
+    def __str__(self):
+        return f'arg({self._name})'

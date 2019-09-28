@@ -1,6 +1,7 @@
 import pytest
 
 from ceryle import executable, Executable, ExecutionResult
+from ceryle.dsl.support import Env, Arg
 
 
 def test_custom_executable():
@@ -119,3 +120,19 @@ def test_positional_and_kwargs():
 
     res4 = mycommand2(1, myarg=2).execute(context='another_context')
     assert res4.return_code == 255
+
+
+def test_envs_and_additional_args(mocker):
+    @executable
+    def mycommand(parg1, parg2, kwarg1=None, kwarg2=None):
+        return ExecutionResult(0, stdout=[parg1, parg2, kwarg1, kwarg2])
+
+    mocker.patch.dict('os.environ', {'ENV1': 'AAA', 'ENV2': 'BBB'})
+    args = {
+        'ARG1': 'CCC',
+        'ARG2': 'DDD',
+    }
+    res = mycommand(Env('ENV1'), Arg('ARG1', args), kwarg1=Env('ENV2'), kwarg2=Arg('ARG2', args)).execute()
+
+    assert res.return_code == 0
+    assert res.stdout == ['AAA', 'CCC', 'BBB', 'DDD']
