@@ -10,7 +10,7 @@ from .commands.executable import executable, Executable, ExecutionResult
 from .commands.command import Command
 from .commands.copy import Copy
 from .commands.remove import Remove
-from .dsl import TaskFileError, NoEnvironmentError
+from .dsl import TaskFileError, NoArgumentError, NoEnvironmentError
 from .dsl.loader import TaskFileLoader, TaskDefinition
 from .dsl.aggregate_loader import AggregateTaskFileLoader, load_task_files
 from .dsl.support import joinpath as path

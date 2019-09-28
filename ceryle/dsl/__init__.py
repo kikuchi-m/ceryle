@@ -7,3 +7,7 @@ class TaskFileError(CeryleException):
 
 class NoEnvironmentError(CeryleException):
     pass
+
+
+class NoArgumentError(CeryleException):
+    pass
