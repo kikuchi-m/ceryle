@@ -29,8 +29,14 @@ def test_load_multiple_files(mocker):
     assert len(task_def.tasks) == 2
     assert task_def.default_task == 'bar'
     assert loader_cls.call_count == 2
-    loader1.load.assert_called_once()
-    loader2.load.assert_called_once_with(global_vars=task_def1.global_vars, local_vars=task_def1.local_vars)
+    loader1.load.assert_called_once_with(
+        global_vars={},
+        local_vars={},
+        additional_args={})
+    loader2.load.assert_called_once_with(
+        global_vars=task_def1.global_vars,
+        local_vars=task_def1.local_vars,
+        additional_args={})
 
     assert task_def1.tasks[0] in task_def.tasks
     assert task_def2.tasks[0] in task_def.tasks

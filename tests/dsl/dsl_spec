@@ -53,4 +53,18 @@ default = 'foo'
             'input': ('pipe', 'PIPE_OUTPUT'),
         }],
     },
+
+    'args': [{
+        'run': command(['echo',
+                        env('ENV1'),
+                        env('ENV2', default='foo'),
+                        env('ENV3', allow_empty=True),
+                        ]),
+    }, {
+        'run': command(['echo',
+                        arg('ARG1'),
+                        arg('ARG2', default='bar'),
+                        arg('ARG3', allow_empty=True),
+                        ]),
+    }],
 }
