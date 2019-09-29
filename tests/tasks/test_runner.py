@@ -1,7 +1,7 @@
 import pytest
 
 from ceryle import Command, Task, TaskGroup, TaskRunner
-from ceryle import TaskDependencyError, TaskDefinitionError, TaskIOError
+from ceryle import TaskDependencyError, TaskDefinitionError, TaskIOError, IllegalOperation
 
 
 def test_new_task_runner():
@@ -72,6 +72,23 @@ def test_run_tasks(mocker):
     g3_t1.run.assert_not_called()
     assert mock.mock_calls == expected_calls
 
+    cache = runner.get_cache()
+    assert cache.task_name == 'g1'
+    assert cache.results == [
+        ('g2', True),
+        ('g1', True),
+    ]
+    assert cache.register == {}
+
+
+def test_get_run_cache_raises_before_runnin():
+    g1 = TaskGroup('g1', [])
+    runner = TaskRunner([g1])
+
+    with pytest.raises(IllegalOperation) as e:
+        runner.get_cache()
+    assert str(e.value) == 'could not get cache before running'
+
 
 def test_run_raises_task_not_defined():
     g1 = TaskGroup('g1', [], dependencies=['g2'])
@@ -82,6 +99,9 @@ def test_run_raises_task_not_defined():
     with pytest.raises(TaskDefinitionError) as e:
         runner.run('g3')
     assert str(e.value) == 'task g3 is not defined'
+
+    with pytest.raises(IllegalOperation) as e:
+        runner.get_cache()
 
 
 def test_run_tasks_fails(mocker):
@@ -107,6 +127,13 @@ def test_run_tasks_fails(mocker):
     g2_t1.run.assert_called_once_with(dry_run=False, inputs=[])
     assert mock.mock_calls == expected_calls
 
+    cache = runner.get_cache()
+    assert cache.task_name == 'g1'
+    assert cache.results == [
+        ('g2', False),
+    ]
+    assert cache.register == {}
+
 
 def test_dry_run(mocker):
     g1_t1 = Task(Command('do some'), 'context')
@@ -122,6 +149,14 @@ def test_dry_run(mocker):
     assert runner.run('g1', dry_run=True) is True
     g1_t1.run.assert_called_once_with(dry_run=True, inputs=[])
     g2_t1.run.assert_called_once_with(dry_run=True, inputs=[])
+
+    cache = runner.get_cache()
+    assert cache.task_name == 'g1'
+    assert cache.results == [
+        ('g2', False),
+        ('g1', False),
+    ]
+    assert cache.register == {}
 
 
 def test_run_task_with_stdout(mocker):
@@ -147,6 +182,18 @@ def test_run_task_with_stdout(mocker):
     g2_t1.stdout.assert_called_once()
     g2_t1.stderr.assert_not_called()
 
+    cache = runner.get_cache()
+    assert cache.task_name == 'g1'
+    assert cache.results == [
+        ('g2', True),
+        ('g1', True),
+    ]
+    assert cache.register == {
+        'g2': {
+            'EXEC_STDOUT': ['foo', 'bar'],
+        },
+    }
+
 
 def test_run_task_with_stdout_from_same_group(mocker):
     g1_t1 = Task(Command('do some'), 'context', stdout='EXEC_STDOUT')
@@ -170,6 +217,17 @@ def test_run_task_with_stdout_from_same_group(mocker):
     g1_t1.run.assert_called_once_with(dry_run=False, inputs=[])
     g1_t1.stdout.assert_called_once()
     g1_t1.stderr.assert_not_called()
+
+    cache = runner.get_cache()
+    assert cache.task_name == 'g1'
+    assert cache.results == [
+        ('g1', True),
+    ]
+    assert cache.register == {
+        'g1': {
+            'EXEC_STDOUT': ['foo', 'bar'],
+        },
+    }
 
 
 def test_run_task_with_stderr(mocker):
@@ -195,6 +253,18 @@ def test_run_task_with_stderr(mocker):
     g2_t1.stdout.assert_not_called()
     g2_t1.stderr.assert_called_once()
 
+    cache = runner.get_cache()
+    assert cache.task_name == 'g1'
+    assert cache.results == [
+        ('g2', True),
+        ('g1', True),
+    ]
+    assert cache.register == {
+        'g2': {
+            'EXEC_STDERR': ['foo', 'bar'],
+        },
+    }
+
 
 def test_run_failed_by_invalid_io(mocker):
     g1_t1 = Task(Command('do some'), 'context', input='EXEC_STDOUT')
@@ -207,3 +277,10 @@ def test_run_failed_by_invalid_io(mocker):
         runner.run('g1')
     g1_t1.run.assert_not_called()
     assert str(ex.value) == 'EXEC_STDOUT is required by a task in g1, but not registered'
+
+    cache = runner.get_cache()
+    assert cache.task_name == 'g1'
+    assert cache.results == [
+        ('g1', False),
+    ]
+    assert cache.register == {}

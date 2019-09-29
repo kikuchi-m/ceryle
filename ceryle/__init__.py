@@ -21,7 +21,7 @@ from .dsl.support import joinpath as path
 from .tasks import TaskDefinitionError, TaskDependencyError, TaskIOError
 from .tasks.task import Task, TaskGroup
 from .tasks.resolver import DependencyResolver, DependencyChain
-from .tasks.runner import TaskRunner
+from .tasks.runner import TaskRunner, RunCache
 from .const import CERYLE_DIR
 
 import datetime as dt
