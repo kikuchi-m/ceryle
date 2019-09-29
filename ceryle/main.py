@@ -100,7 +100,7 @@ def read_args(args):
     for a in args:
         m = reg.match(a)
         if not m:
-            raise IllegalFormat(f'{a} is illegal foramt for --arg option, must be NAME=VALUE')
+            raise ceryle.IllegalFormat(f'{a} is illegal foramt for --arg option, must be NAME=VALUE')
         res.update({m.group(1): remove_quotes_if_needed(m.group(2))})
     return res
 

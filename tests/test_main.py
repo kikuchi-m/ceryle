@@ -1,4 +1,7 @@
+import pytest
+
 import ceryle.main
+from ceryle import IllegalFormat
 
 
 def test_parse_args():
@@ -34,6 +37,11 @@ def test_parse_args():
         'ARG4': '"xyz"',
         'ARG5': 'a"b',
     }
+
+
+def test_parse_args_illegal_format_arg_option():
+    with pytest.raises(IllegalFormat):
+        ceryle.main.parse_args(['--arg', 'a'])
 
 
 def test_main_run(mocker):
