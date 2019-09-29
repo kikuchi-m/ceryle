@@ -16,10 +16,11 @@ def test_main_run_default_task_group(mocker):
 
     dummy_task_files = [
         '/foo/home/.ceryle/tasks/a.ceryle',
-        '/foo/bar/TASK',
+        '/foo/bar/CERYLE',
         '/foo/bar/.ceryle/tasks/b.ceryle',
     ]
-    collect_tasks_mock = mocker.patch('ceryle.util.collect_task_files', return_value=dummy_task_files)
+    root_context = '/foo/bar'
+    collect_tasks_mock = mocker.patch('ceryle.util.collect_task_files', return_value=(dummy_task_files, root_context))
     util_mocks.attach_mock(collect_tasks_mock, 'collect_tasks_mock')
 
     task_def = mocker.Mock()
@@ -62,10 +63,11 @@ def test_main_run_specific_task_group(mocker):
 
     dummy_task_files = [
         '/foo/home/.ceryle/tasks/a.ceryle',
-        '/foo/bar/TASK',
+        '/foo/bar/CERYLE',
         '/foo/bar/.ceryle/tasks/b.ceryle',
     ]
-    collect_tasks_mock = mocker.patch('ceryle.util.collect_task_files', return_value=dummy_task_files)
+    root_context = '/foo/bar'
+    collect_tasks_mock = mocker.patch('ceryle.util.collect_task_files', return_value=(dummy_task_files, root_context))
 
     task_def = mocker.Mock()
     task_def.tasks = [
@@ -101,10 +103,11 @@ def test_main_run_fails_by_task_failure(mocker):
 
     dummy_task_files = [
         '/foo/home/.ceryle/tasks/a.ceryle',
-        '/foo/bar/TASK',
+        '/foo/bar/CERYLE',
         '/foo/bar/.ceryle/tasks/b.ceryle',
     ]
-    collect_tasks_mock = mocker.patch('ceryle.util.collect_task_files', return_value=dummy_task_files)
+    root_context = '/foo/bar'
+    collect_tasks_mock = mocker.patch('ceryle.util.collect_task_files', return_value=(dummy_task_files, root_context))
 
     task_def = mocker.Mock()
     task_def.tasks = [
@@ -132,7 +135,7 @@ def test_main_run_fails_by_task_failure(mocker):
 
 def test_main_run_fails_by_task_file_not_found(mocker):
     collect_ex_mock = mocker.patch('ceryle.util.collect_extension_files', return_value=[])
-    collect_tasks_mock = mocker.patch('ceryle.util.collect_task_files', return_value=[])
+    collect_tasks_mock = mocker.patch('ceryle.util.collect_task_files', return_value=([], None))
 
     with pytest.raises(TaskFileError) as e:
         ceryle.main.run()
@@ -149,9 +152,10 @@ def test_main_run_raises_by_no_default_and_no_task_to_run(mocker):
     collect_ex_mock = mocker.patch('ceryle.util.collect_extension_files', return_value=dummy_extensions)
 
     dummy_task_files = [
-        '/foo/bar/TASK',
+        '/foo/bar/CERYLE',
     ]
-    collect_tasks_mock = mocker.patch('ceryle.util.collect_task_files', return_value=dummy_task_files)
+    root_context = '/foo/bar'
+    collect_tasks_mock = mocker.patch('ceryle.util.collect_task_files', return_value=(dummy_task_files, root_context))
 
     task_def = mocker.Mock()
     task_def.tasks = [

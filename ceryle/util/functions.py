@@ -55,7 +55,7 @@ def collect_task_files(start):
             *sorted([str(p) for p in root_dir.glob('*' + CERYLE_TASK_EXT)])
         ]
 
-    return files
+    return files, default_task_file and str(pathlib.Path(default_task_file).parent)
 
 
 def collect_extension_files(start):

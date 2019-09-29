@@ -11,18 +11,18 @@ logger = logging.getLogger(__name__)
 
 
 def load_tasks(additional_args={}):
-    task_files = util.collect_task_files(os.getcwd())
+    task_files, root_context = util.collect_task_files(os.getcwd())
     logger.info(f'task files: {task_files}')
     if not task_files:
         raise ceryle.TaskFileError('task file not found')
     extensions = util.collect_extension_files(os.getcwd())
     logger.info(f'extensions: {extensions}')
 
-    return ceryle.load_task_files(extensions + task_files, additional_args=additional_args)
+    return ceryle.load_task_files(extensions + task_files, additional_args=additional_args), root_context
 
 
 def run(task=None, dry_run=False, additional_args={}, **kwargs):
-    task_def = load_tasks(additional_args=additional_args)
+    task_def, _ = load_tasks(additional_args=additional_args)
     if task is None and task_def.default_task is None:
         raise ceryle.TaskDefinitionError('default task is not declared, specify task to run')
 
@@ -34,7 +34,7 @@ def run(task=None, dry_run=False, additional_args={}, **kwargs):
 
 
 def list_tasks(verbose=0):
-    task_def = load_tasks()
+    task_def, _ = load_tasks()
     groups = sorted(task_def.tasks, key=lambda t: t.name)
     lines = []
     for g in groups:
@@ -52,7 +52,7 @@ def list_tasks(verbose=0):
 
 
 def show_tree(task=None, verbose=0):
-    task_def = load_tasks()
+    task_def, _ = load_tasks()
     if task is None and task_def.default_task is None:
         raise ceryle.TaskDefinitionError('default task is not declared, specify task to show info')
 
