@@ -13,7 +13,10 @@ class AggregateTaskFileLoader:
         gvars = {}
         lvars = {}
         for f in self._files:
-            d = ceryle.TaskFileLoader(f).load(global_vars=gvars, local_vars=lvars, additional_args=self._additional_args)
+            d = ceryle.TaskFileLoader(f).load(
+                global_vars=gvars,
+                local_vars=lvars,
+                additional_args=self._additional_args)
             tasks.update([(d.name, d) for d in d.tasks])
             default = d.default_task
             gvars = d.global_vars

@@ -2,7 +2,7 @@
 
 pushd $(dirname ${BASH_SOURCE[0]}) > /dev/null
 
-CMD="flake8 --exclude=__init__.py --exit-zero ceryle/ tests/; pytest $*"
+CMD="flake8 --exit-zero ceryle/ tests/; pytest $*"
 
 chokidar \
   ceryle/*.py \

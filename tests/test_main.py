@@ -15,7 +15,7 @@ def test_parse_args():
     assert args['additional_args'] == {}
 
 
-def test_parse_args():
+def test_parse_args_runtime_argumens():
     argv = [
         '--arg', 'ARG1=aaa',
         '--arg', 'ARG2="b c"',
