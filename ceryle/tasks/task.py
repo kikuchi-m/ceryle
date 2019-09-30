@@ -22,7 +22,13 @@ class Task:
         self._res = None
 
     def run(self, dry_run=False, inputs=[]):
-        util.print_out(f'running {self._executable}')
+        msg = f'running {self._executable}'
+        iomsg = ', '.join([f'{io[0]}={io[1]}'
+                           for io in [('input', self._input), ('stdout', self._stdout), ('stderr', self._stderr)]
+                           if io[1]])
+        if iomsg:
+            msg = f'{msg} ({iomsg})'
+        util.print_out(msg)
         if dry_run:
             self._res = ExecutionResult(0)
             return True
