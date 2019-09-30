@@ -17,6 +17,32 @@ def test_custom_executable():
     assert res.return_code == 0
 
 
+def test_custom_executable_str():
+    @executable
+    def exe1():
+        return ExecutionResult(0)
+
+    assert str(exe1()) == 'exe1()'
+
+    @executable
+    def exe2(a, b):
+        return ExecutionResult(0)
+
+    assert str(exe2(1, 'foo')) == 'exe2(1, foo)'
+
+    @executable
+    def exe3(a, b=False):
+        return ExecutionResult(0)
+
+    assert str(exe3(1, b=True)) == 'exe3(1, b=True)'
+
+    @executable
+    def exe4(a):
+        return ExecutionResult(0)
+
+    assert str(exe4(Env('FOO'))) == 'exe4(env(FOO))'
+
+
 def test_custom_executable_returns_int():
     @executable
     def mycommand():

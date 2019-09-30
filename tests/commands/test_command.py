@@ -16,17 +16,25 @@ def test_new_command():
     # command part strings by list
     command = Command(['ls', '-a'])
     assert command.cmd == ['ls', '-a']
+    assert str(command) == '[ls -a]'
 
     # sysntax sugar
     command = Command('ls -a')
     assert command.cmd == ['ls', '-a']
+    assert str(command) == '[ls -a]'
 
     # sysntax sugar with double quoted
     command = Command('echo "a b"')
     assert command.cmd == ['echo', 'a b']
+    assert str(command) == '[echo "a b"]'
 
     command = Command(' foo "a b" c  d  ')
     assert command.cmd == ['foo', 'a b', 'c', 'd']
+    assert str(command) == '[foo "a b" c d]'
+
+    # env and arg
+    command = Command(['do-some', Env('FOO'), Arg('BAR', {})])
+    assert str(command) == '[do-some env(FOO) arg(BAR)]'
 
 
 def test_raise_if_invalid_command():

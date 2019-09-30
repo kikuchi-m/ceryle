@@ -69,8 +69,10 @@ class ExecutableWrapper(Executable):
 
     def __str__(self):
         args = ', '.join([str(a) for a in self._args])
-        kwargs = ', '.join([f'{k}={v}' for k, v in self._kwargs])
-        return f'{self._func.__name__}({args}, {kwargs})'
+        kwargs = ', '.join([f'{k}={v}' for k, v in self._kwargs.items()])
+        if kwargs:
+            kwargs = f', {kwargs}'
+        return f'{self._func.__name__}({args}{kwargs})'
 
 
 def executable(func):
