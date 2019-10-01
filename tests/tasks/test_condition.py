@@ -33,3 +33,9 @@ def test_condition_test_predefined_no_input(mocker):
     condition = Condition('no_input', 'context')
     assert condition.test() is True
     assert condition.test(inputs=['a']) is False
+
+
+def test_condition_test_predefined_has_input(mocker):
+    condition = Condition('has_input', 'context')
+    assert condition.test() is False
+    assert condition.test(inputs=['a']) is True
