@@ -16,11 +16,11 @@ class Condition:
         self._context = util.assert_type(context, str)
         logger.debug(f'condition: {self._condition}')
 
-    def test(self, inputs=[]):
+    def test(self, inputs=[], dry_run=False):
         logger.info(f'testing {self._condition}')
         logger.debug(f'context: {self._context}')
         logger.debug(f'inputs: {inputs}')
-        return self._test_fun(self, inputs=inputs)
+        return dry_run or self._test_fun(self, inputs=inputs)
 
     def _test_executable(self, inputs=[]):
         res = self._condition.execute(context=self._context, inputs=inputs)

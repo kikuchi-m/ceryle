@@ -39,3 +39,43 @@ def test_condition_test_predefined_has_input(mocker):
     condition = Condition('has_input', 'context')
     assert condition.test() is False
     assert condition.test(inputs=['a']) is True
+
+
+def test_condition_test_by_executable_with_dry_run(mocker):
+    # successful executable
+    executable1 = Command('do some')
+    mocker.patch.object(executable1, 'execute', return_value=ExecutionResult(0))
+
+    condition = Condition(executable1, 'context')
+    assert condition.test(dry_run=True) is True
+    executable1.execute.assert_not_called()
+
+    # unsuccessful executable
+    executable2 = Command('do some')
+    mocker.patch.object(executable2, 'execute', return_value=ExecutionResult(255))
+
+    condition = Condition(executable2, 'context')
+    assert condition.test(dry_run=True) is True
+    executable2.execute.assert_not_called()
+
+
+@pytest.fixture(params=[
+    Condition.NO_INPUT,
+    Condition.HAS_INPUT,
+])
+def predefined_condition(request):
+    return request.param
+
+
+@pytest.fixture(params=[
+    [],
+    ['a'],
+], ids=lambda inputs: f'inputs{inputs}')
+def arg_inputs(request):
+    return request.param
+
+
+def test_condition_test_by_predefined_with_dry_run(predefined_condition, arg_inputs):
+    condition = Condition(predefined_condition, 'context')
+    assert condition.test(dry_run=True) is True
+    assert condition.test(dry_run=True, inputs=arg_inputs) is True
