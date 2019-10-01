@@ -29,7 +29,7 @@ import logging
 import pathlib
 
 
-def configure_logging(level=logging.INFO, console=False):
+def configure_logging(level=logging.INFO, console=False, filename=None):
     from .util.printutils import print_err
 
     handlers = []
@@ -42,7 +42,9 @@ def configure_logging(level=logging.INFO, console=False):
         logdir.mkdir(parents=True, exist_ok=True)
         handlers.append(
             logging.FileHandler(pathlib.Path.home().joinpath(
-                CERYLE_DIR, 'logs', dt.datetime.now().strftime('%Y%m%d-%H%M%S%f.log'))))
+                CERYLE_DIR,
+                'logs',
+                filename or dt.datetime.now().strftime('%Y%m%d-%H%M%S%f.log'))))
 
     if console:
         handlers.append(logging.StreamHandler())

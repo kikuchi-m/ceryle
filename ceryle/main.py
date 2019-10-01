@@ -85,6 +85,7 @@ def parse_args(argv):
     p.add_argument('--arg', action='append', default=[])
     p.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARN', 'ERROR'], default='INFO')
     p.add_argument('--log-stream', action='store_true')
+    p.add_argument('--log-filename')
     p.add_argument('-v', '--verbose', action='count', default=0)
 
     known_args, rest = p.parse_known_args(argv)
@@ -123,7 +124,8 @@ def main(argv):
             'WARN': logging.WARN,
             'ERROR': logging.ERROR,
         }[args.pop('log_level')],
-        console=args.pop('log_stream'))
+        console=args.pop('log_stream'),
+        filename=args.pop('log_filename'))
     logger.debug(f'arguments: {argv}')
 
     try:
