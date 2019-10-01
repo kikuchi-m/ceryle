@@ -4,6 +4,7 @@ import ceryle
 import ceryle.util as util
 
 from ceryle.commands.executable import Executable, ExecutionResult
+from ceryle.tasks.condition import Condition
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 class Task:
     def __init__(self, executable, context,
                  stdout=None, stderr=None, input=None,
-                 ignore_failure=False):
+                 ignore_failure=False, conditional_on=None):
         self._executable = util.assert_type(executable, Executable)
         self._context = util.assert_type(context, str)
         self._stdout = util.assert_type(stdout, None, str)
@@ -21,6 +22,7 @@ class Task:
             if len([util.assert_type(k, str) for k in self._input]) != 2:
                 raise ValueError('input key must be str or str list with length 2')
         self._ignore_failure = util.assert_type(ignore_failure, bool)
+        self._condition = conditional_on and Condition(conditional_on, context)
         self._res = None
 
     def run(self, dry_run=False, inputs=[]):
@@ -31,6 +33,10 @@ class Task:
         if iomsg:
             msg = f'{msg} ({iomsg})'
         util.print_out(msg)
+        if self._condition and not self._condition.test(dry_run=dry_run, inputs=inputs):
+            util.print_out('skipping task since condition did not match')
+            self._res = ExecutionResult(0)
+            return True
         if dry_run:
             self._res = ExecutionResult(0)
             return True
