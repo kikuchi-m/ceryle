@@ -54,6 +54,11 @@ default = 'foo'
         }],
     },
 
+    'task_attributes': [{
+        'run': command('false'),
+        'ignore_failure': True,
+    }],
+
     'args': [{
         'run': command(['echo',
                         env('ENV1'),

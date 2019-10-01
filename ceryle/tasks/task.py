@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 
 class Task:
     def __init__(self, executable, context,
-                 stdout=None, stderr=None, input=None):
+                 stdout=None, stderr=None, input=None,
+                 ignore_failure=False):
         self._executable = util.assert_type(executable, Executable)
         self._context = util.assert_type(context, str)
         self._stdout = util.assert_type(stdout, None, str)
@@ -19,6 +20,7 @@ class Task:
         if self._input and not isinstance(self._input, str):
             if len([util.assert_type(k, str) for k in self._input]) != 2:
                 raise ValueError('input key must be str or str list with length 2')
+        self._ignore_failure = util.assert_type(ignore_failure, bool)
         self._res = None
 
     def run(self, dry_run=False, inputs=[]):
@@ -37,8 +39,11 @@ class Task:
         self._res = self._executable.execute(context=self._context, inputs=inputs)
         success = self._res.return_code == 0
         if not success:
-            util.print_err(f'task failed: {self._executable}')
-        return success
+            msg = f'task failed: {self._executable}'
+            if self._ignore_failure:
+                msg = f'{msg}, but ignore'
+            util.print_err(msg)
+        return self._ignore_failure or success
 
     @property
     def executable(self):

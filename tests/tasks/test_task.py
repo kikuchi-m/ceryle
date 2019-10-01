@@ -42,6 +42,17 @@ def test_run_failed(mocker):
     executable.execute.assert_called_once_with(context='context', inputs=[])
 
 
+def test_run_ignore_failure(mocker):
+    executable = Command('do some')
+    mocker.patch.object(executable, 'execute', return_value=ExecutionResult(255))
+
+    t = Task(executable, 'context', ignore_failure=True)
+    success = t.run()
+
+    assert success is True
+    executable.execute.assert_called_once()
+
+
 def test_dry_run(mocker):
     executable = Command('do some')
     mocker.patch.object(executable, 'execute', return_value=ExecutionResult(1))

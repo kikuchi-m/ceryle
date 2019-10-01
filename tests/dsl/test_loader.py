@@ -18,7 +18,7 @@ def test_load_task_file():
 
     tasks = dict([(g.name, g) for g in task_def.tasks])
     task_names = tasks.keys()
-    for name in ['foo', 'bar', 'simple', 'shorten', 'pipe', 'pipe2', 'args']:
+    for name in ['foo', 'bar', 'simple', 'shorten', 'pipe', 'pipe2', 'task_attributes', 'args']:
         assert name in task_names
         assert isinstance(tasks[name], TaskGroup)
 
