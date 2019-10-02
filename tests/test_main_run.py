@@ -215,6 +215,7 @@ def test_main_run_save_last_execution_to_file(mocker, tmpdir):
     ]
     task_def.default_task = 'tg1'
     load_tasks = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, str(context)))
+    save_run_cache = mocker.patch('ceryle.main.save_run_cache')
 
     run_cache = ceryle.RunCache('tg1')
     run_cache.add_result(('g2', True))
@@ -230,15 +231,15 @@ def test_main_run_save_last_execution_to_file(mocker, tmpdir):
 
     # verification
     assert res == 0
-    assert run_cache_file.is_file() is True
-
-    loaded_run_cache = ceryle.RunCache.load(str(run_cache_file))
-    assert loaded_run_cache.task_name == 'tg1'
-    assert loaded_run_cache.results == [
+    save_run_cache.assert_called_once_with(mocker.ANY, mocker.ANY)
+    save_run_cache_args, _ = save_run_cache.call_args
+    assert save_run_cache_args[0] == str(context)
+    assert save_run_cache_args[1].task_name == 'tg1'
+    assert save_run_cache_args[1].results == [
         ('g2', True),
         ('g1', True),
     ]
-    assert loaded_run_cache.register == {
+    assert save_run_cache_args[1].register == {
         'g2': {
             'G2T1_STDOUT': ['aaa', 'bbb'],
         },
@@ -260,6 +261,7 @@ def test_main_run_keep_last_execution_when_dry_run(mocker, tmpdir):
     ]
     task_def.default_task = 'tg1'
     load_tasks = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, str(context)))
+    save_run_cache = mocker.patch('ceryle.main.save_run_cache')
 
     existing_run_cache = ceryle.RunCache('tg1')
     existing_run_cache.add_result(('g2', True))
@@ -280,19 +282,7 @@ def test_main_run_keep_last_execution_when_dry_run(mocker, tmpdir):
 
     # verification
     assert res == 0
-    assert run_cache_file.is_file() is True
-
-    loaded_run_cache = ceryle.RunCache.load(str(run_cache_file))
-    assert loaded_run_cache.task_name == 'tg1'
-    assert loaded_run_cache.results == [
-        ('g2', True),
-        ('g1', False),
-    ]
-    assert loaded_run_cache.register == {
-        'g2': {
-            'G2T1_STDOUT': ['aaa', 'bbb'],
-        },
-    }
+    save_run_cache.assert_not_called()
 
     load_tasks.assert_called_once()
     runner.run.assert_called_once_with('tg1', dry_run=True)
@@ -310,6 +300,7 @@ def test_main_run_save_last_execution_to_file_even_when_exeption_raised(mocker, 
     ]
     task_def.default_task = 'tg1'
     load_tasks = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, str(context)))
+    save_run_cache = mocker.patch('ceryle.main.save_run_cache')
 
     run_cache = ceryle.RunCache('tg1')
     run_cache.add_result(('g2', True))
@@ -325,8 +316,39 @@ def test_main_run_save_last_execution_to_file_even_when_exeption_raised(mocker, 
         ceryle.main.run()
 
     # verification
-    assert run_cache_file.is_file() is True
+    save_run_cache.assert_called_once_with(mocker.ANY, mocker.ANY)
+    save_run_cache_args, _ = save_run_cache.call_args
+    assert save_run_cache_args[0] == str(context)
+    assert save_run_cache_args[1].task_name == 'tg1'
+    assert save_run_cache_args[1].results == [
+        ('g2', True),
+        ('g1', False),
+    ]
+    assert save_run_cache_args[1].register == {
+        'g2': {
+            'G2T1_STDOUT': ['aaa', 'bbb'],
+        },
+    }
 
+    load_tasks.assert_called_once()
+    runner.run.assert_called_once_with('tg1', dry_run=False)
+
+
+def test_main_save_run_cache(mocker, tmpdir):
+    context = pathlib.Path(tmpdir, 'foo', 'bar')
+    context.mkdir(parents=True)
+    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+
+    run_cache = ceryle.RunCache('tg1')
+    run_cache.add_result(('g2', True))
+    run_cache.add_result(('g1', False))
+    run_cache.update_register({'g2': {'G2T1_STDOUT': ['aaa', 'bbb']}})
+
+    # excercise
+    ceryle.main.save_run_cache(str(context), run_cache)
+
+    # verification
+    assert run_cache_file.is_file() is True
     loaded_run_cache = ceryle.RunCache.load(str(run_cache_file))
     assert loaded_run_cache.task_name == 'tg1'
     assert loaded_run_cache.results == [
@@ -339,5 +361,17 @@ def test_main_run_save_last_execution_to_file_even_when_exeption_raised(mocker, 
         },
     }
 
-    load_tasks.assert_called_once()
-    runner.run.assert_called_once_with('tg1', dry_run=False)
+
+def test_main_save_run_cache_handle_exception(mocker, tmpdir):
+    context = pathlib.Path(tmpdir, 'foo', 'bar')
+    context.mkdir(parents=True)
+    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+
+    run_cache = ceryle.RunCache('tg1')
+    mocker.patch.object(run_cache, 'save', side_effect=Exception('test'))
+
+    # excercise
+    ceryle.main.save_run_cache(str(context), run_cache)
+
+    # verification
+    assert run_cache_file.exists() is False
