@@ -5,7 +5,7 @@ import tempfile
 import pytest
 
 import ceryle
-from ceryle import CERYLE_DIR
+from ceryle.const import CERYLE_DIR
 
 FIXED_DT = dt.datetime(2019, 1, 2, 3, 4, 5)
 
