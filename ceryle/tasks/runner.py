@@ -43,11 +43,11 @@ class TaskRunner:
                 return False, reg
         try:
             res, reg = self._run_group(self._groups[chain.task_name], dry_run=dry_run, register=reg or register)
-            self._run_cache.add_result((chain.task_name, res and not dry_run))
-            self._run_cache.update_register(reg)
         except Exception:
             self._run_cache.add_result((chain.task_name, False))
             raise
+        self._run_cache.add_result((chain.task_name, res and not dry_run))
+        self._run_cache.update_register(reg)
 
         return res, reg
 

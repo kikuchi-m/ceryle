@@ -1,6 +1,6 @@
 import pytest
 
-from ceryle import Command, ExecutionResult, Task, Condition
+from ceryle import Command, ExecutionResult, Task
 from ceryle import IllegalOperation
 
 

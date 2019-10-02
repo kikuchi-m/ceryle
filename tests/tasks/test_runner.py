@@ -135,6 +135,42 @@ def test_run_tasks_fails(mocker):
     assert cache.register == {}
 
 
+def test_run_tasks_fails_by_exception(mocker):
+    mock = mocker.Mock()
+
+    g1_t1 = Task(Command('do some'), 'context')
+    g1 = TaskGroup('g1', [g1_t1], dependencies=['g2'])
+    g2_t1 = Task(Command('do some'), 'context')
+    g2 = TaskGroup('g2', [g2_t1], dependencies=[])
+
+    g1_t1_run = mocker.patch.object(g1_t1, 'run', side_effect=Exception('test'))
+    mock.attach_mock(g1_t1_run, 'g1_t1_run')
+
+    g2_t1_run = mocker.patch.object(g2_t1, 'run', return_value=True)
+    mock.attach_mock(g2_t1_run, 'g2_t1_run')
+
+    expected_calls = [
+        mocker.call.g2_t1_run(dry_run=False, inputs=[]),
+        mocker.call.g1_t1_run(dry_run=False, inputs=[]),
+    ]
+
+    runner = TaskRunner([g1, g2])
+
+    with pytest.raises(Exception):
+        runner.run('g1')
+    g1_t1.run.assert_called_once()
+    g2_t1.run.assert_called_once()
+    assert mock.mock_calls == expected_calls
+
+    cache = runner.get_cache()
+    assert cache.task_name == 'g1'
+    assert cache.results == [
+        ('g2', True),
+        ('g1', False),
+    ]
+    assert cache.register == {}
+
+
 def test_dry_run(mocker):
     g1_t1 = Task(Command('do some'), 'context')
     g1 = TaskGroup('g1', [g1_t1], dependencies=['g2'])
