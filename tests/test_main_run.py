@@ -431,6 +431,36 @@ def test_main_save_run_cache(mocker, tmpdir):
     }
 
 
+def test_main_save_run_cache_into_home_ceryle_dir(mocker, tmpdir):
+    home = pathlib.Path(tmpdir, 'home')
+    home.joinpath(const.CERYLE_DIR).mkdir(parents=True)
+    run_cache_file = pathlib.Path(home, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+    home_mock = mocker.patch('pathlib.Path.home', return_value=pathlib.Path(home))
+
+    run_cache = ceryle.RunCache('tg1')
+    run_cache.add_result(('g2', True))
+    run_cache.add_result(('g1', False))
+    run_cache.update_register({'g2': {'G2T1_STDOUT': ['aaa', 'bbb']}})
+
+    # excercise
+    ceryle.main.save_run_cache(None, run_cache)
+
+    # verification
+    assert run_cache_file.is_file() is True
+    loaded_run_cache = ceryle.RunCache.load(str(run_cache_file))
+    assert loaded_run_cache.task_name == 'tg1'
+    assert loaded_run_cache.results == [
+        ('g2', True),
+        ('g1', False),
+    ]
+    assert loaded_run_cache.register == {
+        'g2': {
+            'G2T1_STDOUT': ['aaa', 'bbb'],
+        },
+    }
+    home_mock.assert_called_once()
+
+
 def test_main_save_run_cache_handle_exception(mocker, tmpdir):
     context = pathlib.Path(tmpdir, 'foo', 'bar')
     context.mkdir(parents=True)
@@ -444,3 +474,79 @@ def test_main_save_run_cache_handle_exception(mocker, tmpdir):
 
     # verification
     assert run_cache_file.exists() is False
+
+
+def test_main_load_run_cache(mocker, tmpdir):
+    context = pathlib.Path(tmpdir, 'foo', 'bar')
+    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+    run_cache_file.parent.mkdir(parents=True)
+
+    run_cache = ceryle.RunCache('g1')
+    run_cache.add_result(('g2', True))
+    run_cache.add_result(('g1', False))
+    run_cache.update_register({'g2': {'G2T1_STDOUT': ['aaa', 'bbb']}})
+    run_cache.save(str(run_cache_file))
+
+    # excercise
+    loaded_run_cache = ceryle.main.load_run_cache(str(context))
+
+    # verification
+    assert loaded_run_cache.task_name == 'g1'
+    assert loaded_run_cache.results == [
+        ('g2', True),
+        ('g1', False),
+    ]
+    assert loaded_run_cache.register == {
+        'g2': {
+            'G2T1_STDOUT': ['aaa', 'bbb'],
+        },
+    }
+
+
+def test_main_load_run_cache_from_home_ceryle_dir(mocker, tmpdir):
+    home = pathlib.Path(tmpdir, 'home')
+    run_cache_file = pathlib.Path(home, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+    run_cache_file.parent.mkdir(parents=True)
+    home_mock = mocker.patch('pathlib.Path.home', return_value=pathlib.Path(home))
+
+    run_cache = ceryle.RunCache('g1')
+    run_cache.add_result(('g2', True))
+    run_cache.add_result(('g1', False))
+    run_cache.update_register({'g2': {'G2T1_STDOUT': ['aaa', 'bbb']}})
+    run_cache.save(str(run_cache_file))
+
+    # excercise
+    loaded_run_cache = ceryle.main.load_run_cache(None)
+
+    # verification
+    assert loaded_run_cache.task_name == 'g1'
+    assert loaded_run_cache.results == [
+        ('g2', True),
+        ('g1', False),
+    ]
+    assert loaded_run_cache.register == {
+        'g2': {
+            'G2T1_STDOUT': ['aaa', 'bbb'],
+        },
+    }
+    home_mock.assert_called_once()
+
+
+def test_main_load_run_cache_return_none_if_cache_file_not_found(mocker, tmpdir):
+    context = pathlib.Path(tmpdir, 'foo', 'bar')
+    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+    run_cache_file.parent.mkdir(parents=True)
+
+    # excercise
+    assert ceryle.main.load_run_cache(str(context)) is None
+
+
+def test_main_load_run_cache_from_home_ceryle_dir_return_none_if_cache_file_not_found(mocker, tmpdir):
+    home = pathlib.Path(tmpdir, 'home')
+    run_cache_file = pathlib.Path(home, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+    run_cache_file.parent.mkdir(parents=True)
+    home_mock = mocker.patch('pathlib.Path.home', return_value=pathlib.Path(home))
+
+    # excercise
+    assert ceryle.main.load_run_cache(None) is None
+    home_mock.assert_called_once()

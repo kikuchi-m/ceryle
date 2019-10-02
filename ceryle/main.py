@@ -43,7 +43,7 @@ def run(task=None, dry_run=False, additional_args={},
 
 def save_run_cache(root_context, run_cache):
     try:
-        cache_file = pathlib.Path(root_context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+        cache_file = _run_cache_file(root_context)
         cache_file.parent.mkdir(parents=True, exist_ok=True)
         run_cache.save(str(cache_file))
     except Exception as e:
@@ -52,7 +52,16 @@ def save_run_cache(root_context, run_cache):
 
 
 def load_run_cache(root_context):
-    pass
+    cache_file = _run_cache_file(root_context)
+    if cache_file.is_file():
+        return ceryle.RunCache.load(str(cache_file))
+    return None
+
+
+def _run_cache_file(root_context):
+    return pathlib.Path(root_context or pathlib.Path.home(),
+                        const.CERYLE_DIR,
+                        const.CERYLE_RUN_CACHE_FILENAME)
 
 
 def list_tasks(verbose=0):
@@ -104,6 +113,7 @@ def parse_args(argv):
     p.add_argument('--list-tasks', action='store_true')
     p.add_argument('--show', action='store_true')
     p.add_argument('-n', '--dry-run', action='store_true')
+    p.add_argument('--continue', action='store_true')
     p.add_argument('--arg', action='append', default=[])
     p.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARN', 'ERROR'], default='INFO')
     p.add_argument('--log-stream', action='store_true')
@@ -112,6 +122,7 @@ def parse_args(argv):
 
     known_args, rest = p.parse_known_args(argv)
     args = vars(known_args)
+    args.update(continue_last_run=args.pop('continue'))
     args['additional_args'] = read_args(args.pop('arg'))
     args['task'] = rest[0] if len(rest) > 0 else None
     return args

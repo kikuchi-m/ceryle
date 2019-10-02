@@ -10,6 +10,7 @@ def test_parse_args():
 
     assert args['task'] == 'foo'
     assert args['dry_run'] is False
+    assert args['continue_last_run'] is False
     assert args['list_tasks'] is False
     assert args['show'] is False
     assert args['additional_args'] == {}
