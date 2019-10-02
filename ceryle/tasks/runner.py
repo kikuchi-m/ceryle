@@ -23,24 +23,37 @@ class TaskRunner:
         self._groups = dict([(g.name, g) for g in task_groups])
         self._run_cache = None
 
-    def run(self, task_group, dry_run=False):
+    def run(self, task_group, dry_run=False, last_run=None):
         chain = self._deps_chain_map.get(task_group)
         if chain is None:
             raise TaskDefinitionError(f'task {task_group} is not defined')
         self._run_cache = RunCache(task_group)
-        return self._run(chain, dry_run=dry_run)[0]
+        last_execution = LastExecution(last_run)
+        if last_execution.task_name != task_group:
+            last_execution.stop()
+        res, _ = self._run(chain, dry_run=dry_run, last_execution=last_execution)
+        return res
 
     def get_cache(self):
         if self._run_cache is None:
             raise IllegalOperation('could not get cache before running')
         return self._run_cache
 
-    def _run(self, chain, dry_run=False, register={}):
+    def _run(self, chain, dry_run=False, register={}, last_execution=None):
         reg = None
         for c in chain.deps:
-            res, reg = self._run(c, dry_run=dry_run, register=register)
+            res, reg = self._run(c, dry_run=dry_run, register=register, last_execution=last_execution)
             if not res:
                 return False, reg
+
+        if last_execution.check_skip(chain.task_name):
+            util.print_out(f'skipping {chain.task_name}')
+            self._run_cache.add_result(last_execution.current_result())
+            last_execution.forward()
+            return True, last_execution.register
+        else:
+            last_execution.stop()
+
         try:
             res, reg = self._run_group(self._groups[chain.task_name], dry_run=dry_run, register=reg or register)
         except Exception:
@@ -48,7 +61,6 @@ class TaskRunner:
             raise
         self._run_cache.add_result((chain.task_name, res and not dry_run))
         self._run_cache.update_register(reg)
-
         return res, reg
 
     def _run_group(self, tg, dry_run=False, register={}):
@@ -123,3 +135,38 @@ class RunCache:
             logger.warn(f'failed to load run cache: {path}')
             logger.warn(e)
             return None
+
+
+class LastExecution:
+    def __init__(self, run_cache):
+        self._run_cache = util.assert_type(run_cache, None, RunCache)
+        self._results = run_cache and run_cache.results or []
+        self._index = 0
+
+    def has_current(self):
+        return self._index < len(self._results)
+
+    def current_result(self):
+        if not self.has_current():
+            raise IllegalOperation('no result exists')
+        return self._results[self._index]
+
+    def check_skip(self, task_group):
+        if self.has_current():
+            g, r = self._results[self._index]
+            return g == task_group and r
+        return False
+
+    def forward(self):
+        self._index += 1
+
+    def stop(self):
+        self._index = len(self._results)
+
+    @property
+    def register(self):
+        return self._run_cache and self._run_cache.register or {}
+
+    @property
+    def task_name(self):
+        return self._run_cache and self._run_cache.task_name
