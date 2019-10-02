@@ -1,10 +1,12 @@
 import argparse
 import logging
 import os
+import pathlib
 import re
 import sys
 
 import ceryle
+import ceryle.const as const
 import ceryle.util as util
 
 logger = logging.getLogger(__name__)
@@ -22,15 +24,28 @@ def load_tasks(additional_args={}):
 
 
 def run(task=None, dry_run=False, additional_args={}, **kwargs):
-    task_def, _ = load_tasks(additional_args=additional_args)
+    task_def, root_context = load_tasks(additional_args=additional_args)
     if task is None and task_def.default_task is None:
         raise ceryle.TaskDefinitionError('default task is not declared, specify task to run')
 
     runner = ceryle.TaskRunner(task_def.tasks)
-    res = runner.run(task or task_def.default_task, dry_run=dry_run)
+    try:
+        res = runner.run(task or task_def.default_task, dry_run=dry_run)
+    finally:
+        not dry_run and save_run_cache(root_context, runner.get_cache())
     if res is not True:
         return 1
     return 0
+
+
+def save_run_cache(root_context, run_cache):
+    try:
+        cache_file = pathlib.Path(root_context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+        cache_file.parent.mkdir(parents=True, exist_ok=True)
+        run_cache.save(str(cache_file))
+    except Exception as e:
+        logger.error(e)
+        util.print_err('failed to save last execution result', str(e))
 
 
 def list_tasks(verbose=0):

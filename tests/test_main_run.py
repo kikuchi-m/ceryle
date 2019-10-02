@@ -2,6 +2,7 @@ import pathlib
 import pytest
 
 import ceryle
+import ceryle.const as const
 import ceryle.main
 
 from ceryle import TaskDefinitionError, TaskFileError
@@ -200,3 +201,143 @@ def test_main_run_raises_by_no_default_and_no_task_to_run(mocker, tmpdir):
     collect_tasks_mock.assert_called_once_with(mocker.ANY)
     collect_ex_mock.assert_called_once_with(mocker.ANY)
     load_mock.assert_called_once_with(dummy_extensions + dummy_task_files, additional_args={})
+
+
+def test_main_run_save_last_execution_to_file(mocker, tmpdir):
+    context = pathlib.Path(tmpdir, 'foo', 'bar')
+    context.mkdir(parents=True)
+    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+
+    task_def = mocker.Mock()
+    task_def.tasks = [
+        ceryle.TaskGroup('tg1', [], dependencies=['g2']),
+        ceryle.TaskGroup('tg2', []),
+    ]
+    task_def.default_task = 'tg1'
+    load_tasks = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, str(context)))
+
+    run_cache = ceryle.RunCache('tg1')
+    run_cache.add_result(('g2', True))
+    run_cache.add_result(('g1', True))
+    run_cache.update_register({'g2': {'G2T1_STDOUT': ['aaa', 'bbb']}})
+    runner = mocker.Mock()
+    runner.run = mocker.Mock(return_value=True)
+    runner.get_cache = mocker.Mock(return_value=run_cache)
+    mocker.patch('ceryle.TaskRunner', return_value=runner)
+
+    # excercise
+    res = ceryle.main.run()
+
+    # verification
+    assert res == 0
+    assert run_cache_file.is_file() is True
+
+    loaded_run_cache = ceryle.RunCache.load(str(run_cache_file))
+    assert loaded_run_cache.task_name == 'tg1'
+    assert loaded_run_cache.results == [
+        ('g2', True),
+        ('g1', True),
+    ]
+    assert loaded_run_cache.register == {
+        'g2': {
+            'G2T1_STDOUT': ['aaa', 'bbb'],
+        },
+    }
+
+    load_tasks.assert_called_once()
+    runner.run.assert_called_once_with('tg1', dry_run=False)
+
+
+def test_main_run_keep_last_execution_when_dry_run(mocker, tmpdir):
+    context = pathlib.Path(tmpdir, 'foo', 'bar')
+    context.joinpath(const.CERYLE_DIR).mkdir(parents=True)
+    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+
+    task_def = mocker.Mock()
+    task_def.tasks = [
+        ceryle.TaskGroup('tg1', [], dependencies=['g2']),
+        ceryle.TaskGroup('tg2', []),
+    ]
+    task_def.default_task = 'tg1'
+    load_tasks = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, str(context)))
+
+    existing_run_cache = ceryle.RunCache('tg1')
+    existing_run_cache.add_result(('g2', True))
+    existing_run_cache.add_result(('g1', False))
+    existing_run_cache.update_register({'g2': {'G2T1_STDOUT': ['aaa', 'bbb']}})
+    existing_run_cache.save(run_cache_file)
+
+    run_cache = ceryle.RunCache('tg1')
+    run_cache.add_result(('g2', True))
+    run_cache.add_result(('g1', True))
+    runner = mocker.Mock()
+    runner.run = mocker.Mock(return_value=True)
+    runner.get_cache = mocker.Mock(return_value=run_cache)
+    mocker.patch('ceryle.TaskRunner', return_value=runner)
+
+    # excercise
+    res = ceryle.main.run(dry_run=True)
+
+    # verification
+    assert res == 0
+    assert run_cache_file.is_file() is True
+
+    loaded_run_cache = ceryle.RunCache.load(str(run_cache_file))
+    assert loaded_run_cache.task_name == 'tg1'
+    assert loaded_run_cache.results == [
+        ('g2', True),
+        ('g1', False),
+    ]
+    assert loaded_run_cache.register == {
+        'g2': {
+            'G2T1_STDOUT': ['aaa', 'bbb'],
+        },
+    }
+
+    load_tasks.assert_called_once()
+    runner.run.assert_called_once_with('tg1', dry_run=True)
+
+
+def test_main_run_save_last_execution_to_file_even_when_exeption_raised(mocker, tmpdir):
+    context = pathlib.Path(tmpdir, 'foo', 'bar')
+    context.mkdir(parents=True)
+    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+
+    task_def = mocker.Mock()
+    task_def.tasks = [
+        ceryle.TaskGroup('tg1', [], dependencies=['g2']),
+        ceryle.TaskGroup('tg2', []),
+    ]
+    task_def.default_task = 'tg1'
+    load_tasks = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, str(context)))
+
+    run_cache = ceryle.RunCache('tg1')
+    run_cache.add_result(('g2', True))
+    run_cache.add_result(('g1', False))
+    run_cache.update_register({'g2': {'G2T1_STDOUT': ['aaa', 'bbb']}})
+    runner = mocker.Mock()
+    runner.run = mocker.Mock(side_effect=Exception('test'))
+    runner.get_cache = mocker.Mock(return_value=run_cache)
+    mocker.patch('ceryle.TaskRunner', return_value=runner)
+
+    # excercise
+    with pytest.raises(Exception):
+        ceryle.main.run()
+
+    # verification
+    assert run_cache_file.is_file() is True
+
+    loaded_run_cache = ceryle.RunCache.load(str(run_cache_file))
+    assert loaded_run_cache.task_name == 'tg1'
+    assert loaded_run_cache.results == [
+        ('g2', True),
+        ('g1', False),
+    ]
+    assert loaded_run_cache.register == {
+        'g2': {
+            'G2T1_STDOUT': ['aaa', 'bbb'],
+        },
+    }
+
+    load_tasks.assert_called_once()
+    runner.run.assert_called_once_with('tg1', dry_run=False)
