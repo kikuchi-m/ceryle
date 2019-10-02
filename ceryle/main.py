@@ -23,14 +23,17 @@ def load_tasks(additional_args={}):
     return ceryle.load_task_files(extensions + task_files, additional_args=additional_args), root_context
 
 
-def run(task=None, dry_run=False, additional_args={}, **kwargs):
+def run(task=None, dry_run=False, additional_args={},
+        continue_last_run=False):
+
     task_def, root_context = load_tasks(additional_args=additional_args)
     if task is None and task_def.default_task is None:
         raise ceryle.TaskDefinitionError('default task is not declared, specify task to run')
 
     runner = ceryle.TaskRunner(task_def.tasks)
+    last_run = load_run_cache(root_context) if continue_last_run else None
     try:
-        res = runner.run(task or task_def.default_task, dry_run=dry_run)
+        res = runner.run(task or task_def.default_task, dry_run=dry_run, last_run=last_run)
     finally:
         not dry_run and save_run_cache(root_context, runner.get_cache())
     if res is not True:
@@ -46,6 +49,10 @@ def save_run_cache(root_context, run_cache):
     except Exception as e:
         logger.error(e)
         util.print_err('failed to save last execution result', str(e))
+
+
+def load_run_cache(root_context):
+    pass
 
 
 def list_tasks(verbose=0):
