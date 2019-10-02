@@ -1,6 +1,6 @@
 import pytest
 
-from ceryle import Command, ExecutionResult, Task
+from ceryle import Command, ExecutionResult, Task, Condition
 from ceryle import IllegalOperation
 
 
@@ -40,6 +40,17 @@ def test_run_failed(mocker):
 
     assert success is False
     executable.execute.assert_called_once_with(context='context', inputs=[])
+
+
+def test_run_ignore_failure(mocker):
+    executable = Command('do some')
+    mocker.patch.object(executable, 'execute', return_value=ExecutionResult(255))
+
+    t = Task(executable, 'context', ignore_failure=True)
+    success = t.run()
+
+    assert success is True
+    executable.execute.assert_called_once()
 
 
 def test_dry_run(mocker):
@@ -98,3 +109,60 @@ def test_get_stds_raise_before_run(mocker):
     with pytest.raises(IllegalOperation) as ex2:
         t.stderr()
     assert str(ex2.value) == 'task is not run yet'
+
+
+def test_run_conditional_on_true(mocker):
+    executable = Command('do some')
+    mocker.patch.object(executable, 'execute', return_value=ExecutionResult(0))
+
+    condition_exe = Command('test condition')
+    mocker.patch.object(condition_exe, 'execute', return_value=ExecutionResult(0))
+
+    t = Task(executable, 'context', conditional_on=condition_exe)
+
+    assert t.run() is True
+    condition_exe.execute.assert_called_once_with(context='context', inputs=[])
+    executable.execute.assert_called_once()
+    assert t.stdout() == []
+    assert t.stderr() == []
+
+
+def test_run_conditional_on_false(mocker):
+    executable = Command('do some')
+    mocker.patch.object(executable, 'execute', return_value=ExecutionResult(0))
+
+    condition_exe = Command('test condition')
+    mocker.patch.object(condition_exe, 'execute', return_value=ExecutionResult(255))
+
+    t = Task(executable, 'context', conditional_on=condition_exe)
+
+    assert t.run() is True
+    condition_exe.execute.assert_called_once_with(context='context', inputs=[])
+    executable.execute.assert_not_called()
+    assert t.stdout() == []
+    assert t.stderr() == []
+
+
+@pytest.mark.parametrize(
+    'conditional_on, dry_run, inputs, exe_calls', [
+        (0, True, [], 0),
+        (1, True, [], 0),
+        (0, False, ['a'], 1),
+        (0, True, ['a'], 0),
+    ], ids=str)
+def test_run_conditional_by_dry_run_with_inputs(mocker, conditional_on, dry_run, inputs, exe_calls):
+    executable = Command('do some')
+    mocker.patch.object(executable, 'execute', return_value=ExecutionResult(0))
+
+    condition_exe = Command('test condition')
+    mocker.patch.object(condition_exe, 'execute', return_value=ExecutionResult(conditional_on))
+
+    t = Task(executable, 'context', conditional_on=condition_exe)
+
+    assert t.run(dry_run=dry_run, inputs=inputs) is True
+    if dry_run:
+        condition_exe.execute.assert_not_called()
+        executable.execute.assert_not_called()
+    else:
+        condition_exe.execute.assert_called_once_with(context='context', inputs=inputs)
+        executable.execute.assert_called_once()

@@ -17,7 +17,10 @@ class AggregateTaskFileLoader:
                 global_vars=gvars,
                 local_vars=lvars,
                 additional_args=self._additional_args)
-            tasks.update([(d.name, d) for d in d.tasks])
+            for t in d.tasks:
+                if t.name in tasks:
+                    util.print_out(f'warn: {t.name} is overwritten')
+                tasks.update({t.name: t})
             default = d.default_task
             gvars = d.global_vars
             lvars = d.local_vars

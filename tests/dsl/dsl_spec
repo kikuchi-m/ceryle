@@ -54,6 +54,16 @@ default = 'foo'
         }],
     },
 
+    'task_attributes': [{
+        'conditional_on': command('test condition'),
+        'run': command('false'),
+        'ignore_failure': True,
+    }, {
+        'conditional_on': condition.HAS_INPUT,
+        'run': command('do some'),
+        'input': ('pipe', 'PIPE_OUTPUT'),
+    }],
+
     'args': [{
         'run': command(['echo',
                         env('ENV1'),

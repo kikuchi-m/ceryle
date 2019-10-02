@@ -3,7 +3,7 @@ import ceryle
 import ceryle.util as util
 import os
 
-from ceryle import Command, Copy, Remove
+from ceryle import Command, Copy, Remove, Condition
 from ceryle.commands.executable import executable
 from ceryle.dsl.parser import parse_tasks
 from . import support
@@ -49,6 +49,7 @@ class TaskFileLoader:
             copy=Copy,
             remove=Remove,
             executable=executable,
+            condition=Condition,
             path=support.joinpath,
             env=support.Env,
             arg=arg_fun,
