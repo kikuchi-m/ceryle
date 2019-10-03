@@ -69,12 +69,12 @@ def list_tasks(verbose=0):
     groups = sorted(task_def.tasks, key=lambda t: t.name)
     lines = []
     for g in groups:
-        lines.append(f'{g.name}:')
-        if g.dependencies:
+        lines.append(f'{g.name}' + (':' if verbose > 0 else ''))
+        if verbose > 0 and g.dependencies:
             lines.append(util.indent_s('dependencies:', 2))
             for d in g.dependencies:
                 lines.append(util.indent_s(str(d), 4))
-        if verbose > 0 and g.tasks:
+        if verbose > 1 and g.tasks:
             lines.append(util.indent_s('tasks:', 2))
             for t in g.tasks:
                 lines.append(util.indent_s(str(t.executable), 4))
