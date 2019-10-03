@@ -2,7 +2,7 @@ class CeryleException(Exception):
     pass
 
 
-class IllegalOperation(CeryleException):
+class IllegalOperation(RuntimeError):
     pass
 
 
