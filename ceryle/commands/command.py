@@ -1,28 +1,30 @@
-import ceryle.util as util
 import logging
 import os
 import pathlib
 import re
 import subprocess
 
-from ceryle.commands.executable import Executable, ExecutionResult
+import ceryle.util as util
+
 from concurrent.futures import ThreadPoolExecutor
+from ceryle.commands.executable import Executable, ExecutionResult
 
 logger = logging.getLogger(__name__)
 
 
 class Command(Executable):
-    def __init__(self, cmd, cwd=None, inputs_as_args=False):
+    def __init__(self, cmd, cwd=None, inputs_as_args=False, env={}):
         self._cmd = extract_cmd(cmd)
-        self._cwd = cwd
-        self._as_args = inputs_as_args
+        self._cwd = util.assert_type(cwd, None, str, pathlib.Path)
+        self._as_args = util.assert_type(inputs_as_args, bool)
+        self._env = util.assert_type(env, dict)
 
     def execute(self, context=None, inputs=[], timeout=None):
         cmd_log = self._cmd_log_message()
         logger.info(f'run command: {cmd_log}')
 
         communicate = False
-        cmd = self.preprocess(self.cmd, {})[0]
+        cmd, env = self.preprocess(self.cmd, self._env)
         if len(inputs) > 0:
             if self._as_args:
                 cmd = cmd + inputs
@@ -31,6 +33,7 @@ class Command(Executable):
         proc = subprocess.Popen(
             cmd,
             cwd=self._get_cwd(context),
+            env=self._with_os_env(env),
             stdin=subprocess.PIPE if communicate else None,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if communicate:
@@ -54,6 +57,11 @@ class Command(Executable):
                 return str(pathlib.Path(context, self._cwd))
             return self._cwd
         return context
+
+    def _with_os_env(self, env):
+        e = os.environ.copy()
+        e.update(env)
+        return e
 
     def _cmd_log_message(self):
         if self._cwd:

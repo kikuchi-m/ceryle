@@ -54,6 +54,17 @@ default = 'foo'
         }],
     },
 
+    'command_args': [
+        command([path('./some.sh'), 'a', 'b'],
+                cwd=path('./x/y'),
+                inputs_as_args=True,
+                env={
+                    'MY_ENV1': 'foo',
+                    'MY_ENV2': env('BAR'),
+                    'MY_ENV3': arg('ARG3'),
+                }),
+    ],
+
     'task_attributes': [{
         'conditional_on': command('test condition'),
         'run': command('false'),

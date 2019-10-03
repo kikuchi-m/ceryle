@@ -171,6 +171,41 @@ def test_execute_absolute_cwd():
             assert lines == ['hello', 'good-by']
 
 
+def test_execute_with_environment_variables():
+    no_env = Command('./scripts/env_test.sh', cwd=FILE_DIR)
+    no_env_res = no_env.execute()
+
+    assert no_env_res.return_code == 0
+    assert no_env_res.stdout == ['']
+
+    env = {'CERYLE_ENV_TEST': 'ceryle environment variable test'}
+    with_env = Command('./scripts/env_test.sh', cwd=FILE_DIR, env=env)
+    with_env_res = with_env.execute()
+
+    assert with_env_res.return_code == 0
+    assert with_env_res.stdout == ['ceryle environment variable test']
+
+
+def test_execute_with_environment_variables_from_envs(mocker):
+    mocker.patch.dict('os.environ', {'FOO': 'ceryle environment variable test'})
+
+    env = {'CERYLE_ENV_TEST': Env('FOO')}
+    command = Command('./scripts/env_test.sh', cwd=FILE_DIR, env=env)
+    res = command.execute()
+
+    assert res.return_code == 0
+    assert res.stdout == ['ceryle environment variable test']
+
+
+def test_execute_with_environment_variables_from_args(mocker):
+    env = {'CERYLE_ENV_TEST': Arg('FOO', {'FOO': 'ceryle environment variable test'})}
+    command = Command('./scripts/env_test.sh', cwd=FILE_DIR, env=env)
+    res = command.execute()
+
+    assert res.return_code == 0
+    assert res.stdout == ['ceryle environment variable test']
+
+
 def test_with_envs_and_args(mocker):
     mocker.patch.dict('os.environ', {'ENV1': 'AAA'})
     args = {'ARG1': 'BBB'}
