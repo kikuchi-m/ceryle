@@ -18,7 +18,7 @@ def test_main_show_tree(mocker):
     tg4 = ceryle.TaskGroup('tg4', [tg4_t1], dependencies=['tg2', 'tg3'])
 
     task_def = ceryle.TaskDefinition([tg1, tg2, tg3, tg4], default_task='tg4')
-    load_mock = mocker.patch('ceryle.main.load_tasks', return_value=task_def)
+    load_mock = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, '/foo/bar'))
 
     # excercise
     with ceryle.util.std_capture() as (o, e):

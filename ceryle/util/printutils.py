@@ -70,7 +70,7 @@ def print_out(*lines):
 
 def print_err(*lines, font=ERROR_FONT):
     logger.debug(os.linesep.join(lines))
-    print(*[decorate(l, font) for l in lines], file=sys.stderr)
+    print(*[decorate(l, font) for l in lines], sep=os.linesep, file=sys.stderr)
 
 
 def indent_s(s, depth):

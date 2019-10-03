@@ -14,7 +14,7 @@ def test_main_list_tasks(mocker):
     task_def = mocker.Mock()
     task_def.tasks = [tg1, tg2]
     task_def.default_task = 'tg1'
-    load_mock = mocker.patch('ceryle.main.load_tasks', return_value=task_def)
+    load_mock = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, '/foo/bar'))
 
     # excercise
     with ceryle.util.std_capture() as (o, e):

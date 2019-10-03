@@ -10,7 +10,6 @@ class IllegalFormat(Exception):
     pass
 
 
-from .const import CERYLE_DIR
 from .commands.executable import executable, Executable, ExecutionResult
 from .commands.command import Command
 from .commands.copy import Copy
@@ -19,7 +18,7 @@ from .tasks import TaskDefinitionError, TaskDependencyError, TaskIOError
 from .tasks.task import Task, TaskGroup
 from .tasks.condition import Condition
 from .tasks.resolver import DependencyResolver, DependencyChain
-from .tasks.runner import TaskRunner
+from .tasks.runner import TaskRunner, RunCache
 from .dsl import TaskFileError, NoArgumentError, NoEnvironmentError
 from .dsl.loader import TaskFileLoader, TaskDefinition
 from .dsl.aggregate_loader import AggregateTaskFileLoader, load_task_files
@@ -31,19 +30,20 @@ import pathlib
 
 
 def configure_logging(level=logging.INFO, console=False, filename=None):
-    from .util.printutils import print_err
+    import ceryle.const as const
+    import ceryle.util as util
 
     handlers = []
 
-    logdir = pathlib.Path.home().joinpath(CERYLE_DIR, 'logs')
+    logdir = pathlib.Path.home().joinpath(const.CERYLE_DIR, 'logs')
     if logdir.exists() and not logdir.is_dir():
-        print_err(f'{logdir} already exists but not a directory.',
-                  'log is not saved.')
+        util.print_err(f'{logdir} already exists but not a directory.',
+                       'log is not saved.')
     else:
         logdir.mkdir(parents=True, exist_ok=True)
         handlers.append(
             logging.FileHandler(pathlib.Path.home().joinpath(
-                CERYLE_DIR,
+                const.CERYLE_DIR,
                 'logs',
                 filename or dt.datetime.now().strftime('%Y%m%d-%H%M%S%f.log'))))
 

@@ -72,7 +72,7 @@ def test_collect_task_files_no_task_files(mocker):
         home_task_dir.mkdir(parents=True, exist_ok=True)
         home_mock = mocker.patch('pathlib.Path.home', return_value=pathlib.Path(tmpd, 'home'))
 
-        assert collect_task_files(wd) == []
+        assert collect_task_files(wd) == ([], None)
         home_mock.assert_called_once_with()
 
 
@@ -91,7 +91,7 @@ def test_collect_task_files_only_default(mocker):
         expected = [
             str(task_file)
         ]
-        assert collect_task_files(wd) == expected
+        assert collect_task_files(wd) == (expected, str(wd))
         home_mock.assert_called_once_with()
 
 
@@ -119,7 +119,7 @@ def test_collect_task_files_additional_task_fils(mocker):
             str(additional1),
             str(additional2),
         ]
-        assert collect_task_files(wd) == expected
+        assert collect_task_files(wd) == (expected, str(wd))
         home_mock.assert_called_once_with()
 
 
@@ -144,7 +144,7 @@ def test_collect_task_files_in_home_ceryle_dir(mocker):
             str(additional2),
             str(task_file),
         ]
-        assert collect_task_files(wd) == expected
+        assert collect_task_files(wd) == (expected, str(wd))
         home_mock.assert_called_once_with()
 
 
