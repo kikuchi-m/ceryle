@@ -24,7 +24,7 @@ def load_tasks(additional_args={}):
 
 
 def run(task=None, dry_run=False, additional_args={},
-        continue_last_run=False):
+        continue_last_run=False, **kwargs):
 
     task_def, root_context = load_tasks(additional_args=additional_args)
     if task is None and task_def.default_task is None:
