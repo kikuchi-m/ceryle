@@ -57,20 +57,18 @@ def test_run_tasks(mocker):
     g3_t1_run = mocker.patch.object(g3_t1, 'run')
     mock.attach_mock(g3_t1_run, 'g3_t1_run')
 
-    expected_calls = [
+    runner = TaskRunner([g1, g2, g3])
+
+    assert runner.run('g1') is True
+    g2_t1.run.assert_called_once()
+    g1_t2.run.assert_called_once()
+    g1_t1.run.assert_called_once()
+    g3_t1.run.assert_not_called()
+    assert mock.mock_calls == [
         mocker.call.g2_t1_run(dry_run=False, inputs=[]),
         mocker.call.g1_t1_run(dry_run=False, inputs=[]),
         mocker.call.g1_t2_run(dry_run=False, inputs=[]),
     ]
-
-    runner = TaskRunner([g1, g2, g3])
-
-    assert runner.run('g1') is True
-    g1_t1.run.assert_called_once_with(dry_run=False, inputs=[])
-    g1_t2.run.assert_called_once_with(dry_run=False, inputs=[])
-    g2_t1.run.assert_called_once_with(dry_run=False, inputs=[])
-    g3_t1.run.assert_not_called()
-    assert mock.mock_calls == expected_calls
 
     cache = runner.get_cache()
     assert cache.task_name == 'g1'
@@ -118,14 +116,12 @@ def test_run_tasks_fails(mocker):
     g2_t1_run = mocker.patch.object(g2_t1, 'run', return_value=False)
     mock.attach_mock(g2_t1_run, 'g2_t1_run')
 
-    expected_calls = [mocker.call.g2_t1_run(dry_run=False, inputs=[])]
-
     runner = TaskRunner([g1, g2])
 
     assert runner.run('g1') is False
+    g2_t1.run.assert_called_once()
     g1_t1.run.assert_not_called()
-    g2_t1.run.assert_called_once_with(dry_run=False, inputs=[])
-    assert mock.mock_calls == expected_calls
+    assert mock.mock_calls == [mocker.call.g2_t1_run(dry_run=False, inputs=[])]
 
     cache = runner.get_cache()
     assert cache.task_name == 'g1'
@@ -149,18 +145,16 @@ def test_run_tasks_fails_by_exception(mocker):
     g2_t1_run = mocker.patch.object(g2_t1, 'run', return_value=True)
     mock.attach_mock(g2_t1_run, 'g2_t1_run')
 
-    expected_calls = [
-        mocker.call.g2_t1_run(dry_run=False, inputs=[]),
-        mocker.call.g1_t1_run(dry_run=False, inputs=[]),
-    ]
-
     runner = TaskRunner([g1, g2])
 
     with pytest.raises(Exception):
         runner.run('g1')
-    g1_t1.run.assert_called_once()
     g2_t1.run.assert_called_once()
-    assert mock.mock_calls == expected_calls
+    g1_t1.run.assert_called_once()
+    assert mock.mock_calls == [
+        mocker.call.g2_t1_run(dry_run=False, inputs=[]),
+        mocker.call.g1_t1_run(dry_run=False, inputs=[]),
+    ]
 
     cache = runner.get_cache()
     assert cache.task_name == 'g1'
@@ -183,8 +177,8 @@ def test_dry_run(mocker):
     runner = TaskRunner([g1, g2])
 
     assert runner.run('g1', dry_run=True) is True
-    g1_t1.run.assert_called_once_with(dry_run=True, inputs=[])
     g2_t1.run.assert_called_once_with(dry_run=True, inputs=[])
+    g1_t1.run.assert_called_once_with(dry_run=True, inputs=[])
 
     cache = runner.get_cache()
     assert cache.task_name == 'g1'
@@ -211,12 +205,12 @@ def test_run_task_with_stdout(mocker):
     runner = TaskRunner([g1, g2])
 
     assert runner.run('g1') is True
-    g1_t1.run.assert_called_once_with(dry_run=False, inputs=['foo', 'bar'])
-    g1_t1.stdout.assert_not_called()
-    g1_t1.stderr.assert_not_called()
     g2_t1.run.assert_called_once_with(dry_run=False, inputs=[])
     g2_t1.stdout.assert_called_once()
     g2_t1.stderr.assert_not_called()
+    g1_t1.run.assert_called_once_with(dry_run=False, inputs=['foo', 'bar'])
+    g1_t1.stdout.assert_not_called()
+    g1_t1.stderr.assert_not_called()
 
     cache = runner.get_cache()
     assert cache.task_name == 'g1'
@@ -282,12 +276,12 @@ def test_run_task_with_stderr(mocker):
     runner = TaskRunner([g1, g2])
 
     assert runner.run('g1') is True
-    g1_t1.run.assert_called_once_with(dry_run=False, inputs=['foo', 'bar'])
-    g1_t1.stdout.assert_not_called()
-    g1_t1.stderr.assert_not_called()
     g2_t1.run.assert_called_once_with(dry_run=False, inputs=[])
     g2_t1.stdout.assert_not_called()
     g2_t1.stderr.assert_called_once()
+    g1_t1.run.assert_called_once_with(dry_run=False, inputs=['foo', 'bar'])
+    g1_t1.stdout.assert_not_called()
+    g1_t1.stderr.assert_not_called()
 
     cache = runner.get_cache()
     assert cache.task_name == 'g1'
