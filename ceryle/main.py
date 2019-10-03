@@ -32,10 +32,15 @@ def run(task=None, dry_run=False, additional_args={},
 
     runner = ceryle.TaskRunner(task_def.tasks)
     last_run = load_run_cache(root_context) if continue_last_run else None
+    cached = False
     try:
         res = runner.run(task or task_def.default_task, dry_run=dry_run, last_run=last_run)
+    except Exception as ex:
+        not dry_run and not isinstance(ex, ceryle.TaskDefinitionError) and save_run_cache(root_context, runner.get_cache())
+        cached = True
+        raise ex
     finally:
-        not dry_run and save_run_cache(root_context, runner.get_cache())
+        not dry_run and not cached and save_run_cache(root_context, runner.get_cache())
     if res is not True:
         return 1
     return 0
@@ -171,6 +176,7 @@ def main(argv):
         logger.error(e)
         if isinstance(e, ceryle.CeryleException):
             util.print_err(str(e))
+            return 255
         else:
             raise e
 
