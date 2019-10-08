@@ -1,6 +1,8 @@
 import os
+import pytest
 
-from ceryle import ExecutionResult, TaskFileLoader, TaskGroup
+from ceryle import ExecutionResult, TaskGroup, TaskFileLoader, ExtensionLoader
+from ceryle import TaskFileError
 from ceryle.commands.executable import ExecutableWrapper
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -26,17 +28,17 @@ def test_load_task_file():
 def test_load_task_file_no_task_def(mocker):
     test_file = file_path('dsl_no_task_def')
     loader = TaskFileLoader(test_file)
-    task_def = loader.load()
-    assert len(task_def.tasks) == 0
-    assert task_def.default_task is None
+    with pytest.raises(TaskFileError) as e:
+        loader.load()
+    assert str(e.value) == f'No task definition found: {test_file}'
 
 
 def test_load_task_file_not_dict(mocker):
     test_file = file_path('dsl_not_dict')
     loader = TaskFileLoader(test_file)
-    task_def = loader.load()
-    assert len(task_def.tasks) == 0
-    assert task_def.default_task is None
+    with pytest.raises(TaskFileError) as e:
+        loader.load()
+    assert str(e.value) == f'Not task definition, declare by dict form: {test_file}'
 
 
 def test_load_task_file_contains_custome_executable():
@@ -49,22 +51,20 @@ def test_load_task_file_contains_custome_executable():
     assert foo.name == 'foo'
     assert len(foo.tasks) == 1
     assert isinstance(foo.tasks[0].executable, ExecutableWrapper)
-    assert 'my_cmd' in task_def.local_vars
 
     exe_res = foo.tasks[0].executable.execute()
     assert isinstance(exe_res, ExecutionResult)
     assert exe_res.return_code == 127
 
 
-def test_load_task_file_no_task_def_contains_custome_executable():
-    loader = TaskFileLoader(file_path('dsl_no_task_def_executable'))
-    task_def = loader.load()
+def test_load_extension_file():
+    loader = ExtensionLoader(file_path('dsl_no_task_def_executable'))
+    extensions = loader.load()
 
-    assert len(task_def.tasks) == 0
-    assert 'cmd_x' in task_def.local_vars
-    assert 'cmd_y' in task_def.local_vars
+    assert 'cmd_x' in extensions
+    assert 'cmd_y' in extensions
 
-    cmd_x = task_def.local_vars['cmd_x']()
+    cmd_x = extensions['cmd_x']()
     assert isinstance(cmd_x, ExecutableWrapper)
 
     cmd_x_res = cmd_x.execute()
@@ -72,7 +72,7 @@ def test_load_task_file_no_task_def_contains_custome_executable():
     assert cmd_x_res.return_code == 0
     assert cmd_x_res.stdout == ['cmd_x']
 
-    cmd_y = task_def.local_vars['cmd_y']()
+    cmd_y = extensions['cmd_y']()
     assert isinstance(cmd_y, ExecutableWrapper)
 
     cmd_y_res = cmd_y.execute()
@@ -81,22 +81,12 @@ def test_load_task_file_no_task_def_contains_custome_executable():
     assert cmd_y_res.stdout == ['cmd_y']
 
 
-def test_load_multiple():
-    loader1 = TaskFileLoader(file_path('dsl_multiple1'))
-    loader2 = TaskFileLoader(file_path('dsl_multiple2'))
+def test_load_extension_multiple():
+    loader1 = ExtensionLoader(file_path('dsl_multiple1'))
+    loader2 = ExtensionLoader(file_path('dsl_multiple2'))
 
-    task_def1 = loader1.load()
-    task_def2 = loader2.load(global_vars=task_def1.global_vars, local_vars=task_def1.local_vars)
+    ex1 = loader1.load()
+    ex2 = loader2.load(local_vars=ex1)
 
-    foo = task_def2.tasks[0]
-
-    assert isinstance(foo, TaskGroup)
-    assert foo.name == 'foo'
-    assert len(foo.tasks) == 1
-    assert isinstance(foo.tasks[0].executable, ExecutableWrapper)
-
-    exe_res = foo.tasks[0].executable.execute()
-    assert isinstance(exe_res, ExecutionResult)
-    assert exe_res.return_code == 127
-
-    assert 'my_cmd' in task_def2.local_vars
+    assert 'my_cmd1' in ex2
+    assert 'my_cmd2' in ex2

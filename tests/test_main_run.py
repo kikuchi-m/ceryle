@@ -38,7 +38,7 @@ def test_main_run_default_task_group(mocker, tmpdir):
         ceryle.TaskGroup('tg2', []),
     ]
     task_def.default_task = 'tg1'
-    load_mock = mocker.patch('ceryle.load_task_files', return_value=task_def)
+    load_task_files = mocker.patch('ceryle.load_task_files', return_value=task_def)
 
     runner = mocker.Mock()
     runner.run = mocker.Mock(return_value=True)
@@ -51,7 +51,7 @@ def test_main_run_default_task_group(mocker, tmpdir):
     assert res == 0
     collect_tasks_mock.assert_called_once_with(mocker.ANY)
     collect_ex_mock.assert_called_once_with(mocker.ANY)
-    load_mock.assert_called_once_with(dummy_extensions + dummy_task_files, additional_args={})
+    load_task_files.assert_called_once_with(dummy_task_files, dummy_extensions, additional_args={})
 
     util_expected_calls = [
         mocker.call.collect_tasks_mock(mocker.ANY),
@@ -93,7 +93,7 @@ def test_main_run_specific_task_group(mocker, tmpdir):
         ceryle.TaskGroup('tg2', []),
     ]
     task_def.default_task = 'tg1'
-    load_mock = mocker.patch('ceryle.load_task_files', return_value=task_def)
+    load_task_files = mocker.patch('ceryle.load_task_files', return_value=task_def)
 
     runner = mocker.Mock()
     runner.run = mocker.Mock(return_value=True)
@@ -106,7 +106,7 @@ def test_main_run_specific_task_group(mocker, tmpdir):
     assert res == 0
     collect_tasks_mock.assert_called_once_with(mocker.ANY)
     collect_ex_mock.assert_called_once_with(mocker.ANY)
-    load_mock.assert_called_once_with(dummy_extensions + dummy_task_files, additional_args={})
+    load_task_files.assert_called_once_with(dummy_task_files, dummy_extensions, additional_args={})
 
     runner_cls.assert_called_once_with(task_def.tasks)
     runner.run.assert_called_once_with('tg2', dry_run=False, last_run=None)
@@ -138,7 +138,7 @@ def test_main_run_fails_by_task_failure(mocker, tmpdir):
         ceryle.TaskGroup('tg1', []),
     ]
     task_def.default_task = 'tg1'
-    load_mock = mocker.patch('ceryle.load_task_files', return_value=task_def)
+    load_task_files = mocker.patch('ceryle.load_task_files', return_value=task_def)
 
     runner = mocker.Mock()
     runner.run = mocker.Mock(return_value=False)
@@ -151,7 +151,7 @@ def test_main_run_fails_by_task_failure(mocker, tmpdir):
     assert res == 1
     collect_tasks_mock.assert_called_once_with(mocker.ANY)
     collect_ex_mock.assert_called_once_with(mocker.ANY)
-    load_mock.assert_called_once_with(dummy_extensions + dummy_task_files, additional_args={})
+    load_task_files.assert_called_once_with(dummy_task_files, dummy_extensions, additional_args={})
 
     runner_cls.assert_called_once_with(task_def.tasks)
     runner.run.assert_called_once_with('tg1', dry_run=False, last_run=None)
@@ -192,7 +192,7 @@ def test_main_run_raises_by_no_default_and_no_task_to_run(mocker, tmpdir):
         ceryle.TaskGroup('tg1', []),
     ]
     task_def.default_task = None
-    load_mock = mocker.patch('ceryle.load_task_files', return_value=task_def)
+    load_task_files = mocker.patch('ceryle.load_task_files', return_value=task_def)
 
     # excercise
     with pytest.raises(TaskDefinitionError) as e:
@@ -200,7 +200,7 @@ def test_main_run_raises_by_no_default_and_no_task_to_run(mocker, tmpdir):
     assert str(e.value) == 'default task is not declared, specify task to run'
     collect_tasks_mock.assert_called_once_with(mocker.ANY)
     collect_ex_mock.assert_called_once_with(mocker.ANY)
-    load_mock.assert_called_once_with(dummy_extensions + dummy_task_files, additional_args={})
+    load_task_files.assert_called_once_with(dummy_task_files, dummy_extensions, additional_args={})
 
 
 def test_main_run_save_last_execution_to_file(mocker, tmpdir):
