@@ -7,9 +7,7 @@ def test_load_multiple_files(mocker):
         tasks=[TaskGroup('foo', [])],
         default_task='foo',
         global_vars={},
-        local_vars={
-            'cmd': lambda: 0,
-        },
+        local_vars={},
     )
     loader1 = TaskFileLoader('file1')
     loader1.load = mocker.Mock(return_value=task_def1)
@@ -34,8 +32,8 @@ def test_load_multiple_files(mocker):
         local_vars={},
         additional_args={})
     loader2.load.assert_called_once_with(
-        global_vars=task_def1.global_vars,
-        local_vars=task_def1.local_vars,
+        global_vars={},
+        local_vars={},
         additional_args={})
 
     assert task_def1.tasks[0] in task_def.tasks

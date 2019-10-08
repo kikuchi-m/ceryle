@@ -6,7 +6,7 @@ import os
 from ceryle import Command, Copy, Remove, Condition
 from ceryle.commands.executable import executable
 from ceryle.dsl.parser import parse_tasks
-from . import support
+from . import support, TaskFileError
 
 
 class TaskFileLoader:
@@ -18,18 +18,17 @@ class TaskFileLoader:
 
         body = module.body
         if len(body) == 0:
-            return TaskDefinition([], None)
+            raise TaskFileError(f'No task definition found: {self._task_file}')
 
         gvars, lvars = self._prepare_vars(global_vars, local_vars, additional_args)
         task_node = body[-1]
         if not isinstance(task_node, ast.Expr) or not isinstance(task_node.value, ast.Dict):
-            self._eval_task_file(body, gvars, lvars)
-            return TaskDefinition([], lvars.get('default'), gvars, lvars)
-        else:
-            self._eval_task_file(body[:-1], gvars, lvars)
-            tasks = eval(compile(ast.Expression(task_node.value), self._task_file, 'eval'), gvars, lvars)
-            context = self._resolve_context(lvars.get('context'))
-            return TaskDefinition(parse_tasks(tasks, context), lvars.get('default'), gvars, lvars)
+            raise TaskFileError(f'Not task definition, declare by dict form: {self._task_file}')
+
+        self._eval_task_file(body[:-1], gvars, lvars)
+        tasks = eval(compile(ast.Expression(task_node.value), self._task_file, 'eval'), gvars, lvars)
+        context = self._resolve_context(lvars.get('context'))
+        return TaskDefinition(parse_tasks(tasks, context), lvars.get('default'), global_vars, local_vars)
 
     def _eval_task_file(self, body, gvars, lvars):
         co = compile(ast.Module(body), self._task_file, 'exec')

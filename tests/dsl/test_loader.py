@@ -1,6 +1,8 @@
 import os
+import pytest
 
 from ceryle import ExecutionResult, TaskFileLoader, TaskGroup
+from ceryle import TaskFileError
 from ceryle.commands.executable import ExecutableWrapper
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -26,17 +28,17 @@ def test_load_task_file():
 def test_load_task_file_no_task_def(mocker):
     test_file = file_path('dsl_no_task_def')
     loader = TaskFileLoader(test_file)
-    task_def = loader.load()
-    assert len(task_def.tasks) == 0
-    assert task_def.default_task is None
+    with pytest.raises(TaskFileError) as e:
+        loader.load()
+    assert str(e.value) == f'No task definition found: {test_file}'
 
 
 def test_load_task_file_not_dict(mocker):
     test_file = file_path('dsl_not_dict')
     loader = TaskFileLoader(test_file)
-    task_def = loader.load()
-    assert len(task_def.tasks) == 0
-    assert task_def.default_task is None
+    with pytest.raises(TaskFileError) as e:
+        loader.load()
+    assert str(e.value) == f'Not task definition, declare by dict form: {test_file}'
 
 
 def test_load_task_file_contains_custome_executable():
@@ -49,13 +51,14 @@ def test_load_task_file_contains_custome_executable():
     assert foo.name == 'foo'
     assert len(foo.tasks) == 1
     assert isinstance(foo.tasks[0].executable, ExecutableWrapper)
-    assert 'my_cmd' in task_def.local_vars
+    assert 'my_cmd' not in task_def.local_vars
 
     exe_res = foo.tasks[0].executable.execute()
     assert isinstance(exe_res, ExecutionResult)
     assert exe_res.return_code == 127
 
 
+@pytest.mark.skip(reason='use ExtensionLoader (not implemented) instead')
 def test_load_task_file_no_task_def_contains_custome_executable():
     loader = TaskFileLoader(file_path('dsl_no_task_def_executable'))
     task_def = loader.load()
@@ -81,6 +84,7 @@ def test_load_task_file_no_task_def_contains_custome_executable():
     assert cmd_y_res.stdout == ['cmd_y']
 
 
+@pytest.mark.skip(reason='use ExtensionLoader (not implemented) instead')
 def test_load_multiple():
     loader1 = TaskFileLoader(file_path('dsl_multiple1'))
     loader2 = TaskFileLoader(file_path('dsl_multiple2'))
