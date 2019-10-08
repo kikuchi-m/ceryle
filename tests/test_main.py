@@ -13,7 +13,18 @@ def test_parse_args():
     assert args['continue_last_run'] is False
     assert args['list_tasks'] is False
     assert args['show'] is False
+    assert args['verbose'] == 0
     assert args['additional_args'] == {}
+
+
+@pytest.mark.parametrize(
+    'argv,verbose',
+    [(['-v'], 1), (['-vv'], 2)])
+def test_parse_args_verbose(argv, verbose):
+    args = ceryle.main.parse_args(argv)
+
+    assert args['task'] == None
+    assert args['verbose'] == verbose
 
 
 def test_parse_args_runtime_argumens():

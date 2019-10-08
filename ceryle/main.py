@@ -115,7 +115,7 @@ def show_tree(task=None, verbose=0):
 
 
 def parse_args(argv):
-    p = argparse.ArgumentParser(allow_abbrev=False)
+    p = argparse.ArgumentParser()
     p.add_argument('--list-tasks', action='store_true')
     p.add_argument('--show', action='store_true')
     p.add_argument('-n', '--dry-run', action='store_true')
