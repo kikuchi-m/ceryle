@@ -4,7 +4,7 @@ import setuptools
 setuptools.setup(
     name='ceryle',
     description='Task based command runner tool',
-    version='0.1.6',
+    version='0.1.7',
     python_requires='>=3.6.5',
     packages=setuptools.find_packages(),
     entry_points={
