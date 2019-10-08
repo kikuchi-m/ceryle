@@ -1,3 +1,3 @@
 @executable
-def my_cmd():
+def my_cmd1():
     return 127

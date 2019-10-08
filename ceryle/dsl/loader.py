@@ -1,7 +1,10 @@
+import abc
 import ast
+import os
+import pathlib
+
 import ceryle
 import ceryle.util as util
-import os
 
 from ceryle import Command, Copy, Remove, Condition
 from ceryle.commands.executable import executable
@@ -9,58 +12,79 @@ from ceryle.dsl.parser import parse_tasks
 from . import support, TaskFileError
 
 
-class TaskFileLoader:
-    def __init__(self, task_file):
-        self._task_file = util.assert_type(task_file, str)
+class FileLoaderBase(abc.ABC):
+    def __init__(self, file):
+        self._file = util.assert_type(file, str, pathlib.Path)
+
+    def _evaluate_file(self, body, gvars, lvars):
+        co = compile(ast.Module(body), str(self._file), 'exec')
+        exec(co, gvars, lvars)
+
+    @abc.abstractmethod
+    def load(self, global_vars={}, local_vars={}, additional_args={}):
+        pass
+
+
+class TaskFileLoader(FileLoaderBase):
+    def __init__(self, file):
+        super().__init__(file)
 
     def load(self, global_vars={}, local_vars={}, additional_args={}):
-        module = util.parse_to_ast(self._task_file)
+        module = util.parse_to_ast(self._file)
 
         body = module.body
         if len(body) == 0:
-            raise TaskFileError(f'No task definition found: {self._task_file}')
+            raise TaskFileError(f'No task definition found: {self._file}')
 
-        gvars, lvars = self._prepare_vars(global_vars, local_vars, additional_args)
+        gvars, lvars = _prepare_vars(global_vars, local_vars, additional_args)
         task_node = body[-1]
         if not isinstance(task_node, ast.Expr) or not isinstance(task_node.value, ast.Dict):
-            raise TaskFileError(f'Not task definition, declare by dict form: {self._task_file}')
+            raise TaskFileError(f'Not task definition, declare by dict form: {self._file}')
 
-        self._eval_task_file(body[:-1], gvars, lvars)
-        tasks = eval(compile(ast.Expression(task_node.value), self._task_file, 'eval'), gvars, lvars)
+        self._evaluate_file(body[:-1], gvars, lvars)
+        tasks = eval(compile(ast.Expression(task_node.value), self._file, 'eval'), gvars, lvars)
         context = self._resolve_context(lvars.get('context'))
         return TaskDefinition(parse_tasks(tasks, context), lvars.get('default'), global_vars, local_vars)
 
-    def _eval_task_file(self, body, gvars, lvars):
-        co = compile(ast.Module(body), self._task_file, 'exec')
-        exec(co, gvars, lvars)
-
-    def _prepare_vars(self, global_vars, local_vars, additional_args):
-        def arg_fun(name, **kwargs):
-            return support.Arg(name, additional_args, **kwargs)
-
-        gvars = global_vars.copy()
-        gvars.update(
-            ceryle=ceryle,
-        )
-        lvars = local_vars.copy()
-        lvars.update(
-            command=Command,
-            copy=Copy,
-            remove=Remove,
-            executable=executable,
-            condition=Condition,
-            path=support.joinpath,
-            env=support.Env,
-            arg=arg_fun,
-        )
-        return gvars, lvars
-
     def _resolve_context(self, context):
         if not context:
-            return os.path.dirname(os.path.abspath(self._task_file))
+            return os.path.dirname(os.path.abspath(self._file))
         if os.path.isabs(context):
             return context
-        return os.path.abspath(os.path.join(os.path.dirname(self._task_file), context))
+        return os.path.abspath(os.path.join(os.path.dirname(self._file), context))
+
+
+class ExtensionLoader(FileLoaderBase):
+    def __init__(self, file):
+        super().__init__(file)
+
+    def load(self, global_vars={}, local_vars={}, additional_args={}):
+        module = util.parse_to_ast(self._file)
+        gvars, lvars = _prepare_vars(global_vars, local_vars, additional_args)
+        self._evaluate_file(module.body, gvars, lvars)
+        return lvars
+
+
+def _prepare_vars(global_vars, local_vars, additional_args):
+    def arg_fun(name, **kwargs):
+        return support.Arg(name, additional_args, **kwargs)
+
+    gvars = global_vars.copy()
+    gvars.update(
+        ceryle=ceryle,
+    )
+    lvars = local_vars.copy()
+    lvars.update(
+        command=Command,
+        copy=Copy,
+        remove=Remove,
+        executable=executable,
+        condition=Condition,
+        path=support.joinpath,
+        env=support.Env,
+        arg=arg_fun,
+    )
+    return gvars, lvars
 
 
 class TaskDefinition:
@@ -80,10 +104,14 @@ class TaskDefinition:
 
     @property
     def global_vars(self):
+        from warnings import warn
+        warn('"global_vars" property is deprecated', DeprecationWarning)
         return self._globals.copy()
 
     @property
     def local_vars(self):
+        from warnings import warn
+        warn('"local_vars" property is deprecated', DeprecationWarning)
         return self._locals.copy()
 
     def find_task_group(self, name):
