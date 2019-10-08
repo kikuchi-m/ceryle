@@ -44,7 +44,7 @@ class TaskFileLoader(FileLoaderBase):
         self._evaluate_file(body[:-1], gvars, lvars)
         tasks = eval(compile(ast.Expression(task_node.value), self._file, 'eval'), gvars, lvars)
         context = self._resolve_context(lvars.get('context'))
-        return TaskDefinition(parse_tasks(tasks, context), lvars.get('default'), global_vars, local_vars)
+        return TaskDefinition(parse_tasks(tasks, context), lvars.get('default'))
 
     def _resolve_context(self, context):
         if not context:
@@ -88,11 +88,9 @@ def _prepare_vars(global_vars, local_vars, additional_args):
 
 
 class TaskDefinition:
-    def __init__(self, tasks, default_task=None, global_vars={}, local_vars={}):
+    def __init__(self, tasks, default_task=None):
         self._tasks = tasks.copy()
         self._default = default_task
-        self._globals = global_vars.copy()
-        self._locals = local_vars.copy()
 
     @property
     def tasks(self):
@@ -101,18 +99,6 @@ class TaskDefinition:
     @property
     def default_task(self):
         return self._default
-
-    @property
-    def global_vars(self):
-        from warnings import warn
-        warn('"global_vars" property is deprecated', DeprecationWarning)
-        return self._globals.copy()
-
-    @property
-    def local_vars(self):
-        from warnings import warn
-        warn('"local_vars" property is deprecated', DeprecationWarning)
-        return self._locals.copy()
 
     def find_task_group(self, name):
         util.assert_type(name, str)

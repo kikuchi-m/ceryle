@@ -51,7 +51,6 @@ def test_load_task_file_contains_custome_executable():
     assert foo.name == 'foo'
     assert len(foo.tasks) == 1
     assert isinstance(foo.tasks[0].executable, ExecutableWrapper)
-    assert 'my_cmd' not in task_def.local_vars
 
     exe_res = foo.tasks[0].executable.execute()
     assert isinstance(exe_res, ExecutionResult)
