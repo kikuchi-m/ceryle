@@ -1,21 +1,13 @@
 from ceryle import TaskGroup
-from ceryle import AggregateTaskFileLoader, TaskFileLoader
+from ceryle import AggregateTaskFileLoader, TaskFileLoader, TaskDefinition
 
 
-def test_load_multiple_files(mocker):
-    task_def1 = mocker.Mock(
-        tasks=[TaskGroup('foo', [])],
-        default_task='foo',
-        global_vars={},
-        local_vars={},
-    )
+def test_load_multiple_task_files(mocker):
+    task_def1 = TaskDefinition([TaskGroup('foo', [])], default_task='foo')
     loader1 = TaskFileLoader('file1')
     loader1.load = mocker.Mock(return_value=task_def1)
 
-    task_def2 = mocker.Mock(
-        tasks=[TaskGroup('bar', [])],
-        default_task='bar',
-    )
+    task_def2 = TaskDefinition([TaskGroup('bar', [])], default_task='bar')
     loader2 = TaskFileLoader('file2')
     loader2.load = mocker.Mock(return_value=task_def2)
 
@@ -40,16 +32,12 @@ def test_load_multiple_files(mocker):
     assert task_def2.tasks[0] in task_def.tasks
 
 
-def test_load_multiple_files_override(mocker):
-    task_def1 = mocker.Mock(
-        tasks=[TaskGroup('foo', [])],
-    )
+def test_load_multiple_task_files_override(mocker):
+    task_def1 = TaskDefinition(tasks=[TaskGroup('foo', [])])
     loader1 = TaskFileLoader('file1')
     loader1.load = mocker.Mock(return_value=task_def1)
 
-    task_def2 = mocker.Mock(
-        tasks=[TaskGroup('foo', [])],
-    )
+    task_def2 = TaskDefinition(tasks=[TaskGroup('foo', [])])
     loader2 = TaskFileLoader('file2')
     loader2.load = mocker.Mock(return_value=task_def2)
 

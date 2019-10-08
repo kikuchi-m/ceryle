@@ -14,7 +14,7 @@ class AggregateTaskFileLoader:
         gvars = {}
         lvars = {}
         # TODO: load extensions and task files separately
-        for f in self._extensions + self._files:
+        for f in self._files:
             d = ceryle.TaskFileLoader(f).load(
                 global_vars=gvars,
                 local_vars=lvars,
