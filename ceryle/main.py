@@ -36,7 +36,8 @@ def run(task=None, dry_run=False, additional_args={},
     try:
         res = runner.run(task or task_def.default_task, dry_run=dry_run, last_run=last_run)
     except Exception as ex:
-        not dry_run and not isinstance(ex, ceryle.TaskDefinitionError) and save_run_cache(root_context, runner.get_cache())
+        if not dry_run and not isinstance(ex, ceryle.TaskDefinitionError):
+            save_run_cache(root_context, runner.get_cache())
         cached = True
         raise ex
     finally:
