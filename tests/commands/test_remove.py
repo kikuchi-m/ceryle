@@ -55,6 +55,22 @@ def test_remove_directory_tree():
         assert pathlib.Path(tmpd, 'd1').exists() is False
 
 
+def test_remove_not_exist():
+    '''
+    context:
+      f1 (not exist)
+    '''
+    with tempfile.TemporaryDirectory() as tmpd:
+        f1 = pathlib.Path(tmpd, 'f1')
+        assert f1.exists() is False
+
+        remove = Remove('f1')
+        res = remove.execute(context=tmpd)
+
+        assert isinstance(res, ExecutionResult)
+        assert res.return_code == 0
+
+
 def test_remove_directory_tree_containing_symlinks():
     '''
     context:

@@ -18,8 +18,14 @@ class Remove(Executable):
                 return ExecutionResult(1)
         return ExecutionResult(0)
 
+    def __str__(self):
+        files = ', '.join([str(f) for f in self._targets])
+        return f'remove({files})'
+
 
 def _remove(target):
+    if not target.exists():
+        return True
     if target.is_symlink():
         logger.debug(f'remove symlink: {target}')
         target.unlink()
