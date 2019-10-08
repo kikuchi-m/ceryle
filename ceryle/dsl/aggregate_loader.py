@@ -3,8 +3,9 @@ import ceryle.util as util
 
 
 class AggregateTaskFileLoader:
-    def __init__(self, files, additional_args={}):
+    def __init__(self, files, extensions=[], additional_args={}):
         self._files = util.assert_type(files, list)[:]
+        self._extensions = util.assert_type(extensions, list)[:]
         self._additional_args = additional_args.copy()
 
     def load(self):
@@ -12,7 +13,8 @@ class AggregateTaskFileLoader:
         default = None
         gvars = {}
         lvars = {}
-        for f in self._files:
+        # TODO: load extensions and task files separately
+        for f in self._extensions + self._files:
             d = ceryle.TaskFileLoader(f).load(
                 global_vars=gvars,
                 local_vars=lvars,
@@ -27,5 +29,5 @@ class AggregateTaskFileLoader:
         return ceryle.dsl.loader.TaskDefinition(list(tasks.values()), default)
 
 
-def load_task_files(files, additional_args={}):
-    return AggregateTaskFileLoader(files, additional_args=additional_args).load()
+def load_task_files(files, extensions, additional_args={}):
+    return AggregateTaskFileLoader(files, extensions=extensions, additional_args=additional_args).load()
