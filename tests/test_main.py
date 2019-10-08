@@ -23,7 +23,7 @@ def test_parse_args():
 def test_parse_args_verbose(argv, verbose):
     args = ceryle.main.parse_args(argv)
 
-    assert args['task'] == None
+    assert args['task'] is None
     assert args['verbose'] == verbose
 
 

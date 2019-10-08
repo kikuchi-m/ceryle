@@ -60,6 +60,9 @@ class ExecutableWrapper(Executable):
 
         processed = self.preprocess(self._args, exact_kwargs)
         res = self._func(*processed[0], **processed[1])
+        if isinstance(res, bool):
+            return ExecutionResult(int(not res))
+
         if res is None or isinstance(res, int):
             return ExecutionResult(res or 0)
 

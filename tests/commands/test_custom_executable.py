@@ -53,6 +53,19 @@ def test_custom_executable_returns_int():
     assert res.return_code == 127
 
 
+@pytest.mark.parametrize(
+    'ret,return_code',
+    [(True, 0), (False, 1)])
+def test_custom_executable_returns_bool(ret, return_code):
+    @executable
+    def mycommand():
+        return ret
+
+    res = mycommand().execute()
+    assert isinstance(res, ExecutionResult)
+    assert res.return_code == return_code
+
+
 def test_custom_executable_returns_none_object():
     @executable
     def mycommand():
