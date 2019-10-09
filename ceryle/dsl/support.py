@@ -47,6 +47,9 @@ class ArgumentBase(abc.ABC):
     def __str__(self):
         pass
 
+    def __repr__(self):
+        return str(self)
+
 
 def eval_arg(a, fail_on_unknown=True):
     if isinstance(a, str):

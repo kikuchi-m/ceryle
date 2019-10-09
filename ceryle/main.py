@@ -165,7 +165,7 @@ def main(argv):
         }[args.pop('log_level')],
         console=args.pop('log_stream'),
         filename=args.pop('log_filename'))
-    logger.debug(f'arguments: {argv}')
+    logger.debug(f'arguments: {args}')
 
     try:
         if args.pop('list_tasks', False):

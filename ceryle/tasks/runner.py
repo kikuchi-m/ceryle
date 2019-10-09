@@ -47,10 +47,11 @@ class TaskRunner:
                 return False, reg
 
         if self._run_cache.has(chain.task_name):
-            logger.debug(f'skipping {chain.task_name} since it has already run')
+            logger.info(f'skipping {chain} since it has already run')
             return True, register
 
         if last_execution.check_skip(chain.task_name):
+            logger.info(f'skipping {chain} since succeeded last run')
             util.print_out(f'skipping {chain.task_name}')
             self._run_cache.add_result(last_execution.current_result())
             last_execution.forward()

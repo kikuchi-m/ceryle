@@ -48,7 +48,6 @@ class ExecutableWrapper(Executable):
         self._func = func
         self._args = list(args)
         self._kwargs = dict(kwargs)
-        logger.debug(f'ExecutableWrapper({func.__name__}, args={self._args}, kwargs={self._kwargs})')
 
     def execute(self, **kwargs):
         func_code = self._func.__code__
