@@ -22,6 +22,7 @@ class TaskRunner:
         self._deps_chain_map = resolver.deps_chain_map()
         self._groups = dict([(g.name, g) for g in task_groups])
         self._run_cache = None
+        self._sw = util.StopWatch()
 
     def run(self, task_group, dry_run=False, last_run=None):
         chain = self._deps_chain_map.get(task_group)
@@ -31,6 +32,7 @@ class TaskRunner:
         last_execution = LastExecution(last_run)
         if last_execution.task_name != task_group:
             last_execution.stop()
+        self._sw.start()
         res, _ = self._run(chain, dry_run=dry_run, last_execution=last_execution)
         return res
 
@@ -60,7 +62,10 @@ class TaskRunner:
             last_execution.stop()
 
         try:
+            util.print_out(f'running task group {chain.task_name}', level=logging.INFO)
             res, reg = self._run_group(self._groups[chain.task_name], dry_run=dry_run, register=reg or register)
+            self._sw.elapse()
+            util.print_out(f'finished {chain.task_name} {self._sw.str_last_lap()}', level=logging.INFO)
         except Exception:
             self._run_cache.add_result((chain.task_name, False))
             raise
@@ -69,7 +74,6 @@ class TaskRunner:
         return res, reg
 
     def _run_group(self, tg, dry_run=False, register={}):
-        logger.info(f'running task group {tg.name}')
         r = copy.deepcopy(register)
         for t in tg.tasks:
             inputs = []

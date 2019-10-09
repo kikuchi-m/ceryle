@@ -63,8 +63,8 @@ def print_stream(s, error=False):
     return out
 
 
-def print_out(*lines):
-    logger.debug(os.linesep.join(lines))
+def print_out(*lines, level=logging.DEBUG):
+    logger.log(level, os.linesep.join(lines))
     print(*lines, sep=os.linesep)
 
 
