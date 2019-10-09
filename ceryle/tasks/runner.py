@@ -46,6 +46,10 @@ class TaskRunner:
             if not res:
                 return False, reg
 
+        if self._run_cache.has(chain.task_name):
+            logger.debug(f'skipping {chain.task_name} since it has already run')
+            return True, register
+
         if last_execution.check_skip(chain.task_name):
             util.print_out(f'skipping {chain.task_name}')
             self._run_cache.add_result(last_execution.current_result())
@@ -118,6 +122,9 @@ class RunCache:
             util.assert_type(result[0], str),
             util.assert_type(result[1], bool),
         ))
+
+    def has(self, task_group):
+        return task_group in [n for n, _ in self._results]
 
     def update_register(self, register):
         self._register = copy.deepcopy(util.assert_type(register, dict))
