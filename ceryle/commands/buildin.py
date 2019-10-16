@@ -1,6 +1,8 @@
 import logging
 
-from ceryle import executable, TaskDefinitionError
+import ceryle.util as util
+from ceryle import executable, executable_with
+from ceryle import Executable, TaskDefinitionError
 
 logger = logging.getLogger(__name__)
 
@@ -22,3 +24,20 @@ def no_input(inputs=[]):
 @executable
 def has_input(inputs=[]):
     return len(inputs) > 0
+
+
+def assert_executables(*executables):
+    if len(executables) == 0:
+        raise ValueError('one or more executables are required')
+    for exe in executables:
+        util.assert_type(exe, Executable)
+
+
+@executable_with(assertion=assert_executables)
+def execute_all(*executables, context=None, inputs=None):
+    res = None
+    for exe in executables:
+        res = exe.execute(context=context, inputs=inputs)
+        if res.return_code != 0:
+            return res
+    return res
