@@ -4,17 +4,18 @@ import ceryle.commands.buildin as buildin
 import ceryle.util as util
 
 from ceryle.commands.executable import Executable
+from ceryle.commands.buildin import no_input, has_input
 
 logger = logging.getLogger(__name__)
 
 
 class Condition:
-    NO_INPUT = 'no_input'
-    HAS_INPUT = 'has_input'
+    NO_INPUT = no_input()
+    HAS_INPUT = has_input()
     expression = buildin.expression
 
     def __init__(self, condition, context):
-        self._condition, self._test_fun = assert_condition(condition)
+        self._condition = util.assert_type(condition, Executable)
         self._context = util.assert_type(context, str)
         logger.debug(f'condition: {self._condition}')
 
@@ -22,7 +23,7 @@ class Condition:
         logger.info(f'testing {self._condition}')
         logger.debug(f'context: {self._context}')
         logger.debug(f'inputs: {inputs}')
-        return dry_run or self._test_fun(self, inputs=inputs)
+        return dry_run or self._test_executable(inputs=inputs)
 
     def _test_executable(self, inputs=[]):
         res = self._condition.execute(context=self._context, inputs=inputs)
@@ -33,22 +34,3 @@ class Condition:
 
     def _has_input(self, inputs=[]):
         return len(inputs) > 0
-
-
-_PATTERNS = {
-    Condition.NO_INPUT: Condition._no_input,
-    Condition.HAS_INPUT: Condition._has_input,
-}
-
-
-def assert_condition(condition):
-    if isinstance(condition, Executable):
-        return condition, Condition._test_executable
-
-    if isinstance(condition, str):
-        test_fun = _PATTERNS.get(condition)
-        if not test_fun:
-            raise ValueError(f'{condition} is not defined')
-        return condition, test_fun
-
-    raise ValueError(f'unknow condition type: {type(condition)} ({condition})')

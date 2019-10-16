@@ -4,10 +4,10 @@ from ceryle import Condition, Command, ExecutionResult
 
 
 def test_condition_invalid_condition_value():
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Condition(None, 'context')
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Condition('unknown pattern', 'context')
 
 
@@ -30,13 +30,13 @@ def test_condition_test_by_unsuccessful_executable(mocker):
 
 
 def test_condition_test_predefined_no_input(mocker):
-    condition = Condition('no_input', 'context')
+    condition = Condition(Condition.NO_INPUT, 'context')
     assert condition.test() is True
     assert condition.test(inputs=['a']) is False
 
 
 def test_condition_test_predefined_has_input(mocker):
-    condition = Condition('has_input', 'context')
+    condition = Condition(Condition.HAS_INPUT, 'context')
     assert condition.test() is False
     assert condition.test(inputs=['a']) is True
 
