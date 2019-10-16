@@ -50,13 +50,7 @@ class ExecutableWrapper(Executable):
         self._kwargs = dict(kwargs)
 
     def execute(self, **kwargs):
-        func_code = self._func.__code__
-        extra_keys = func_code.co_varnames[len(self._args):func_code.co_argcount]
-        kwdefaults = dict(zip(extra_keys, self._func.__defaults__ or ()))
-        exact_kwargs = {}
-        for k in [*self._kwargs.keys(), *kwdefaults.keys()]:
-            exact_kwargs[k] = kwargs.get(k, self._kwargs.get(k, kwdefaults.get(k)))
-
+        exact_kwargs = self._exact_kwargs(kwargs)
         processed = self.preprocess(self._args, exact_kwargs)
         res = self._func(*processed[0], **processed[1])
         if isinstance(res, bool):
@@ -68,6 +62,39 @@ class ExecutableWrapper(Executable):
         if not isinstance(res, ExecutionResult):
             raise RuntimeError(f'ExecutionResult was not returned by {self._func.__name__}')
         return res
+
+    def _exact_kwargs(self, kwargs):
+        defaults = self._func.__defaults__
+        flags = self._func.__code__.co_flags
+        varnames = self._func.__code__.co_varnames
+        ac = self._func.__code__.co_argcount
+        kwoac = self._func.__code__.co_kwonlyargcount
+
+        if flags & 0x04 and not defaults:
+            extra_keys = varnames[ac:ac + kwoac]
+        elif not defaults:
+            extra_keys = []
+        else:
+            extra_keys = varnames[ac - len(defaults):ac]
+
+        defined_kwargs = self._kwargs.copy()
+        runtime_kwargs = kwargs.copy()
+        kwdefaults = {}
+        if kwoac:
+            exact_keys = (set(runtime_kwargs.keys()) | set(defined_kwargs.keys())) & set(extra_keys)
+        else:
+            if defaults:
+                kwdefaults = dict(zip(extra_keys, defaults))
+            exact_keys = (set(defined_kwargs.keys()) & set(extra_keys)) | set(kwdefaults.keys())
+
+        exact_kwargs = dict([
+            (k, runtime_kwargs.pop(k, defined_kwargs.pop(k, kwdefaults.get(k))))
+            for k in exact_keys])
+
+        if flags & 0x08:
+            exact_kwargs.update(**defined_kwargs)
+            exact_kwargs.update(**runtime_kwargs)
+        return exact_kwargs
 
     def __str__(self):
         args = ', '.join([str(a) for a in self._args])
