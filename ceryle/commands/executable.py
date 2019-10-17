@@ -44,10 +44,10 @@ class ExecutionResult:
 
 
 class ExecutableWrapper(Executable):
-    def __init__(self, func, *args, **kwargs):
+    def __init__(self, func, args, kwargs):
         self._func = func
-        self._args = list(args)
-        self._kwargs = dict(kwargs)
+        self._args = args[:]
+        self._kwargs = kwargs.copy()
 
     def execute(self, **kwargs):
         exact_kwargs = self._exact_kwargs(kwargs)
