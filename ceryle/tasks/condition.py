@@ -4,14 +4,15 @@ import ceryle.commands.buildin as buildin
 import ceryle.util as util
 
 from ceryle.commands.executable import Executable
-from ceryle.commands.buildin import no_input, has_input
 
 logger = logging.getLogger(__name__)
 
 
 class Condition:
-    NO_INPUT = no_input()
-    HAS_INPUT = has_input()
+    NO_INPUT = buildin.no_input()
+    HAS_INPUT = buildin.has_input()
+    all = buildin.execute_all
+    any = buildin.execute_any
     expression = buildin.expression
 
     def __init__(self, condition, context):
