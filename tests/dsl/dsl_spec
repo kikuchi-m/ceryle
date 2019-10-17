@@ -79,6 +79,28 @@ default = 'foo'
     }, {
         'conditional_on': condition.expression('1 == ' + arg('FOO')),
         'run': command('do some'),
+    }, {
+        'run': command('do some'),
+        'conditional_on': condition.all(
+            command('test 1'),
+            command('test 2')),
+    }, {
+        'run': command('do some'),
+        'conditional_on': condition.any(
+            command('test 1'),
+            command('test 2')),
+    }, {
+        'run': command('do some'),
+        'input': ('pipe', 'PIPE_OUTPUT'),
+        'conditional_on': condition.all(
+            condition.HAS_INPUT,
+            condition.any(
+                command('test 1'),
+                command('test 2'))),
+    }, {
+        'run': command('do some'),
+        'input': ('pipe', 'PIPE_OUTPUT'),
+        'conditional_on': condition.fail(command('test 1')),
     }],
 
     'args': [{

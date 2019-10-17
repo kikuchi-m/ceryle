@@ -10,7 +10,7 @@ class IllegalFormat(Exception):
     pass
 
 
-from .commands.executable import executable, Executable, ExecutionResult
+from .commands.executable import executable, executable_with, Executable, ExecutionResult
 from .commands.command import Command
 from .commands.copy import Copy
 from .commands.remove import Remove

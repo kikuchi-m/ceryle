@@ -104,9 +104,19 @@ class ExecutableWrapper(Executable):
         return f'{self._func.__name__}({args}{kwargs})'
 
 
-def executable(func):
+def executable(func, assertion=None):
     def wrapper(*args, **kwargs):
         logger.debug(f'ExecutableWrapper({func.__name__}, args={args}, kwargs={kwargs})')
+        if assertion:
+            logger.debug(f'assert arguments by {assertion.__name__}')
+            assertion(*args, **kwargs)
         return ExecutableWrapper(func, *args, **kwargs)
+
+    return wrapper
+
+
+def executable_with(assertion=None):
+    def wrapper(func):
+        return executable(func, assertion=assertion)
 
     return wrapper
