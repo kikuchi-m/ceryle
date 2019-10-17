@@ -12,6 +12,12 @@ def test_expect_fail_raises():
         buildin.expect_fail(None)
 
 
+def test_expect_fail_str(mocker):
+    cmd = Command('test 1')
+    exe_xfail = buildin.expect_fail(cmd)
+    assert str(exe_xfail) == f'fail({cmd})'
+
+
 def test_expect_fail_returns_failure(mocker):
     cmd = Command('test 1')
     cmd_res = ExecutionResult(0, stdout=['out'], stderr=['err'])

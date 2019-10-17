@@ -12,6 +12,13 @@ def test_execute_any_raises():
         buildin.execute_any()
 
 
+def test_execute_any_str(mocker):
+    cmd1 = Command('test 1')
+    cmd2 = Command('test 2')
+    exec_any = buildin.execute_any(cmd1, cmd2)
+    assert str(exec_any) == f'any({cmd1}, {cmd2})'
+
+
 def test_execute_any(mocker):
     mock = mocker.Mock()
 

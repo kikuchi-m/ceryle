@@ -12,6 +12,13 @@ def test_execute_all_raises():
         buildin.execute_all()
 
 
+def test_execute_all_str(mocker):
+    cmd1 = Command('test 1')
+    cmd2 = Command('test 2')
+    exec_all = buildin.execute_all(cmd1, cmd2)
+    assert str(exec_all) == f'all({cmd1}, {cmd2})'
+
+
 def test_execute_all(mocker):
     mock = mocker.Mock()
 

@@ -33,7 +33,7 @@ def assert_executables(*executables):
         util.assert_type(exe, Executable)
 
 
-@executable_with(assertion=assert_executables)
+@executable_with(assertion=assert_executables, name='all')
 def execute_all(*executables, context=None, inputs=None):
     res = None
     for exe in executables:
@@ -43,7 +43,7 @@ def execute_all(*executables, context=None, inputs=None):
     return res
 
 
-@executable_with(assertion=assert_executables)
+@executable_with(assertion=assert_executables, name='any')
 def execute_any(*executables, context=None, inputs=None):
     res = None
     for exe in executables:
@@ -57,7 +57,7 @@ def assert_executable(executable):
     util.assert_type(executable, Executable)
 
 
-@executable_with(assertion=assert_executable)
+@executable_with(assertion=assert_executable, name='fail')
 def expect_fail(executable, context=None, inputs=None):
     res = executable.execute(context=context, inputs=inputs)
     return ExecutionResult(int(not bool(res.return_code)),

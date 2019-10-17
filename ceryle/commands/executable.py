@@ -44,10 +44,11 @@ class ExecutionResult:
 
 
 class ExecutableWrapper(Executable):
-    def __init__(self, func, args, kwargs):
+    def __init__(self, func, args, kwargs, name=None):
         self._func = func
         self._args = args[:]
         self._kwargs = kwargs.copy()
+        self._name = name
 
     def execute(self, **kwargs):
         exact_kwargs = self._exact_kwargs(kwargs)
@@ -101,22 +102,22 @@ class ExecutableWrapper(Executable):
         kwargs = ', '.join([f'{k}={v}' for k, v in self._kwargs.items()])
         if kwargs:
             kwargs = f', {kwargs}'
-        return f'{self._func.__name__}({args}{kwargs})'
+        return f'{self._name or self._func.__name__}({args}{kwargs})'
 
 
-def executable(func, assertion=None):
+def executable(func, assertion=None, name=None):
     def wrapper(*args, **kwargs):
         logger.debug(f'ExecutableWrapper({func.__name__}, args={args}, kwargs={kwargs})')
         if assertion:
             logger.debug(f'assert arguments by {assertion.__name__}')
             assertion(*args, **kwargs)
-        return ExecutableWrapper(func, *args, **kwargs)
+        return ExecutableWrapper(func, args, kwargs, name=name)
 
     return wrapper
 
 
-def executable_with(assertion=None):
+def executable_with(assertion=None, name=None):
     def wrapper(func):
-        return executable(func, assertion=assertion)
+        return executable(func, assertion=assertion, name=name)
 
     return wrapper
