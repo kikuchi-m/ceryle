@@ -13,6 +13,7 @@ class Condition:
     HAS_INPUT = buildin.has_input()
     all = buildin.execute_all
     any = buildin.execute_any
+    fail = buildin.expect_fail
     expression = buildin.expression
 
     def __init__(self, condition, context):

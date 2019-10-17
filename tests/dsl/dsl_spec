@@ -97,6 +97,10 @@ default = 'foo'
             condition.any(
                 command('test 1'),
                 command('test 2'))),
+    }, {
+        'run': command('do some'),
+        'input': ('pipe', 'PIPE_OUTPUT'),
+        'conditional_on': condition.fail(command('test 1')),
     }],
 
     'args': [{

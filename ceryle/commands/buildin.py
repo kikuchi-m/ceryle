@@ -2,7 +2,7 @@ import logging
 
 import ceryle.util as util
 from ceryle import executable, executable_with
-from ceryle import Executable, TaskDefinitionError
+from ceryle import Executable, ExecutionResult, TaskDefinitionError
 
 logger = logging.getLogger(__name__)
 
@@ -51,3 +51,15 @@ def execute_any(*executables, context=None, inputs=None):
         if res.return_code == 0:
             return res
     return res
+
+
+def assert_executable(executable):
+    util.assert_type(executable, Executable)
+
+
+@executable_with(assertion=assert_executable)
+def expect_fail(executable, context=None, inputs=None):
+    res = executable.execute(context=context, inputs=inputs)
+    return ExecutionResult(int(not bool(res.return_code)),
+                           stdout=res.stdout,
+                           stderr=res.stderr)
