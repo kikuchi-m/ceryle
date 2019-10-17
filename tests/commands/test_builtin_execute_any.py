@@ -4,15 +4,15 @@ import ceryle.commands.buildin as buildin
 from ceryle import Command, Executable, ExecutionResult
 
 
-def test_execute_all_raises():
+def test_execute_any_raises():
     with pytest.raises(TypeError):
-        buildin.execute_all(Command('do some'), 'not an executable')
+        buildin.execute_any(Command('do some'), 'not an executable')
 
     with pytest.raises(ValueError, match=r'one or more executables are required'):
-        buildin.execute_all()
+        buildin.execute_any()
 
 
-def test_execute_all(mocker):
+def test_execute_any(mocker):
     mock = mocker.Mock()
 
     cmd1 = Command('test 1')
@@ -23,19 +23,18 @@ def test_execute_all(mocker):
     mocker.patch.object(cmd2, 'execute', return_value=ExecutionResult(0))
     mock.attach_mock(cmd2.execute, 'cmd2_execute')
 
-    exec_all = buildin.execute_all(cmd1, cmd2)
-    assert isinstance(exec_all, Executable) is True
+    exec_any = buildin.execute_any(cmd1, cmd2)
+    assert isinstance(exec_any, Executable) is True
 
-    res = exec_all.execute(context='context', inputs=['a'])
+    res = exec_any.execute(context='context', inputs=['a'])
     assert isinstance(res, ExecutionResult)
     assert res.return_code == 0
     assert mock.mock_calls == [
         mocker.call.cmd1_execute(context='context', inputs=['a']),
-        mocker.call.cmd2_execute(context='context', inputs=['a']),
     ]
 
 
-def test_execute_all_fails(mocker):
+def test_execute_any_fails(mocker):
     mock = mocker.Mock()
 
     cmd1 = Command('test 1')
@@ -43,15 +42,16 @@ def test_execute_all_fails(mocker):
     mock.attach_mock(cmd1.execute, 'cmd1_execute')
 
     cmd2 = Command('test 2')
-    mocker.patch.object(cmd2, 'execute', return_value=ExecutionResult(0))
+    mocker.patch.object(cmd2, 'execute', return_value=ExecutionResult(2))
     mock.attach_mock(cmd2.execute, 'cmd2_execute')
 
-    exec_all = buildin.execute_all(cmd1, cmd2)
-    assert isinstance(exec_all, Executable) is True
+    exec_any = buildin.execute_any(cmd1, cmd2)
+    assert isinstance(exec_any, Executable) is True
 
-    res = exec_all.execute(context='context', inputs=['a'])
+    res = exec_any.execute(context='context', inputs=['a'])
     assert isinstance(res, ExecutionResult)
-    assert res.return_code == 1
+    assert res.return_code == 2
     assert mock.mock_calls == [
         mocker.call.cmd1_execute(context='context', inputs=['a']),
+        mocker.call.cmd2_execute(context='context', inputs=['a']),
     ]

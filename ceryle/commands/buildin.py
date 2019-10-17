@@ -41,3 +41,13 @@ def execute_all(*executables, context=None, inputs=None):
         if res.return_code != 0:
             return res
     return res
+
+
+@executable_with(assertion=assert_executables)
+def execute_any(*executables, context=None, inputs=None):
+    res = None
+    for exe in executables:
+        res = exe.execute(context=context, inputs=inputs)
+        if res.return_code == 0:
+            return res
+    return res
