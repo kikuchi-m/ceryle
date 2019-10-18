@@ -71,6 +71,67 @@ def test_remove_not_exist():
         assert res.return_code == 0
 
 
+def test_remove_by_glob():
+    '''
+    context:
+      d1/f1.py
+      d1/f1.pyc
+      d1/unknown
+      d1/d2/f2.py
+      d1/d2/f2.pyc
+      d1/d2/d3/f3.py
+      d1/d2/d3/f3.pyc
+      d1/d2/unknown
+    '''
+    with tempfile.TemporaryDirectory() as tmpd:
+        f1 = pathlib.Path(tmpd, 'd1', 'f1')
+        f2 = pathlib.Path(tmpd, 'd1', 'd2', 'f2')
+        f3 = pathlib.Path(tmpd, 'd1', 'd2', 'd3', 'f3')
+        f3.parent.mkdir(parents=True)
+        for f in [f1, f2, f3]:
+            for x in ['.py', '.pyc']:
+                with open(f'{f}{x}', 'w'):
+                    pass
+                assert pathlib.Path(f'{f}{x}').is_file() is True
+
+        u1 = pathlib.Path(tmpd, 'd1', 'unknown')
+        u2 = pathlib.Path(tmpd, 'd1', 'd2', 'unknown')
+        for f in [u1, u2]:
+            with open(f, 'w'):
+                pass
+            assert f.is_file() is True
+
+        remove = Remove('d1/**/*.py', 'd1/unknown', glob=True)
+        res = remove.execute(context=tmpd)
+
+        assert isinstance(res, ExecutionResult)
+        assert res.return_code == 0
+        assert pathlib.Path(f'{f1}.py').exists() is False
+        assert pathlib.Path(f'{f1}.pyc').exists() is True
+        assert pathlib.Path(f'{f2}.py').exists() is False
+        assert pathlib.Path(f'{f2}.pyc').exists() is True
+        assert pathlib.Path(f'{f3}.py').exists() is False
+        assert pathlib.Path(f'{f3}.pyc').exists() is True
+        assert u1.exists() is False
+        assert u2.exists() is True
+
+
+def test_remove_glob_not_exist():
+    '''
+    context:
+      f1 (not exist)
+    '''
+    with tempfile.TemporaryDirectory() as tmpd:
+        f1 = pathlib.Path(tmpd, 'f1')
+        assert f1.exists() is False
+
+        remove = Remove('*', glob=True)
+        res = remove.execute(context=tmpd)
+
+        assert isinstance(res, ExecutionResult)
+        assert res.return_code == 0
+
+
 def test_remove_directory_tree_containing_symlinks():
     '''
     context:

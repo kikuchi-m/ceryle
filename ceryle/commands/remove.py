@@ -1,3 +1,4 @@
+import glob
 import logging
 import os
 import pathlib
@@ -9,12 +10,14 @@ logger = logging.getLogger(__name__)
 
 
 class Remove(Executable):
-    def __init__(self, *targets):
+    def __init__(self, *targets, glob=False):
         self._targets = [util.assert_type(t, str, pathlib.Path) for t in targets]
+        self._glob = util.assert_type(glob, bool)
 
-    def execute(self, *args, context=None, **kwargs):
+    def execute(self, context=None):
+        rm_fun = _remove_glob if self._glob else _remove
         for target in self._targets:
-            if not _remove(pathlib.Path(context, target)):
+            if not rm_fun(pathlib.Path(context, target)):
                 return ExecutionResult(1)
         return ExecutionResult(0)
 
@@ -42,3 +45,9 @@ def _remove(target):
         logger.debug(f'remove file: {target}')
         os.remove(target)
         return True
+
+
+def _remove_glob(target):
+    for p in glob.glob(str(target), recursive=True):
+        _remove(pathlib.Path(p))
+    return True
