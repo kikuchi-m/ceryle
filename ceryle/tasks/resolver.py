@@ -14,6 +14,10 @@ class DependencyResolver:
             self._deps_chain_map = _reconstruct(chain_map)
 
     def deps_chain_map(self):
+        """
+        form: { <name: str>: <chain: DependencyChain> }
+        """
+
         self.validate()
         return dict(self._deps_chain_map)
 

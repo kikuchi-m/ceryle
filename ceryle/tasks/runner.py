@@ -1,4 +1,5 @@
 import copy
+import difflib
 import logging
 import pickle
 
@@ -25,8 +26,9 @@ class TaskRunner:
         self._sw = util.StopWatch()
 
     def run(self, task_group, dry_run=False, last_run=None):
-        chain = self._deps_chain_map.get(task_group)
+        chain = self._deps_chain_map.get(util.assert_type(task_group, str))
         if chain is None:
+            self._print_suggestion(task_group)
             raise TaskDefinitionError(f'task {task_group} is not defined')
         self._run_cache = RunCache(task_group)
         last_execution = LastExecution(last_run)
@@ -95,6 +97,22 @@ class TaskRunner:
                 logger.debug(f'register {t.stderr_key}')
                 _update_register(r, tg.name, t.stderr_key, t.stderr())
         return True, r
+
+    def _print_suggestion(self, task_group):
+        seqs = [(s.ratio(), s.b) for s in
+                [difflib.SequenceMatcher(a=task_group, b=name) for name in self._deps_chain_map]]
+        similars = [seq[1] for seq in sorted(seqs, key=lambda s: s[0], reverse=True)
+                    if seq[0] > 0.55]
+        if similars:
+            tasks = ', '.join(similars)
+            logger.debug(f'simer tasks: [{tasks}]')
+            msg = [
+                'similar task groups are',
+                *[util.indent_s(t, 4) for t in similars[:5]]
+            ]
+            if len(similars) > 5:
+                msg.append(util.indent_s('...', 4))
+            util.print_out(*msg)
 
 
 def _update_register(register, group, key, std):

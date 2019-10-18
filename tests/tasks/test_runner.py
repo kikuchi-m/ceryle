@@ -1,5 +1,6 @@
 import pytest
 
+import ceryle.util as util
 from ceryle import Command, Task, TaskGroup, TaskRunner, RunCache
 from ceryle import TaskDependencyError, TaskDefinitionError, TaskIOError, IllegalOperation
 
@@ -100,6 +101,27 @@ def test_run_raises_task_not_defined():
 
     with pytest.raises(IllegalOperation) as e:
         runner.get_cache()
+
+
+def test_run_task_not_defined_print_similar_tasks():
+    g1 = TaskGroup('build-foo', [], dependencies=[])
+    g2 = TaskGroup('build-bar', [], dependencies=[])
+    g3 = TaskGroup('build-all', [], dependencies=[])
+    g4 = TaskGroup('test-e2e', [], dependencies=[])
+
+    runner = TaskRunner([g1, g2, g3, g4])
+
+    with util.std_capture() as (o, _):
+        with pytest.raises(TaskDefinitionError):
+            runner.run('vuild-foo')
+        lines = o.getvalue().splitlines()
+    print(lines)
+
+    assert 'similar task groups are' in lines
+    assert '    build-foo' in lines
+    assert '    build-bar' in lines
+    assert '    build-all' in lines
+    assert '    test-e2e' not in lines
 
 
 def test_run_tasks_fails(mocker):
