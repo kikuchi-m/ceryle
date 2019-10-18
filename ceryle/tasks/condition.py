@@ -1,6 +1,6 @@
 import logging
 
-import ceryle.commands.buildin as buildin
+import ceryle.commands.builtin as builtin
 import ceryle.util as util
 
 from ceryle.commands.executable import Executable
@@ -9,12 +9,12 @@ logger = logging.getLogger(__name__)
 
 
 class Condition:
-    NO_INPUT = buildin.no_input()
-    HAS_INPUT = buildin.has_input()
-    all = buildin.execute_all
-    any = buildin.execute_any
-    fail = buildin.expect_fail
-    expression = buildin.expression
+    NO_INPUT = builtin.no_input()
+    HAS_INPUT = builtin.has_input()
+    all = builtin.execute_all
+    any = builtin.execute_any
+    fail = builtin.expect_fail
+    expression = builtin.expression
 
     def __init__(self, condition, context):
         self._condition = util.assert_type(condition, Executable)
