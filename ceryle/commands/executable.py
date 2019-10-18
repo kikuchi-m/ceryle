@@ -44,14 +44,16 @@ class ExecutionResult:
 
 
 class ExecutableWrapper(Executable):
-    def __init__(self, func, *args, **kwargs):
+    def __init__(self, func, args, kwargs, name=None):
         self._func = func
-        self._args = list(args)
-        self._kwargs = dict(kwargs)
+        self._args = args[:]
+        self._kwargs = kwargs.copy()
+        self._name = name
 
     def execute(self, **kwargs):
         exact_kwargs = self._exact_kwargs(kwargs)
         processed = self.preprocess(self._args, exact_kwargs)
+        logger.debug(f'preprocessed args: {processed[0]}, kwargs: {processed[1]}')
         res = self._func(*processed[0], **processed[1])
         if isinstance(res, bool):
             return ExecutionResult(int(not res))
@@ -80,6 +82,10 @@ class ExecutableWrapper(Executable):
         defined_kwargs = self._kwargs.copy()
         runtime_kwargs = kwargs.copy()
         kwdefaults = {}
+        logger.debug(f'determining kwargs for {self._func.__name__}')
+        logger.debug(f'defined kwargs: {defined_kwargs}')
+        logger.debug(f'runtime kwargs: {runtime_kwargs}')
+
         if kwoac:
             exact_keys = (set(runtime_kwargs.keys()) | set(defined_kwargs.keys())) & set(extra_keys)
         else:
@@ -94,6 +100,8 @@ class ExecutableWrapper(Executable):
         if flags & 0x08:
             exact_kwargs.update(**defined_kwargs)
             exact_kwargs.update(**runtime_kwargs)
+
+        logger.debug(f'precice kwargs for {self._func.__name__}: {exact_kwargs}')
         return exact_kwargs
 
     def __str__(self):
@@ -101,22 +109,22 @@ class ExecutableWrapper(Executable):
         kwargs = ', '.join([f'{k}={v}' for k, v in self._kwargs.items()])
         if kwargs:
             kwargs = f', {kwargs}'
-        return f'{self._func.__name__}({args}{kwargs})'
+        return f'{self._name or self._func.__name__}({args}{kwargs})'
 
 
-def executable(func, assertion=None):
+def executable(func, assertion=None, name=None):
     def wrapper(*args, **kwargs):
         logger.debug(f'ExecutableWrapper({func.__name__}, args={args}, kwargs={kwargs})')
         if assertion:
             logger.debug(f'assert arguments by {assertion.__name__}')
             assertion(*args, **kwargs)
-        return ExecutableWrapper(func, *args, **kwargs)
+        return ExecutableWrapper(func, args, kwargs, name=name)
 
     return wrapper
 
 
-def executable_with(assertion=None):
+def executable_with(assertion=None, name=None):
     def wrapper(func):
-        return executable(func, assertion=assertion)
+        return executable(func, assertion=assertion, name=name)
 
     return wrapper

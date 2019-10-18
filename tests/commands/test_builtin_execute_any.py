@@ -1,15 +1,22 @@
 import pytest
 
-import ceryle.commands.buildin as buildin
+import ceryle.commands.builtin as builtin
 from ceryle import Command, Executable, ExecutionResult
 
 
 def test_execute_any_raises():
     with pytest.raises(TypeError):
-        buildin.execute_any(Command('do some'), 'not an executable')
+        builtin.execute_any(Command('do some'), 'not an executable')
 
     with pytest.raises(ValueError, match=r'one or more executables are required'):
-        buildin.execute_any()
+        builtin.execute_any()
+
+
+def test_execute_any_str(mocker):
+    cmd1 = Command('test 1')
+    cmd2 = Command('test 2')
+    exec_any = builtin.execute_any(cmd1, cmd2)
+    assert str(exec_any) == f'any({cmd1}, {cmd2})'
 
 
 def test_execute_any(mocker):
@@ -23,7 +30,7 @@ def test_execute_any(mocker):
     mocker.patch.object(cmd2, 'execute', return_value=ExecutionResult(0))
     mock.attach_mock(cmd2.execute, 'cmd2_execute')
 
-    exec_any = buildin.execute_any(cmd1, cmd2)
+    exec_any = builtin.execute_any(cmd1, cmd2)
     assert isinstance(exec_any, Executable) is True
 
     res = exec_any.execute(context='context', inputs=['a'])
@@ -45,7 +52,7 @@ def test_execute_any_fails(mocker):
     mocker.patch.object(cmd2, 'execute', return_value=ExecutionResult(2))
     mock.attach_mock(cmd2.execute, 'cmd2_execute')
 
-    exec_any = buildin.execute_any(cmd1, cmd2)
+    exec_any = builtin.execute_any(cmd1, cmd2)
     assert isinstance(exec_any, Executable) is True
 
     res = exec_any.execute(context='context', inputs=['a'])

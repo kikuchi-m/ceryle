@@ -7,7 +7,7 @@ import ceryle
 import ceryle.util as util
 
 from ceryle import Command, Copy, Remove, Condition
-from ceryle.commands.executable import executable
+from ceryle.commands.executable import executable, executable_with
 from ceryle.dsl.parser import parse_tasks
 from . import support, TaskFileError
 
@@ -79,6 +79,7 @@ def _prepare_vars(global_vars, local_vars, additional_args):
         copy=Copy,
         remove=Remove,
         executable=executable,
+        executable_with=executable_with,
         condition=Condition,
         path=support.joinpath,
         env=support.Env,

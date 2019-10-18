@@ -1,6 +1,6 @@
 import pytest
 
-from ceryle import executable, Executable, ExecutionResult
+from ceryle import executable, executable_with, Executable, ExecutionResult
 from ceryle.dsl.support import Env, Arg
 
 
@@ -41,6 +41,12 @@ def test_custom_executable_str():
         return ExecutionResult(0)
 
     assert str(exe4(Env('FOO'))) == 'exe4(env(FOO))'
+
+    @executable_with(name='foo')
+    def exe5(a):
+        return ExecutionResult(0)
+
+    assert str(exe5(1)) == 'foo(1)'
 
 
 def test_custom_executable_returns_int():
