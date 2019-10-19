@@ -111,10 +111,15 @@ def next_part(cmdstr):
     if len(cmdstr) == 0:
         return None, -1
 
-    m = re.search('[ "]', cmdstr)
+    m = re.search(r'[ "]', cmdstr)
     if m:
         span = m.span()
         if m.group() == '"':
+            if cmdstr[span[0] - 1] == '\\':
+                s, seed = next_part(cmdstr[span[1]:])
+                if s is None:
+                    return f'{cmdstr[:span[0]]}"', seed
+                return f'{cmdstr[:span[0]]}"{s}', (span[1] + seed) if seed > -1 else seed
             m2 = re.search('"', cmdstr[span[1]:])
             if m2 is None:
                 return None, None

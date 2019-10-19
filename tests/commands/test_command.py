@@ -32,6 +32,31 @@ def test_new_command():
     assert command.cmd == ['foo', 'a b', 'c', 'd']
     assert str(command) == '[foo "a b" c d]'
 
+    # with escape sequence
+    command = Command('echo a\\"b')
+    assert command.cmd == ['echo', 'a\\"b']
+    assert str(command) == '[echo a\\"b]'
+
+    command = Command('echo a \\"b')
+    assert command.cmd == ['echo', 'a', '\\"b']
+    assert str(command) == '[echo a \\"b]'
+
+    command = Command('echo a b\\"')
+    assert command.cmd == ['echo', 'a', 'b\\"']
+    assert str(command) == '[echo a b\\"]'
+
+    command = Command('echo a \\"')
+    assert command.cmd == ['echo', 'a', '\\"']
+    assert str(command) == '[echo a \\"]'
+
+    command = Command('echo a\\"b c')
+    assert command.cmd == ['echo', 'a\\"b', 'c']
+    assert str(command) == '[echo a\\"b c]'
+
+    command = Command('echo a\\"b c "d e"')
+    assert command.cmd == ['echo', 'a\\"b', 'c', 'd e']
+    assert str(command) == '[echo a\\"b c "d e"]'
+
     # env and arg
     command = Command(['do-some', Env('FOO'), Arg('BAR', {})])
     assert str(command) == '[do-some env(FOO) arg(BAR)]'
