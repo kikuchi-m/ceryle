@@ -14,7 +14,7 @@ class Remove(Executable):
         self._targets = [util.assert_type(t, str, pathlib.Path) for t in targets]
         self._glob = util.assert_type(glob, bool)
 
-    def execute(self, context=None):
+    def execute(self, context=None, **kwargs):
         rm_fun = _remove_glob if self._glob else _remove
         for target in self._targets:
             if not rm_fun(pathlib.Path(context, target)):
