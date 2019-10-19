@@ -5,7 +5,7 @@ import re
 import shutil
 import tempfile
 
-from ceryle import Command
+from ceryle import Command, CommandFormatError
 from ceryle.dsl.support import Arg, Env
 from ceryle.util import std_capture
 
@@ -46,6 +46,9 @@ def test_raise_if_invalid_command():
 
     with pytest.raises(TypeError):
         Command(object())
+
+    with pytest.raises(CommandFormatError, match=r'invalid command format: \[a b "c d\]'):
+        Command('a b "c d')
 
 
 def test_execute_command():

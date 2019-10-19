@@ -4,9 +4,10 @@ import pathlib
 import re
 import subprocess
 
-import ceryle.util as util
-
 from concurrent.futures import ThreadPoolExecutor
+
+import ceryle.util as util
+from ceryle import CeryleException
 from ceryle.commands.executable import Executable, ExecutionResult
 
 logger = logging.getLogger(__name__)
@@ -96,6 +97,8 @@ def extract_cmd(cmd):
         while seed >= 0:
             s, seed = next_part(trimmed)
             if s is None:
+                if seed is None:
+                    raise CommandFormatError(f'invalid command format: [{cmd}]')
                 break
             parts.append(s)
             trimmed = trimmed[seed:].lstrip()
@@ -113,6 +116,8 @@ def next_part(cmdstr):
         span = m.span()
         if m.group() == '"':
             m2 = re.search('"', cmdstr[span[1]:])
+            if m2 is None:
+                return None, None
             span2 = m2.span()
             return cmdstr[span[1]:span2[0] + 1], span2[1] + 1
         return cmdstr[:span[0]], span[1]
@@ -122,3 +127,7 @@ def next_part(cmdstr):
 def print_std_streams(stdout, stderr):
     with ThreadPoolExecutor(max_workers=2) as executor:
         return executor.map(util.print_stream, [stdout, stderr], [False, True])
+
+
+class CommandFormatError(CeryleException):
+    pass

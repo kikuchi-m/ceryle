@@ -11,7 +11,7 @@ class IllegalFormat(Exception):
 
 
 from .commands.executable import executable, executable_with, Executable, ExecutionResult
-from .commands.command import Command
+from .commands.command import Command, CommandFormatError
 from .commands.copy import Copy
 from .commands.remove import Remove
 from .tasks import TaskDefinitionError, TaskDependencyError, TaskIOError
