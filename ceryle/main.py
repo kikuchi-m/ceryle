@@ -75,7 +75,10 @@ def list_tasks(verbose=0):
     groups = sorted(task_def.tasks, key=lambda t: t.name)
     lines = []
     for g in groups:
-        lines.append(f'{g.name}' + (':' if verbose > 0 else ''))
+        if verbose > 0:
+            lines.append(f'{g.name}: ({relpath_to_cwd(g.filename)})')
+        else:
+            lines.append(f'{g.name}')
         if verbose > 0 and g.dependencies:
             lines.append(util.indent_s('dependencies:', 2))
             for d in g.dependencies:
@@ -84,7 +87,7 @@ def list_tasks(verbose=0):
             lines.append(util.indent_s('tasks:', 2))
             for t in g.tasks:
                 lines.append(util.indent_s(str(t.executable), 4))
-    print(*lines, sep=os.linesep)
+    util.print_out(*lines)
     return 0
 
 
@@ -100,7 +103,10 @@ def show_tree(task=None, verbose=0):
     lines = []
 
     def _append(g, depth):
-        lines.append(util.indent_s(f'{g.name}:', depth * 4))
+        if verbose > 0:
+            lines.append(util.indent_s(f'{g.name}: ({relpath_to_cwd(g.filename)})', depth * 4))
+        else:
+            lines.append(util.indent_s(f'{g.name}:', depth * 4))
         if g.dependencies:
             lines.append(util.indent_s('dependencies:', depth * 4 + 2))
         for d in g.dependencies:
@@ -110,8 +116,12 @@ def show_tree(task=None, verbose=0):
             for t in g.tasks:
                 lines.append(util.indent_s(f'{t.executable}', depth * 4 + 4))
     _append(tg, 0)
-    print(*lines, sep=os.linesep)
+    util.print_out(*lines)
     return 0
+
+
+def relpath_to_cwd(f):
+    return pathlib.Path(f).relative_to(pathlib.Path.cwd())
 
 
 def parse_args(argv):
