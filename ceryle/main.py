@@ -125,16 +125,20 @@ def relpath_to_cwd(f):
 
 
 def parse_args(argv):
-    p = argparse.ArgumentParser()
-    p.add_argument('--list-tasks', action='store_true')
-    p.add_argument('--show', action='store_true')
+    p = argparse.ArgumentParser(prog='ceryle', usage='%(prog)s [options] [<TASK GROUP>]')
+    p.add_argument('--list-tasks', action='store_true',
+                   help='list all task groups')
+    p.add_argument('--show', action='store_true',
+                   help='show dependency tree of <TASK GROUP>')
     p.add_argument('-n', '--dry-run', action='store_true')
-    p.add_argument('--continue', action='store_true')
+    p.add_argument('--continue', action='store_true',
+                   help='run tasks from last failure of <TASK GROUP>')
     p.add_argument('--arg', action='append', default=[])
     p.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARN', 'ERROR'], default='INFO')
     p.add_argument('--log-stream', action='store_true')
     p.add_argument('--log-filename')
-    p.add_argument('-v', '--verbose', action='count', default=0)
+    p.add_argument('-v', '--verbose', action='count', default=0,
+                   help='show more information. this works with --list-tasks or --show option')
 
     known_args, rest = p.parse_known_args(argv)
     args = vars(known_args)
