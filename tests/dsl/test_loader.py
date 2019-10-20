@@ -13,7 +13,8 @@ def file_path(f):
 
 
 def test_load_task_file():
-    loader = TaskFileLoader(file_path('dsl_spec'))
+    p = file_path('dsl_spec')
+    loader = TaskFileLoader(p)
     task_def = loader.load()
 
     assert task_def.default_task == 'foo'
@@ -22,7 +23,9 @@ def test_load_task_file():
     task_names = tasks.keys()
     for name in ['foo', 'bar', 'simple', 'shorten', 'pipe', 'pipe2', 'task_attributes', 'args']:
         assert name in task_names
-        assert isinstance(tasks[name], TaskGroup)
+        g = tasks[name]
+        assert isinstance(g, TaskGroup)
+        assert g.filename == p
 
 
 def test_load_task_file_no_task_def(mocker):

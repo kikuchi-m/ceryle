@@ -83,10 +83,11 @@ class Task:
 
 
 class TaskGroup:
-    def __init__(self, name, tasks, dependencies=[]):
+    def __init__(self, name, tasks, filename, dependencies=[]):
         self._name = util.assert_type(name, str)
         self._tasks = [util.assert_type(t, Task) for t in util.assert_type(tasks, list)]
         self._dependencies = [util.assert_type(d, str) for d in util.assert_type(dependencies, list)]
+        self._filename = util.assert_type(filename, str)
 
     @property
     def name(self):
@@ -99,3 +100,7 @@ class TaskGroup:
     @property
     def dependencies(self):
         return list(self._dependencies)
+
+    @property
+    def filename(self):
+        return self._filename

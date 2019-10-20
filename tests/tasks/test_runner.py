@@ -7,27 +7,27 @@ from ceryle import TaskDependencyError, TaskDefinitionError, TaskIOError, Illega
 
 def test_new_task_runner():
     g1_tasks = [Task(Command('do a'), 'context')]
-    g1 = TaskGroup('g1', g1_tasks, dependencies=['g2'])
+    g1 = TaskGroup('g1', g1_tasks, 'file1.ceryle', dependencies=['g2'])
 
     g2_tasks = [Task(Command('do b'), 'context')]
-    g2 = TaskGroup('g2', g2_tasks, dependencies=[])
+    g2 = TaskGroup('g2', g2_tasks, 'file1.ceryle', dependencies=[])
 
     TaskRunner([g1, g2])
 
 
 def test_raises_dependency_error():
     g1_tasks = [Task(Command('do a'), 'context')]
-    g1 = TaskGroup('g1', g1_tasks, dependencies=['g2'])
+    g1 = TaskGroup('g1', g1_tasks, 'file1.ceryle', dependencies=['g2'])
 
     g2_tasks = [Task(Command('do b'), 'context')]
-    g2 = TaskGroup('g2', g2_tasks, dependencies=['g3'])
+    g2 = TaskGroup('g2', g2_tasks, 'file1.ceryle', dependencies=['g3'])
 
     # no depending task 'g3'
     with pytest.raises(TaskDependencyError):
         TaskRunner([g1, g2])
 
     g3_tasks = [Task(Command('do a'), 'context')]
-    g3 = TaskGroup('g3', g3_tasks, dependencies=['g1'])
+    g3 = TaskGroup('g3', g3_tasks, 'file1.ceryle', dependencies=['g1'])
 
     # cyclic
     with pytest.raises(TaskDependencyError):
@@ -39,13 +39,13 @@ def test_run_tasks(mocker):
 
     g1_t1 = Task(Command('do some'), 'context')
     g1_t2 = Task(Command('do some'), 'context')
-    g1 = TaskGroup('g1', [g1_t1, g1_t2], dependencies=['g2'])
+    g1 = TaskGroup('g1', [g1_t1, g1_t2], 'file1.ceryle', dependencies=['g2'])
 
     g2_t1 = Task(Command('do some'), 'context')
-    g2 = TaskGroup('g2', [g2_t1], dependencies=[])
+    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
 
     g3_t1 = Task(Command('do some'), 'context')
-    g3 = TaskGroup('g3', [], dependencies=[])
+    g3 = TaskGroup('g3', [], 'file1.ceryle', dependencies=[])
 
     g1_t1_run = mocker.patch.object(g1_t1, 'run', return_value=True)
     mock.attach_mock(g1_t1_run, 'g1_t1_run')
@@ -81,7 +81,7 @@ def test_run_tasks(mocker):
 
 
 def test_get_run_cache_raises_before_runnin():
-    g1 = TaskGroup('g1', [])
+    g1 = TaskGroup('g1', [], 'file1.ceryle')
     runner = TaskRunner([g1])
 
     with pytest.raises(IllegalOperation) as e:
@@ -90,8 +90,8 @@ def test_get_run_cache_raises_before_runnin():
 
 
 def test_run_raises_task_not_defined():
-    g1 = TaskGroup('g1', [], dependencies=['g2'])
-    g2 = TaskGroup('g2', [], dependencies=[])
+    g1 = TaskGroup('g1', [], 'file1.ceryle', dependencies=['g2'])
+    g2 = TaskGroup('g2', [], 'file1.ceryle', dependencies=[])
 
     runner = TaskRunner([g1, g2])
 
@@ -104,10 +104,10 @@ def test_run_raises_task_not_defined():
 
 
 def test_run_task_not_defined_print_similar_tasks():
-    g1 = TaskGroup('build-foo', [], dependencies=[])
-    g2 = TaskGroup('build-bar', [], dependencies=[])
-    g3 = TaskGroup('build-all', [], dependencies=[])
-    g4 = TaskGroup('test-e2e', [], dependencies=[])
+    g1 = TaskGroup('build-foo', [], 'file1.ceryle', dependencies=[])
+    g2 = TaskGroup('build-bar', [], 'file1.ceryle', dependencies=[])
+    g3 = TaskGroup('build-all', [], 'file1.ceryle', dependencies=[])
+    g4 = TaskGroup('test-e2e', [], 'file1.ceryle', dependencies=[])
 
     runner = TaskRunner([g1, g2, g3, g4])
 
@@ -128,9 +128,9 @@ def test_run_tasks_fails(mocker):
     mock = mocker.Mock()
 
     g1_t1 = Task(Command('do some'), 'context')
-    g1 = TaskGroup('g1', [g1_t1], dependencies=['g2'])
+    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g2'])
     g2_t1 = Task(Command('do some'), 'context')
-    g2 = TaskGroup('g2', [g2_t1], dependencies=[])
+    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
 
     g1_t1_run = mocker.patch.object(g1_t1, 'run', return_value=True)
     mock.attach_mock(g1_t1_run, 'g1_t1_run')
@@ -157,9 +157,9 @@ def test_run_tasks_fails_by_exception(mocker):
     mock = mocker.Mock()
 
     g1_t1 = Task(Command('do some'), 'context')
-    g1 = TaskGroup('g1', [g1_t1], dependencies=['g2'])
+    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g2'])
     g2_t1 = Task(Command('do some'), 'context')
-    g2 = TaskGroup('g2', [g2_t1], dependencies=[])
+    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
 
     g1_t1_run = mocker.patch.object(g1_t1, 'run', side_effect=Exception('test'))
     mock.attach_mock(g1_t1_run, 'g1_t1_run')
@@ -189,9 +189,9 @@ def test_run_tasks_fails_by_exception(mocker):
 
 def test_dry_run(mocker):
     g1_t1 = Task(Command('do some'), 'context')
-    g1 = TaskGroup('g1', [g1_t1], dependencies=['g2'])
+    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g2'])
     g2_t1 = Task(Command('do some'), 'context')
-    g2 = TaskGroup('g2', [g2_t1], dependencies=[])
+    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
 
     mocker.patch.object(g1_t1, 'run', return_value=True)
     mocker.patch.object(g2_t1, 'run', return_value=True)
@@ -216,13 +216,13 @@ def test_run_task_with_stdout(mocker):
     mocker.patch.object(g1_t1, 'stdout', return_value=[])
     mocker.patch.object(g1_t1, 'stderr', return_value=[])
     mocker.patch.object(g1_t1, 'run', return_value=True)
-    g1 = TaskGroup('g1', [g1_t1], dependencies=['g2'])
+    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g2'])
 
     g2_t1 = Task(Command('do some'), 'context', stdout='EXEC_STDOUT')
     mocker.patch.object(g2_t1, 'stdout', return_value=['foo', 'bar'])
     mocker.patch.object(g2_t1, 'stderr', return_value=[])
     mocker.patch.object(g2_t1, 'run', return_value=True)
-    g2 = TaskGroup('g2', [g2_t1], dependencies=[])
+    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
 
     runner = TaskRunner([g1, g2])
 
@@ -258,7 +258,7 @@ def test_run_task_with_stdout_from_same_group(mocker):
     mocker.patch.object(g1_t2, 'stderr', return_value=[])
     mocker.patch.object(g1_t2, 'run', return_value=True)
 
-    g1 = TaskGroup('g1', [g1_t1, g1_t2], dependencies=[])
+    g1 = TaskGroup('g1', [g1_t1, g1_t2], 'file1.ceryle', dependencies=[])
 
     runner = TaskRunner([g1])
 
@@ -287,13 +287,13 @@ def test_run_task_with_stderr(mocker):
     mocker.patch.object(g1_t1, 'stdout', return_value=[])
     mocker.patch.object(g1_t1, 'stderr', return_value=[])
     mocker.patch.object(g1_t1, 'run', return_value=True)
-    g1 = TaskGroup('g1', [g1_t1], dependencies=['g2'])
+    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g2'])
 
     g2_t1 = Task(Command('do some'), 'context', stderr='EXEC_STDERR')
     mocker.patch.object(g2_t1, 'stdout', return_value=[])
     mocker.patch.object(g2_t1, 'stderr', return_value=['foo', 'bar'])
     mocker.patch.object(g2_t1, 'run', return_value=True)
-    g2 = TaskGroup('g2', [g2_t1], dependencies=[])
+    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
 
     runner = TaskRunner([g1, g2])
 
@@ -321,7 +321,7 @@ def test_run_task_with_stderr(mocker):
 def test_run_failed_by_invalid_io(mocker):
     g1_t1 = Task(Command('do some'), 'context', input='EXEC_STDOUT')
     mocker.patch.object(g1_t1, 'run', return_value=True)
-    g1 = TaskGroup('g1', [g1_t1], dependencies=[])
+    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=[])
 
     runner = TaskRunner([g1])
 
@@ -342,16 +342,16 @@ def test_run_skip_task_already_run(mocker):
     mock = mocker.Mock()
 
     g1_t1 = Task(Command('do some'), 'context')
-    g1 = TaskGroup('g1', [g1_t1], dependencies=['g2', 'g3'])
+    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g2', 'g3'])
 
     g2_t1 = Task(Command('do some'), 'context')
-    g2 = TaskGroup('g2', [g2_t1], dependencies=['g4'])
+    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=['g4'])
 
     g3_t1 = Task(Command('do some'), 'context')
-    g3 = TaskGroup('g3', [g3_t1], dependencies=['g4'])
+    g3 = TaskGroup('g3', [g3_t1], 'file1.ceryle', dependencies=['g4'])
 
     g4_t1 = Task(Command('do some'), 'context')
-    g4 = TaskGroup('g4', [g4_t1], dependencies=[])
+    g4 = TaskGroup('g4', [g4_t1], 'file1.ceryle', dependencies=[])
 
     g1_t1_run = mocker.patch.object(g1_t1, 'run', return_value=True)
     mock.attach_mock(g1_t1_run, 'g1_t1_run')
@@ -394,10 +394,10 @@ def test_run_skip_succeeded_tasks(mocker):
     mock = mocker.Mock()
 
     g1_t1 = Task(Command('do some'), 'context')
-    g1 = TaskGroup('g1', [g1_t1], dependencies=['g2'])
+    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g2'])
 
     g2_t1 = Task(Command('do some'), 'context')
-    g2 = TaskGroup('g2', [g2_t1], dependencies=[])
+    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
 
     g1_t1_run = mocker.patch.object(g1_t1, 'run', return_value=True)
     mock.attach_mock(g1_t1_run, 'g1_t1_run')
@@ -431,13 +431,13 @@ def test_run_skip_succeeded_tasks_in_new_deps_tree(mocker):
     mock = mocker.Mock()
 
     g1_t1 = Task(Command('do some'), 'context')
-    g1 = TaskGroup('g1', [g1_t1], dependencies=['g3'])
+    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g3'])
 
     g3_t1 = Task(Command('do some'), 'context')
-    g3 = TaskGroup('g3', [g3_t1], dependencies=['g2'])
+    g3 = TaskGroup('g3', [g3_t1], 'file1.ceryle', dependencies=['g2'])
 
     g2_t1 = Task(Command('do some'), 'context')
-    g2 = TaskGroup('g2', [g2_t1], dependencies=[])
+    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
 
     g1_t1_run = mocker.patch.object(g1_t1, 'run', return_value=True)
     mock.attach_mock(g1_t1_run, 'g1_t1_run')
@@ -477,13 +477,13 @@ def test_run_all_since_last_is_differnt_task(mocker):
     mock = mocker.Mock()
 
     g1_t1 = Task(Command('do some'), 'context')
-    g1 = TaskGroup('g1', [g1_t1], dependencies=['g2'])
+    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g2'])
 
     g3_t1 = Task(Command('do some'), 'context')
-    g3 = TaskGroup('g3', [g3_t1], dependencies=['g2'])
+    g3 = TaskGroup('g3', [g3_t1], 'file1.ceryle', dependencies=['g2'])
 
     g2_t1 = Task(Command('do some'), 'context')
-    g2 = TaskGroup('g2', [g2_t1], dependencies=[])
+    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
 
     g1_t1_run = mocker.patch.object(g1_t1, 'run', return_value=True)
     mock.attach_mock(g1_t1_run, 'g1_t1_run')

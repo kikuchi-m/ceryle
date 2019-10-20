@@ -8,7 +8,7 @@ TASKS = 'tasks'
 RUN = 'run'
 
 
-def parse_tasks(raw_tasks, context):
+def parse_tasks(raw_tasks, context, filename):
     util.assert_type(raw_tasks, dict)
     util.assert_type(context, str)
 
@@ -16,13 +16,13 @@ def parse_tasks(raw_tasks, context):
     for gn, raw_group in raw_tasks.items():
         if isinstance(raw_group, list):
             g_tasks = [_to_task(t, context, gn) for t in raw_group]
-            tasks.append(TaskGroup(gn, g_tasks))
+            tasks.append(TaskGroup(gn, g_tasks, filename))
         else:
             if TASKS not in raw_group:
                 g_tasks = []
             else:
                 g_tasks = [_to_task(t, context, gn) for t in raw_group.pop(TASKS)]
-            tasks.append(TaskGroup(gn, g_tasks, **raw_group))
+            tasks.append(TaskGroup(gn, g_tasks, filename, **raw_group))
     return tasks
 
 

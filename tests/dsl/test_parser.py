@@ -19,7 +19,7 @@ def test_parse():
         },
     }
 
-    tasks = dict([(g.name, g) for g in parse_tasks(raw_tasks, 'context')])
+    tasks = dict([(g.name, g) for g in parse_tasks(raw_tasks, 'context', 'file1.ceryle')])
 
     assert len(tasks) == 2
 
@@ -27,6 +27,7 @@ def test_parse():
     assert isinstance(g1, TaskGroup)
     assert g1.name == 'g1'
     assert g1.dependencies == []
+    assert g1.filename == 'file1.ceryle'
 
     assert len(g1.tasks) == 2
     assert isinstance(g1.tasks[0], Task)
@@ -40,6 +41,7 @@ def test_parse():
     assert isinstance(g2, TaskGroup)
     assert g2.name == 'g2'
     assert g2.dependencies == ['g1']
+    assert g2.filename == 'file1.ceryle'
 
     assert len(g2.tasks) == 1
     assert isinstance(g2.tasks[0], Task)
@@ -61,7 +63,7 @@ def test_parse_syntax_suger():
         ],
     }
 
-    tasks = dict([(g.name, g) for g in parse_tasks(raw_tasks, 'context')])
+    tasks = dict([(g.name, g) for g in parse_tasks(raw_tasks, 'context', 'file1.ceryle')])
 
     assert len(tasks) == 2
 
@@ -69,6 +71,7 @@ def test_parse_syntax_suger():
     assert isinstance(g1, TaskGroup)
     assert g1.name == 'g1'
     assert g1.dependencies == []
+    assert g1.filename == 'file1.ceryle'
 
     assert len(g1.tasks) == 2
     assert isinstance(g1.tasks[0], Task)
@@ -79,6 +82,8 @@ def test_parse_syntax_suger():
     g2 = tasks['g2']
     assert isinstance(g2, TaskGroup)
     assert g2.name == 'g2'
+    assert g2.dependencies == []
+    assert g2.filename == 'file1.ceryle'
 
     assert len(g2.tasks) == 2
     assert isinstance(g2.tasks[0], Task)
@@ -93,7 +98,7 @@ def test_parse_no_tasks():
         },
     }
 
-    tasks = dict([(g.name, g) for g in parse_tasks(raw_tasks, 'context')])
+    tasks = dict([(g.name, g) for g in parse_tasks(raw_tasks, 'context', 'file1.ceryle')])
 
     assert len(tasks) == 1
 
@@ -101,5 +106,6 @@ def test_parse_no_tasks():
     assert isinstance(g1, TaskGroup)
     assert g1.name == 'g1'
     assert g1.dependencies == []
+    assert g1.filename == 'file1.ceryle'
 
     assert len(g1.tasks) == 0

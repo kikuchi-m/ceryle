@@ -9,12 +9,14 @@ TASKS = [
             ceryle.Task(ceryle.Command('do some 1'), '/foo/bar'),
             ceryle.Task(ceryle.Command('do some 2'), '/foo/bar'),
         ],
+        'file1.ceryle',
         dependencies=[]),
     ceryle.TaskGroup(
         'tg2', [
             ceryle.Task(ceryle.Command('do some 3'), '/foo/bar'),
             ceryle.Task(ceryle.Command('do some 4'), '/foo/bar'),
         ],
+        'file2.ceryle',
         dependencies=['tg1']),
 ]
 
