@@ -1,16 +1,20 @@
-import ceryle.util as util
+import logging
 
-from . import TaskDependencyError
+import ceryle.util as util
+from ceryle import TaskGroup, TaskDependencyError
+
+logger = logging.getLogger(__name__)
 
 
 class DependencyResolver:
-    def __init__(self, deps_map):
-        self._deps_map = dict(deps_map)
+    def __init__(self, task_groups):
+        self._task_groups = [util.assert_type(tg, TaskGroup)
+                             for tg in util.assert_type(task_groups, list)]
         self._deps_chain_map = None
 
     def validate(self):
         if self._deps_chain_map is None:
-            chain_map = _construct_chain_map(self._deps_map)
+            chain_map = _construct_chain_map(self._task_groups)
             self._deps_chain_map = _reconstruct(chain_map)
 
     def deps_chain_map(self):
@@ -22,19 +26,21 @@ class DependencyResolver:
         return dict(self._deps_chain_map)
 
 
-def _construct_chain_map(deps_map):
+def _construct_chain_map(task_groups):
+    deps_map = dict([(tg.name, tg) for tg in task_groups])
     dcm = {}
-    for t, deps in deps_map.items():
+    for tg in task_groups:
+        t = tg.name
         c = dcm.get(t)
         if c is None:
-            c = DependencyChain(t)
+            c = DependencyChain(tg)
             dcm[t] = c
-        for t_dep in deps:
-            t_dep_c = dcm.get(t_dep, DependencyChain(t_dep))
+        for t_dep in tg.dependencies:
             if t_dep not in deps_map:
                 raise TaskDependencyError(f'task {t_dep} depended by {t} is not defined')
             if t == t_dep:
                 raise TaskDependencyError(f'cyclic dependency was found: {t} -> {t_dep}')
+            t_dep_c = dcm.get(t_dep, DependencyChain(deps_map.get(t_dep)))
             if t_dep_c.depends_on(c):
                 chain_str = ' -> '.join([t, *[c1.task_name for c1 in t_dep_c.get_chain(c, include_self=True)]])
                 raise TaskDependencyError(f'cyclic dependency was found: {chain_str}')
@@ -47,16 +53,17 @@ def _construct_chain_map(deps_map):
 def _reconstruct(chain_map):
     reconstructed = {}
     for t, chain in chain_map.items():
-        c = DependencyChain(t)
+        c = DependencyChain(chain.root)
         for d in chain.deps:
-            c.add_dependency(d)
+            if not c.add_dependency(d):
+                logger.debug(f'{t} is already depending {d}')
         reconstructed[t] = c
     return reconstructed
 
 
 class DependencyChain:
-    def __init__(self, task_name):
-        self._task_name = task_name
+    def __init__(self, task_group):
+        self._task_group = util.assert_type(task_group, TaskGroup)
         self._deps = []
 
     def add_dependency(self, dep):
@@ -90,8 +97,12 @@ class DependencyChain:
         return chain
 
     @property
+    def root(self):
+        return self._task_group
+
+    @property
     def task_name(self):
-        return self._task_name
+        return self._task_group.name
 
     @property
     def deps(self):
