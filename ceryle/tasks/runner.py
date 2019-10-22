@@ -14,14 +14,9 @@ logger = logging.getLogger(__name__)
 
 class TaskRunner:
     def __init__(self, task_groups):
-        util.assert_type(task_groups, list)
-        for g in task_groups:
-            util.assert_type(g, TaskGroup)
-
-        resolver = DependencyResolver(dict([(g.name, [*g.dependencies]) for g in task_groups]))
+        resolver = DependencyResolver(task_groups)
         resolver.validate()
         self._deps_chain_map = resolver.deps_chain_map()
-        self._groups = dict([(g.name, g) for g in task_groups])
         self._run_cache = None
         self._sw = util.StopWatch()
 
@@ -50,7 +45,8 @@ class TaskRunner:
             if not res:
                 return False, reg
 
-        if self._run_cache.has(chain.task_name):
+        tg = chain.root
+        if tg.allow_skip and self._run_cache.has(chain.task_name):
             logger.info(f'skipping {chain} since it has already run')
             return True, register
 
@@ -65,7 +61,7 @@ class TaskRunner:
 
         try:
             util.print_out(f'running task group {chain.task_name}', level=logging.INFO)
-            res, reg = self._run_group(self._groups[chain.task_name], dry_run=dry_run, register=reg or register)
+            res, reg = self._run_group(tg, dry_run=dry_run, register=reg or register)
             self._sw.elapse()
             util.print_out(f'finished {chain.task_name} {self._sw.str_last_lap()}', level=logging.INFO)
         except Exception:

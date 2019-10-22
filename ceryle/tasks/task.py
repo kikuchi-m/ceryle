@@ -83,11 +83,12 @@ class Task:
 
 
 class TaskGroup:
-    def __init__(self, name, tasks, filename, dependencies=[]):
+    def __init__(self, name, tasks, filename, dependencies=[], allow_skip=True):
         self._name = util.assert_type(name, str)
         self._tasks = [util.assert_type(t, Task) for t in util.assert_type(tasks, list)]
         self._dependencies = [util.assert_type(d, str) for d in util.assert_type(dependencies, list)]
         self._filename = util.assert_type(filename, str)
+        self._allow_skip = util.assert_type(allow_skip, bool)
 
     @property
     def name(self):
@@ -100,6 +101,10 @@ class TaskGroup:
     @property
     def dependencies(self):
         return list(self._dependencies)
+
+    @property
+    def allow_skip(self):
+        return self._allow_skip
 
     @property
     def filename(self):

@@ -103,6 +103,13 @@ default = 'foo'
         'conditional_on': condition.fail(command('test 1')),
     }],
 
+    'task_group_attributes': {
+        'allow_skip': False,
+        'tasks': [
+            command('run always'),
+        ],
+    },
+
     'args': [{
         'run': command(['echo',
                         env('ENV1'),
