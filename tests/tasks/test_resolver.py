@@ -99,7 +99,7 @@ def test_new_dependency_chain():
 
 
 def test_add_dependency_added():
-    c1 = DependencyChain(TaskGroup('t1', [], 'file1.ceryle'))
+    c1 = DependencyChain(TaskGroup('t1', [], 'file1.ceryle', dependencies=['t2', 't3']))
     c2 = DependencyChain(TaskGroup('t2', [], 'file1.ceryle'))
     c3 = DependencyChain(TaskGroup('t3', [], 'file1.ceryle'))
 
@@ -111,8 +111,8 @@ def test_add_dependency_added():
 
 
 def test_add_dependency_already_depending():
-    c1 = DependencyChain(TaskGroup('t1', [], 'file1.ceryle'))
-    c2 = DependencyChain(TaskGroup('t2', [], 'file1.ceryle'))
+    c1 = DependencyChain(TaskGroup('t1', [], 'file1.ceryle', dependencies=['t2', 't3']))
+    c2 = DependencyChain(TaskGroup('t2', [], 'file1.ceryle', dependencies=['t3']))
     c3 = DependencyChain(TaskGroup('t3', [], 'file1.ceryle'))
 
     assert c1.add_dependency(c2) is True
@@ -125,9 +125,16 @@ def test_add_dependency_already_depending():
     assert c2.deps == [c3]
 
 
-def test_add_dependency_of_skip_not_allowed():
+def test_add_dependency_but_not_depending():
     c1 = DependencyChain(TaskGroup('t1', [], 'file1.ceryle'))
-    c2 = DependencyChain(TaskGroup('t2', [], 'file1.ceryle', allow_skip=False))
+    c2 = DependencyChain(TaskGroup('t2', [], 'file1.ceryle'))
+
+    assert c1.add_dependency(c2) is False
+
+
+def test_add_dependency_of_skip_not_allowed():
+    c1 = DependencyChain(TaskGroup('t1', [], 'file1.ceryle', dependencies=['t2', 't2', 't3']))
+    c2 = DependencyChain(TaskGroup('t2', [], 'file1.ceryle', dependencies=['t3'], allow_skip=False))
     c3 = DependencyChain(TaskGroup('t3', [], 'file1.ceryle'))
 
     assert c1.add_dependency(c2) is True
@@ -139,8 +146,8 @@ def test_add_dependency_of_skip_not_allowed():
     assert c1.deps == [c2, c2]
     assert c2.deps == [c3]
 
-    c4 = DependencyChain(TaskGroup('t4', [], 'file1.ceryle'))
-    c5 = DependencyChain(TaskGroup('t5', [], 'file1.ceryle'))
+    c4 = DependencyChain(TaskGroup('t4', [], 'file1.ceryle', dependencies=['t5', 't6']))
+    c5 = DependencyChain(TaskGroup('t5', [], 'file1.ceryle', dependencies=['t6']))
     c6 = DependencyChain(TaskGroup('t6', [], 'file1.ceryle', allow_skip=False))
 
     assert c4.add_dependency(c5) is True
@@ -151,8 +158,8 @@ def test_add_dependency_of_skip_not_allowed():
 
 
 def test_get_chain():
-    c1 = DependencyChain(TaskGroup('t1', [], 'file1.ceryle'))
-    c2 = DependencyChain(TaskGroup('t2', [], 'file1.ceryle'))
+    c1 = DependencyChain(TaskGroup('t1', [], 'file1.ceryle', dependencies=['t2']))
+    c2 = DependencyChain(TaskGroup('t2', [], 'file1.ceryle', dependencies=['t3']))
     c3 = DependencyChain(TaskGroup('t3', [], 'file1.ceryle'))
 
     assert c1.get_chain(c2) == []
@@ -178,13 +185,13 @@ def test_get_chain():
 
 
 def test_dependency_chain_equality():
-    c1a = DependencyChain(TaskGroup('t1', [], 'file1'))
-    c1b = DependencyChain(TaskGroup('t1', [], 'file1'))
+    c1a = DependencyChain(TaskGroup('t1', [], 'file1', dependencies=['t2']))
+    c1b = DependencyChain(TaskGroup('t1', [], 'file1', dependencies=['t2']))
 
     assert c1a == c1b
     assert not c1a != c1b
 
-    c1a.add_dependency(DependencyChain(TaskGroup('t2', [], 'file11')))
+    c1a.add_dependency(DependencyChain(TaskGroup('t2', [], 'file11.ceryle')))
 
     assert not c1a == c1b
     assert c1a != c1b
@@ -200,14 +207,14 @@ def test_dependency_chain_equality():
 
 def test_dump_chain():
 
-    a11 = DependencyChain(TaskGroup('t11', [], 'file11.ceryle'))
+    a11 = DependencyChain(TaskGroup('t11', [], 'file11.ceryle', dependencies=['t111', 't112']))
     a11.add_dependency(DependencyChain(TaskGroup('t111', [], 'file1.ceryle')))
     a11.add_dependency(DependencyChain(TaskGroup('t112', [], 'file1.ceryle')))
 
-    a12 = DependencyChain(TaskGroup('t12', [], 'file1.ceryle'))
+    a12 = DependencyChain(TaskGroup('t12', [], 'file1.ceryle', dependencies=['t121']))
     a12.add_dependency(DependencyChain(TaskGroup('t121', [], 'file1.ceryle')))
 
-    a1 = DependencyChain(TaskGroup('t1', [], 'file1.ceryle'))
+    a1 = DependencyChain(TaskGroup('t1', [], 'file1.ceryle', dependencies=['t11', 't12']))
     a1.add_dependency(a11)
     a1.add_dependency(a12)
 

@@ -68,9 +68,10 @@ class DependencyChain:
 
     def add_dependency(self, dep):
         util.assert_type(dep, DependencyChain)
-        if not dep.root.allow_skip or not self.depends_on(dep):
-            self._deps = [*self._deps, dep]
-            return True
+        if dep.root.name in self.root.dependencies:
+            if not dep.root.allow_skip or not self.depends_on(dep):
+                self._deps = [*self._deps, dep]
+                return True
         return False
 
     def depends_on(self, dep):
