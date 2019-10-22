@@ -26,7 +26,7 @@ def test_main_show_tree(mocker):
     task_def = ceryle.TaskDefinition([tg1, tg2, tg3, tg4], default_task='tg4')
     load_mock = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, '/foo/bar'))
 
-    mocker.patch('pathlib.Path.cwd', return_value=script_dir.parent)
+    mocker.patch('pathlib.Path.cwd', return_value=script_dir.parent.joinpath('foo'))
 
     # excercise
     with ceryle.util.std_capture() as (o, e):
@@ -36,18 +36,18 @@ def test_main_show_tree(mocker):
     # verification
     assert res == 0
     assert lines == [
-        'tg4: (tests/file2.ceryle)',
+        'tg4: (../tests/file2.ceryle)',
         '  dependencies:',
-        '    tg2: (tests/file1.ceryle)',
+        '    tg2: (../tests/file1.ceryle)',
         '      dependencies:',
-        '        tg1: (tests/file1.ceryle)',
+        '        tg1: (../tests/file1.ceryle)',
         '          tasks:',
         '            %s' % str(tg1.tasks[0].executable),
         '            %s' % str(tg1.tasks[1].executable),
         '      tasks:',
         '        %s' % str(tg2.tasks[0].executable),
         '        %s' % str(tg2.tasks[1].executable),
-        '    tg3: (tests/file2.ceryle)',
+        '    tg3: (../tests/file2.ceryle)',
         '      tasks:',
         '        %s' % str(tg3.tasks[0].executable),
         '  tasks:',

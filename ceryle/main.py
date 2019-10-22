@@ -126,7 +126,7 @@ def show_tree(task=None, verbose=0):
 
 
 def relpath_to_cwd(f):
-    return pathlib.Path(f).relative_to(pathlib.Path.cwd())
+    return os.path.relpath(f, pathlib.Path.cwd())
 
 
 def parse_args(argv):
