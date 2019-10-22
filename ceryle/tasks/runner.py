@@ -7,7 +7,6 @@ import ceryle.util as util
 from ceryle import IllegalOperation
 from ceryle.tasks import TaskDefinitionError, TaskIOError
 from ceryle.tasks.resolver import DependencyResolver
-from ceryle.tasks.task import TaskGroup
 
 logger = logging.getLogger(__name__)
 

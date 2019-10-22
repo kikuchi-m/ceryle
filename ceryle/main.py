@@ -96,24 +96,29 @@ def show_tree(task=None, verbose=0):
     if task is None and task_def.default_task is None:
         raise ceryle.TaskDefinitionError('default task is not declared, specify task to show info')
 
-    tg = task_def.find_task_group(task or task_def.default_task)
+    tg = ceryle.DependencyResolver(task_def.tasks).deps_chain_map()[task or task_def.default_task]
     if tg is None:
         raise ceryle.TaskDefinitionError(f'{task or task_def.default_task} not found')
 
     lines = []
+    printed = []
 
     def _append(g, depth):
+        printed.append(g.root)
         if verbose > 0:
-            lines.append(util.indent_s(f'{g.name}: ({relpath_to_cwd(g.filename)})', depth * 4))
+            lines.append(util.indent_s(f'{g.root.name}: ({relpath_to_cwd(g.root.filename)})', depth * 4))
         else:
-            lines.append(util.indent_s(f'{g.name}:', depth * 4))
-        if g.dependencies:
+            lines.append(util.indent_s(f'{g.root.name}:', depth * 4))
+
+        deps = [d for d in g.deps
+                if not d.root.allow_skip or d.root not in printed]
+        if deps:
             lines.append(util.indent_s('dependencies:', depth * 4 + 2))
-        for d in g.dependencies:
-            _append(task_def.find_task_group(d), depth + 1)
-        if verbose > 0 and g.tasks:
+        for d in deps:
+            _append(d, depth + 1)
+        if verbose > 0 and g.root.tasks:
             lines.append(util.indent_s('tasks:', depth * 4 + 2))
-            for t in g.tasks:
+            for t in g.root.tasks:
                 lines.append(util.indent_s(f'{t.executable}', depth * 4 + 4))
     _append(tg, 0)
     util.print_out(*lines)
