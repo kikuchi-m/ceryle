@@ -45,7 +45,8 @@ class TaskRunner:
             if not res:
                 return False, reg
 
-        if self._run_cache.has(chain.task_name):
+        tg = chain.root
+        if tg.allow_skip and self._run_cache.has(chain.task_name):
             logger.info(f'skipping {chain} since it has already run')
             return True, register
 
@@ -60,7 +61,7 @@ class TaskRunner:
 
         try:
             util.print_out(f'running task group {chain.task_name}', level=logging.INFO)
-            res, reg = self._run_group(chain.root, dry_run=dry_run, register=reg or register)
+            res, reg = self._run_group(tg, dry_run=dry_run, register=reg or register)
             self._sw.elapse()
             util.print_out(f'finished {chain.task_name} {self._sw.str_last_lap()}', level=logging.INFO)
         except Exception:

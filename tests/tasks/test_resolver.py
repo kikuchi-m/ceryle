@@ -125,6 +125,31 @@ def test_add_dependency_already_depending():
     assert c2.deps == [c3]
 
 
+def test_add_dependency_of_skip_not_allowed():
+    c1 = DependencyChain(TaskGroup('t1', [], 'file1.ceryle'))
+    c2 = DependencyChain(TaskGroup('t2', [], 'file1.ceryle', allow_skip=False))
+    c3 = DependencyChain(TaskGroup('t3', [], 'file1.ceryle'))
+
+    assert c1.add_dependency(c2) is True
+    assert c1.add_dependency(c2) is True
+    assert c1.deps == [c2, c2]
+
+    assert c2.add_dependency(c3) is True
+    assert c1.add_dependency(c3) is False
+    assert c1.deps == [c2, c2]
+    assert c2.deps == [c3]
+
+    c4 = DependencyChain(TaskGroup('t4', [], 'file1.ceryle'))
+    c5 = DependencyChain(TaskGroup('t5', [], 'file1.ceryle'))
+    c6 = DependencyChain(TaskGroup('t6', [], 'file1.ceryle', allow_skip=False))
+
+    assert c4.add_dependency(c5) is True
+    assert c5.add_dependency(c6) is True
+    assert c4.add_dependency(c6) is True
+    assert c4.deps == [c5, c6]
+    assert c5.deps == [c6]
+
+
 def test_get_chain():
     c1 = DependencyChain(TaskGroup('t1', [], 'file1.ceryle'))
     c2 = DependencyChain(TaskGroup('t2', [], 'file1.ceryle'))
