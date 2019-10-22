@@ -31,6 +31,8 @@ class Command(Executable):
                 cmd = cmd + inputs
             else:
                 communicate = True
+        logger.debug(f'actual command: {cmd}')
+        logger.debug(f'additional environment variables: {env}')
         proc = subprocess.Popen(
             cmd,
             cwd=self._get_cwd(context),
