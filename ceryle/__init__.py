@@ -14,6 +14,7 @@ from .commands.executable import executable, executable_with, Executable, Execut
 from .commands.command import Command, CommandFormatError
 from .commands.copy import Copy
 from .commands.remove import Remove
+from .commands.builtin import save_input_to
 from .tasks import TaskDefinitionError, TaskDependencyError, TaskIOError
 from .tasks.task import Task, TaskGroup
 from .tasks.condition import Condition

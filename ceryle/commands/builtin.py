@@ -1,8 +1,10 @@
 import logging
+import os
+import pathlib
 
 import ceryle.util as util
-from ceryle import executable, executable_with
-from ceryle import Executable, ExecutionResult, TaskDefinitionError
+from ceryle.commands.executable import executable, executable_with, Executable, ExecutionResult
+from ceryle.tasks import TaskDefinitionError
 
 logger = logging.getLogger(__name__)
 
@@ -63,3 +65,16 @@ def expect_fail(executable, context=None, inputs=None):
     return ExecutionResult(int(not bool(res.return_code)),
                            stdout=res.stdout,
                            stderr=res.stderr)
+
+
+@executable
+def save_input_to(path, overwrite=False, context=None, inputs=[]):
+    p = pathlib.Path(context, path)
+    if p.exists() and overwrite is False:
+        util.print_err(f'file already exists: {p}')
+        return ExecutionResult(1)
+
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with open(p, 'w') as fp:
+        fp.writelines([f'{l}{os.linesep}' for l in inputs])
+    return ExecutionResult(0)
