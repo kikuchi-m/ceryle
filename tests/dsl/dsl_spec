@@ -51,6 +51,9 @@ default = 'foo'
         'tasks': [{
             'run': command('echo', inputs_as_args=True),
             'input': ('pipe', 'PIPE_OUTPUT'),
+        }, {
+            'run': save_input_to(path('output/logs/pipe.log')),
+            'conditional_on': condition.HAS_INPUT,
         }],
     },
 

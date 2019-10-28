@@ -6,8 +6,12 @@ import pathlib
 import ceryle
 import ceryle.util as util
 
-from ceryle import Command, Copy, Remove, Condition
+from ceryle.commands.command import Command
+from ceryle.commands.copy import Copy
+from ceryle.commands.remove import Remove
 from ceryle.commands.executable import executable, executable_with
+from ceryle.commands.builtin import save_input_to
+from ceryle.tasks.condition import Condition
 from ceryle.dsl.parser import parse_tasks
 from . import support, TaskFileError
 
@@ -78,6 +82,7 @@ def _prepare_vars(global_vars, local_vars, additional_args):
         command=Command,
         copy=Copy,
         remove=Remove,
+        save_input_to=save_input_to,
         executable=executable,
         executable_with=executable_with,
         condition=Condition,
