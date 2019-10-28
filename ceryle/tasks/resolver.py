@@ -1,3 +1,4 @@
+import difflib
 import logging
 
 import ceryle.util as util
@@ -24,6 +25,18 @@ class DependencyResolver:
 
         self.validate()
         return dict(self._deps_chain_map)
+
+    def find_similar(self, task_group_name, ratio=0.55):
+        tg = util.assert_type(task_group_name, str)
+        r = util.assert_type(ratio, float)
+        if r < 0.0 or r > 1.0:
+            raise ValueError(f'ratio must by in range 0.0 to 1.0, but {r}')
+
+        self.validate()
+        seqs = [(s.ratio(), s.b) for s in
+                [difflib.SequenceMatcher(a=tg, b=name) for name in self._deps_chain_map]]
+        return [self._deps_chain_map[seq[1]] for seq in sorted(seqs, key=lambda s: s[0], reverse=True)
+                if seq[0] > r]
 
 
 def _construct_chain_map(task_groups):

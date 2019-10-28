@@ -96,8 +96,11 @@ def show_tree(task=None, verbose=0):
     if task is None and task_def.default_task is None:
         raise ceryle.TaskDefinitionError('default task is not declared, specify task to show info')
 
-    tg = ceryle.DependencyResolver(task_def.tasks).deps_chain_map()[task or task_def.default_task]
+    resolver = ceryle.DependencyResolver(task_def.tasks)
+    tg_name = task or task_def.default_task
+    tg = resolver.deps_chain_map().get(tg_name)
     if tg is None:
+        ceryle.tasks.runner.print_similar_task_groups(resolver.find_similar(tg_name))
         raise ceryle.TaskDefinitionError(f'{task or task_def.default_task} not found')
 
     lines = []

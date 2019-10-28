@@ -89,6 +89,24 @@ def test_construct_chain_map():
     assert chain_map['c'] == chain_c
 
 
+def test_find_similar_tasks():
+    tg_a = TaskGroup('build-task-abc', [], 'file1.ceryle', dependencies=[])
+    tg_b = TaskGroup('build-task-xyz', [], 'file1.ceryle', dependencies=[])
+    tg_c = TaskGroup('build-task-aab', [], 'file1.ceryle', dependencies=[])
+    tg_d = TaskGroup('clean-all-repositories', [], 'file1.ceryle', dependencies=[])
+    resolver = DependencyResolver([tg_a, tg_b, tg_c, tg_d])
+    resolver.validate()
+    similars = resolver.find_similar('build-task-aaa')
+
+    assert len(similars) == 3
+
+    assert [c.task_name for c in similars] == [
+        'build-task-aab',
+        'build-task-abc',
+        'build-task-xyz',
+    ]
+
+
 def test_new_dependency_chain():
     tg = TaskGroup('c1', [], 'file1.ceryle')
     c1 = DependencyChain(tg)
