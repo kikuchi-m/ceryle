@@ -57,7 +57,7 @@ def save_run_cache(root_context, run_cache):
         cache_file.parent.mkdir(parents=True, exist_ok=True)
         run_cache.save(str(cache_file))
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
         util.print_err('failed to save last execution result', str(e))
 
 
@@ -201,7 +201,7 @@ def main(argv):
             return show_tree(task=args['task'], verbose=args['verbose'])
         return run(**args)
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
         if isinstance(e, ceryle.CeryleException):
             util.print_err(str(e))
             return 255

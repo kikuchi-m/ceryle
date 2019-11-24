@@ -23,6 +23,8 @@ class TaskRunner:
             print_similar_task_groups(self._resolver.find_similar(task_group))
             raise TaskDefinitionError(f'task {task_group} is not defined')
         self._run_cache = RunCache(task_group)
+        if last_run is not None:
+            logger.debug(f'last run: {last_run}')
         last_execution = LastExecution(last_run)
         if last_execution.task_name != task_group:
             last_execution.stop()
@@ -156,6 +158,10 @@ class RunCache:
             logger.warn(f'failed to load run cache: {path}')
             logger.warn(e)
             return None
+
+    def __str__(self):
+        res = ', '.join([f'({r[0]}, {r[1]})' for r in self._results])
+        return f'RunCache({self._task_name}, results={res}'
 
 
 class LastExecution:
