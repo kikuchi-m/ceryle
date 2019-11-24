@@ -311,7 +311,7 @@ def test_main_run_continue_last_run(mocker, tmpdir):
 
     # verification
     assert res == 0
-    load_run_cache.assert_called_once()
+    load_run_cache.assert_called_once_with(str(context), 'g1')
     save_run_cache.assert_called_once()
     runner.run.assert_called_once_with('g1', dry_run=False, last_run=mocker.ANY)
     _, runner_run_kwargs = runner.run.call_args
@@ -352,7 +352,7 @@ def test_main_run_continue_last_run_but_cache_not_found(mocker, tmpdir):
 
     # verification
     assert res == 0
-    load_run_cache.assert_called_once()
+    load_run_cache.assert_called_once_with(str(context), 'g1')
     save_run_cache.assert_called_once()
     runner.run.assert_called_once_with('g1', dry_run=False, last_run=None)
     load_tasks.assert_called_once()
@@ -406,7 +406,7 @@ def test_main_run_save_last_execution_to_file_even_when_exeption_raised(mocker, 
 def test_main_save_run_cache(mocker, tmpdir):
     context = pathlib.Path(tmpdir, 'foo', 'bar')
     context.mkdir(parents=True)
-    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_DIRNAME, 'tg1')
 
     run_cache = ceryle.RunCache('tg1')
     run_cache.add_result(('g2', True))
@@ -434,7 +434,7 @@ def test_main_save_run_cache(mocker, tmpdir):
 def test_main_save_run_cache_into_home_ceryle_dir(mocker, tmpdir):
     home = pathlib.Path(tmpdir, 'home')
     home.joinpath(const.CERYLE_DIR).mkdir(parents=True)
-    run_cache_file = pathlib.Path(home, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+    run_cache_file = pathlib.Path(home, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_DIRNAME, 'tg1')
     home_mock = mocker.patch('pathlib.Path.home', return_value=pathlib.Path(home))
 
     run_cache = ceryle.RunCache('tg1')
@@ -464,7 +464,7 @@ def test_main_save_run_cache_into_home_ceryle_dir(mocker, tmpdir):
 def test_main_save_run_cache_handle_exception(mocker, tmpdir):
     context = pathlib.Path(tmpdir, 'foo', 'bar')
     context.mkdir(parents=True)
-    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_DIRNAME, 'tg1')
 
     run_cache = ceryle.RunCache('tg1')
     mocker.patch.object(run_cache, 'save', side_effect=Exception('test'))
@@ -478,7 +478,7 @@ def test_main_save_run_cache_handle_exception(mocker, tmpdir):
 
 def test_main_load_run_cache(mocker, tmpdir):
     context = pathlib.Path(tmpdir, 'foo', 'bar')
-    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_DIRNAME, 'xxx')
     run_cache_file.parent.mkdir(parents=True)
 
     run_cache = ceryle.RunCache('g1')
@@ -488,7 +488,7 @@ def test_main_load_run_cache(mocker, tmpdir):
     run_cache.save(str(run_cache_file))
 
     # excercise
-    loaded_run_cache = ceryle.main.load_run_cache(str(context))
+    loaded_run_cache = ceryle.main.load_run_cache(str(context), 'xxx')
 
     # verification
     assert loaded_run_cache.task_name == 'g1'
@@ -505,7 +505,7 @@ def test_main_load_run_cache(mocker, tmpdir):
 
 def test_main_load_run_cache_from_home_ceryle_dir(mocker, tmpdir):
     home = pathlib.Path(tmpdir, 'home')
-    run_cache_file = pathlib.Path(home, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+    run_cache_file = pathlib.Path(home, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_DIRNAME, 'xxx')
     run_cache_file.parent.mkdir(parents=True)
     home_mock = mocker.patch('pathlib.Path.home', return_value=pathlib.Path(home))
 
@@ -516,7 +516,7 @@ def test_main_load_run_cache_from_home_ceryle_dir(mocker, tmpdir):
     run_cache.save(str(run_cache_file))
 
     # excercise
-    loaded_run_cache = ceryle.main.load_run_cache(None)
+    loaded_run_cache = ceryle.main.load_run_cache(None, 'xxx')
 
     # verification
     assert loaded_run_cache.task_name == 'g1'
@@ -534,19 +534,19 @@ def test_main_load_run_cache_from_home_ceryle_dir(mocker, tmpdir):
 
 def test_main_load_run_cache_return_none_if_cache_file_not_found(mocker, tmpdir):
     context = pathlib.Path(tmpdir, 'foo', 'bar')
-    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+    run_cache_file = pathlib.Path(context, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_DIRNAME, 'xxx')
     run_cache_file.parent.mkdir(parents=True)
 
     # excercise
-    assert ceryle.main.load_run_cache(str(context)) is None
+    assert ceryle.main.load_run_cache(str(context), 'xxx') is None
 
 
 def test_main_load_run_cache_from_home_ceryle_dir_return_none_if_cache_file_not_found(mocker, tmpdir):
     home = pathlib.Path(tmpdir, 'home')
-    run_cache_file = pathlib.Path(home, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_FILENAME)
+    run_cache_file = pathlib.Path(home, const.CERYLE_DIR, const.CERYLE_RUN_CACHE_DIRNAME, 'xxx')
     run_cache_file.parent.mkdir(parents=True)
     home_mock = mocker.patch('pathlib.Path.home', return_value=pathlib.Path(home))
 
     # excercise
-    assert ceryle.main.load_run_cache(None) is None
+    assert ceryle.main.load_run_cache(None, 'xxx') is None
     home_mock.assert_called_once()

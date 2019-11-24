@@ -27,14 +27,15 @@ def run(task=None, dry_run=False, additional_args={},
         continue_last_run=False, **kwargs):
 
     task_def, root_context = load_tasks(additional_args=additional_args)
-    if task is None and task_def.default_task is None:
+    target = task or task_def.default_task
+    if target is None:
         raise ceryle.TaskDefinitionError('default task is not declared, specify task to run')
 
     runner = ceryle.TaskRunner(task_def.tasks)
-    last_run = load_run_cache(root_context) if continue_last_run else None
+    last_run = load_run_cache(root_context, target) if continue_last_run else None
     cached = False
     try:
-        res = runner.run(task or task_def.default_task, dry_run=dry_run, last_run=last_run)
+        res = runner.run(target, dry_run=dry_run, last_run=last_run)
     except Exception as ex:
         if not dry_run and not isinstance(ex, ceryle.TaskDefinitionError):
             save_run_cache(root_context, runner.get_cache())
@@ -49,7 +50,10 @@ def run(task=None, dry_run=False, additional_args={},
 
 def save_run_cache(root_context, run_cache):
     try:
-        cache_file = _run_cache_file(root_context)
+        cache_file = _run_cache_file(root_context, run_cache.task_name)
+        # handling existing file generated before 0.1.13
+        if cache_file.parent.is_file():
+            os.remove(cache_file.parent)
         cache_file.parent.mkdir(parents=True, exist_ok=True)
         run_cache.save(str(cache_file))
     except Exception as e:
@@ -57,17 +61,18 @@ def save_run_cache(root_context, run_cache):
         util.print_err('failed to save last execution result', str(e))
 
 
-def load_run_cache(root_context):
-    cache_file = _run_cache_file(root_context)
+def load_run_cache(root_context, target):
+    cache_file = _run_cache_file(root_context, target)
     if cache_file.is_file():
         return ceryle.RunCache.load(str(cache_file))
     return None
 
 
-def _run_cache_file(root_context):
+def _run_cache_file(root_context, target):
     return pathlib.Path(root_context or pathlib.Path.home(),
                         const.CERYLE_DIR,
-                        const.CERYLE_RUN_CACHE_FILENAME)
+                        const.CERYLE_RUN_CACHE_DIRNAME,
+                        util.assert_type(target, str))
 
 
 def list_tasks(verbose=0):
