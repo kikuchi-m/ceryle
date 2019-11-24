@@ -54,6 +54,7 @@ default = 'foo'
         }, {
             'run': save_input_to(path('output/logs/pipe.log')),
             'conditional_on': condition.HAS_INPUT,
+            'input': ('pipe', 'PIPE_OUTPUT'),
         }],
     },
 
