@@ -27,11 +27,11 @@ class Remove(Executable):
 
 
 def _remove(target):
-    if not target.exists():
-        return True
     if target.is_symlink():
         logger.debug(f'remove symlink: {target}')
         target.unlink()
+        return True
+    if not target.exists():
         return True
     if target.is_dir():
         for t in target.iterdir():
