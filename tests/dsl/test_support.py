@@ -69,29 +69,46 @@ def test_env_combine(mocker):
     assert env6.evaluate() == '11'
 
 
-def test_arg_evaluate_returns_value(mocker):
+def test_env_evaluate_returns_value(mocker):
+    mocker.patch.dict('os.environ', {'FOO': '1'})
+
+    env = support.Env('FOO', format='env: %(FOO)s')
+    assert env.evaluate() == 'env: 1'
+
+
+def test_arg_evaluate_returns_value():
     arg = support.Arg('FOO', {'FOO': '1'})
     assert arg.evaluate() == '1'
 
 
-def test_arg_evaluate_returns_default(mocker):
+def test_arg_evaluate_returns_default():
     arg = support.Arg('FOO', {}, default='-1')
     assert arg.evaluate() == '-1'
 
 
-def test_arg_evaluate_returns_empty(mocker):
+def test_arg_evaluate_returns_empty():
     arg = support.Arg('FOO', {}, allow_empty=True)
     assert arg.evaluate() == ''
 
 
-def test_arg_evaluate_raises_if_absent(mocker):
+def test_arg_in_environment_variables(mocker):
+    mocker.patch.dict('os.environ', {'FOO': '1'})
+
+    arg = support.Arg('FOO', {})
+    assert arg.evaluate() == '1'
+
+    arg = support.Arg('FOO', {'FOO': '2'})
+    assert arg.evaluate() == '2'
+
+
+def test_arg_evaluate_raises_if_absent():
     arg = support.Arg('FOO', {})
     with pytest.raises(NoArgumentError) as e:
         arg.evaluate()
     assert str(e.value) == 'argument FOO is not defined'
 
 
-def test_arg_combine(mocker):
+def test_arg_combine():
     args = {'FOO': '1', 'BAR': '0'}
 
     arg1 = support.Arg('FOO', args)
@@ -119,3 +136,10 @@ def test_arg_combine(mocker):
     assert isinstance(arg6, support.Arg)
     assert arg1 is not arg6
     assert arg6.evaluate() == '11'
+
+
+def test_arg_format():
+    args = {'FOO': '1'}
+
+    arg1 = support.Arg('FOO', args, format='arg: %(FOO)s')
+    assert arg1.evaluate() == 'arg: 1'
