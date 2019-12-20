@@ -48,7 +48,7 @@ class ArgumentBase(abc.ABC):
         return f'{lvar}{v}{rvar}'
 
     def _format_value(self, v):
-        return self._format and self._format % { self._name: v } or v
+        return self._format and self._format % {self._name: v} or v
 
     @abc.abstractmethod
     def __str__(self):

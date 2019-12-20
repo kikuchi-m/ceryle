@@ -69,7 +69,7 @@ def test_env_combine(mocker):
     assert env6.evaluate() == '11'
 
 
-def test_env_evaluate_returns_value(mocker):
+def test_env_format(mocker):
     mocker.patch.dict('os.environ', {'FOO': '1'})
 
     env = support.Env('FOO', format='env: %(FOO)s')
