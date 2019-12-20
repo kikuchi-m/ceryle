@@ -11,7 +11,11 @@ def joinpath(*path):
 
 
 class ArgumentBase(abc.ABC):
-    def __init__(self):
+    def __init__(self, name, default=None, allow_empty=False, format=None):
+        self._name = util.assert_type(name, str)
+        self._default = util.assert_type(default, str, None)
+        self._allow_empty = util.assert_type(allow_empty, bool)
+        self._format = util.assert_type(format, str, None)
         self._right = None
         self._left = None
 
@@ -43,6 +47,9 @@ class ArgumentBase(abc.ABC):
         lvar = (self._left and eval_arg(self._left)) or ''
         return f'{lvar}{v}{rvar}'
 
+    def _format_value(self, v):
+        return self._format and self._format % {self._name: v} or v
+
     @abc.abstractmethod
     def __str__(self):
         pass
@@ -62,17 +69,14 @@ def eval_arg(a, fail_on_unknown=True):
 
 
 class Env(ArgumentBase):
-    def __init__(self, name, default=None, allow_empty=False):
-        super().__init__()
-        self._name = util.assert_type(name, str)
-        self._default = util.assert_type(default, str, None)
-        self._allow_empty = util.assert_type(allow_empty, bool)
+    def __init__(self, name, default=None, allow_empty=False, format=None):
+        super().__init__(name, default=default, allow_empty=allow_empty, format=format)
 
     def evaluate(self):
-        v = os.environ.get(self._name, self._default or '')
+        v = os.environ.get(self._name) or self._default or ''
         if not self._allow_empty and v == '':
             raise NoEnvironmentError(f'environment variable {self._name} is not defined')
-        return self._eval_all(v)
+        return self._eval_all(self._format_value(v))
 
     def _copy(self):
         return Env(self._name, default=self._default, allow_empty=self._allow_empty)
@@ -82,21 +86,18 @@ class Env(ArgumentBase):
 
 
 class Arg(ArgumentBase):
-    def __init__(self, name, args, default=None, allow_empty=False):
-        super().__init__()
-        self._name = util.assert_type(name, str)
+    def __init__(self, name, args, default=None, allow_empty=False, format=None):
+        super().__init__(name, default=default, allow_empty=allow_empty, format=format)
         self._args = dict(**args)
         for k, v in self._args.items():
             util.assert_type(k, str)
             util.assert_type(v, str)
-        self._default = util.assert_type(default, str, None)
-        self._allow_empty = util.assert_type(allow_empty, bool)
 
     def evaluate(self):
-        v = self._args.get(self._name, self._default or '')
+        v = self._args.get(self._name) or os.environ.get(self._name) or self._default or ''
         if not self._allow_empty and v == '':
             raise NoArgumentError(f'argument {self._name} is not defined')
-        return self._eval_all(v)
+        return self._eval_all(self._format_value(v))
 
     def _copy(self):
         return Arg(self._name, self._args, default=self._default, allow_empty=self._allow_empty)
