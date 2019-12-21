@@ -75,6 +75,6 @@ def save_input_to(path, overwrite=False, context=None, inputs=[]):
         return ExecutionResult(1)
 
     p.parent.mkdir(parents=True, exist_ok=True)
-    with open(p, 'w') as fp:
-        fp.writelines([f'{l}{os.linesep}' for l in inputs])
+    with open(p, 'wb') as fp:
+        fp.write(os.linesep.join(inputs).encode())
     return ExecutionResult(0)

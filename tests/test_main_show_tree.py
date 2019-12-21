@@ -38,18 +38,18 @@ def test_main_show_tree(mocker):
     # verification
     assert res == 0
     assert lines == [
-        'tg4: (../tests/file2.ceryle)',
+        'tg4: (%s)' % str(pathlib.Path('../tests/file2.ceryle')),
         '  dependencies:',
-        '    tg2: (../tests/file1.ceryle)',
+        '    tg2: (%s)' % str(pathlib.Path('../tests/file1.ceryle')),
         '      dependencies:',
-        '        tg1: (../tests/file1.ceryle)',
+        '        tg1: (%s)' % str(pathlib.Path('../tests/file1.ceryle')),
         '          tasks:',
         '            %s' % str(tg1.tasks[0].executable),
         '            %s' % str(tg1.tasks[1].executable),
         '      tasks:',
         '        %s' % str(tg2.tasks[0].executable),
         '        %s' % str(tg2.tasks[1].executable),
-        '    tg3: (../tests/file2.ceryle)',
+        '    tg3: (%s)' % str(pathlib.Path('../tests/file2.ceryle')),
         '      tasks:',
         '        %s' % str(tg3.tasks[0].executable),
         '  tasks:',

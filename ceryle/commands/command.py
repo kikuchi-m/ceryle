@@ -34,7 +34,7 @@ class Command(Executable):
         logger.debug(f'actual command: {cmd}')
         logger.debug(f'additional environment variables: {env}')
         proc = subprocess.Popen(
-            cmd,
+            ['cmd', '/C', *cmd] if util.is_win() else cmd,
             cwd=self._get_cwd(context),
             env=self._with_os_env(env),
             stdin=subprocess.PIPE if communicate else None,
@@ -104,9 +104,11 @@ def extract_cmd(cmd):
                 break
             parts.append(s)
             trimmed = trimmed[seed:].lstrip()
-        return parts
-    util.assert_type(cmd, list)
-    return list(cmd)
+    else:
+        parts = util.assert_type(cmd, list)
+    if util.is_win() and isinstance(parts[0], str) and parts[0].startswith('./'):
+        return [str(pathlib.Path(parts[0])), *parts[1:]]
+    return parts
 
 
 def next_part(cmdstr):
