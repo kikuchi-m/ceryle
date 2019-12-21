@@ -1,6 +1,9 @@
 import os
 import pathlib
+import platform
 import tempfile
+
+import pytest
 
 from ceryle import Remove, ExecutionResult
 
@@ -132,6 +135,7 @@ def test_remove_glob_not_exist():
         assert res.return_code == 0
 
 
+@pytest.mark.skipif(platform.system() == 'Windows', reason='Not a posix system')
 def test_remove_directory_tree_containing_symlinks():
     '''
     context:
@@ -167,6 +171,7 @@ def test_remove_directory_tree_containing_symlinks():
         assert pathlib.Path(tmpd, 'd1').exists() is False
 
 
+@pytest.mark.skipif(platform.system() == 'Windows', reason='Not a posix system')
 def test_remove_directory_tree_containing_symlinks_to_outside_of_direcotry():
     '''
     context:
