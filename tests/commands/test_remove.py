@@ -7,6 +7,12 @@ import pytest
 
 from ceryle import Remove, ExecutionResult
 
+IS_WIN = platform.system() == 'Windows'
+WIN_ADMIN = False
+if IS_WIN:
+    import ctypes
+    WIN_ADMIN = ctypes.windll.shell32.IsUserAnAdmin() != 0
+
 
 def test_remove_files():
     '''
@@ -135,7 +141,7 @@ def test_remove_glob_not_exist():
         assert res.return_code == 0
 
 
-@pytest.mark.skipif(platform.system() == 'Windows', reason='Not a posix system')
+@pytest.mark.skipif(IS_WIN and not WIN_ADMIN, reason='can not create symlink by non administator on Windows')
 def test_remove_directory_tree_containing_symlinks():
     '''
     context:
@@ -171,7 +177,7 @@ def test_remove_directory_tree_containing_symlinks():
         assert pathlib.Path(tmpd, 'd1').exists() is False
 
 
-@pytest.mark.skipif(platform.system() == 'Windows', reason='Not a posix system')
+@pytest.mark.skipif(IS_WIN and not WIN_ADMIN, reason='can not create symlink by non administator on Windows')
 def test_remove_directory_tree_containing_symlinks_to_outside_of_direcotry():
     '''
     context:
