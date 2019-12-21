@@ -80,6 +80,11 @@ def test_raise_if_invalid_command():
 
 @pytest.mark.skipif(platform.system() == 'Windows', reason='Not a Windows platform')
 class TestForPosix:
+    def test_new_command(self):
+        command = Command(['./dosome', '-a'])
+        assert command.cmd == ['./dosome', '-a']
+        assert str(command) == '[./dosome -a]'
+
     def test_execute_command(self):
         with std_capture() as (o, e):
             command = Command('echo foo')
