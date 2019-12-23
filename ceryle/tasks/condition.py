@@ -17,7 +17,7 @@ class Condition:
     expression = builtin.expression
 
     def __init__(self, condition, context):
-        self._condition = util.assert_type(condition, Executable)
+        self._condition = util.assert_type(condition, Executable, bool)
         self._context = util.assert_type(context, str)
         logger.debug(f'condition: {self._condition}')
 
@@ -25,6 +25,8 @@ class Condition:
         logger.info(f'testing {self._condition}')
         logger.debug(f'context: {self._context}')
         logger.debug(f'inputs: {inputs}')
+        if isinstance(self._condition, bool):
+            return dry_run or self._condition
         return dry_run or self._test_executable(inputs=inputs)
 
     def _test_executable(self, inputs=[]):

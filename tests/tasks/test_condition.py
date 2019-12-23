@@ -41,6 +41,22 @@ def test_condition_test_predefined_has_input(mocker):
     assert condition.test(inputs=['a']) is True
 
 
+def test_condition_test_bool():
+    condition1 = Condition(True, 'context')
+    assert condition1.test() is True
+
+    condition2 = Condition(False, 'context')
+    assert condition2.test() is False
+
+
+def test_condition_test_bool_with_dry_run():
+    condition1 = Condition(True, 'context')
+    assert condition1.test(dry_run=True) is True
+
+    condition2 = Condition(False, 'context')
+    assert condition2.test(dry_run=True) is True
+
+
 def test_condition_test_by_executable_with_dry_run(mocker):
     # successful executable
     executable1 = Command('do some')
