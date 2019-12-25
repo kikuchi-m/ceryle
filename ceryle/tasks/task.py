@@ -1,4 +1,3 @@
-import copy
 import logging
 
 import ceryle
@@ -113,7 +112,7 @@ class TaskGroup:
         return self._filename
 
     def run(self, dry_run=False, register={}):
-        r = copy.deepcopy(register)
+        r = copy_register(register)
         for t in self.tasks:
             inputs = []
             if t.input_key:
@@ -140,3 +139,7 @@ def _update_register(register, group, key, std):
     tg_r = util.getin(register, group, default={})
     tg_r.update({key: std})
     register.update({group: tg_r})
+
+
+def copy_register(register):
+    return dict([(g, register[g].copy()) for g in register])

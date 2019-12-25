@@ -1,10 +1,10 @@
-import copy
 import logging
 import pickle
 
 import ceryle.util as util
 from ceryle import IllegalOperation
 from ceryle.tasks import TaskDefinitionError
+from ceryle.tasks.task import copy_register
 from ceryle.tasks.resolver import DependencyResolver
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class TaskRunner:
         return self._run_cache
 
     def _run(self, chain, dry_run=False, register={}, last_execution=None):
-        reg = copy.deepcopy(register)
+        reg = copy_register(register)
         for c in chain.deps:
             res, reg = self._run(c, dry_run=dry_run, register=reg, last_execution=last_execution)
             if not res:
@@ -101,7 +101,7 @@ class RunCache:
 
     @property
     def register(self):
-        return copy.deepcopy(self._register)
+        return copy_register(self._register)
 
     def add_result(self, result):
         util.assert_type(result, tuple, list)
@@ -114,7 +114,7 @@ class RunCache:
         return task_group in [n for n, _ in self._results]
 
     def update_register(self, register):
-        self._register = copy.deepcopy(util.assert_type(register, dict))
+        self._register = copy_register(util.assert_type(register, dict))
 
     def save(self, path):
         with open(path, 'wb') as fp:

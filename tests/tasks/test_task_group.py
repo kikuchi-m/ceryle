@@ -2,6 +2,7 @@ import pytest
 
 from ceryle import Command, Task, TaskGroup
 from ceryle.tasks import TaskIOError
+from ceryle.tasks.task import copy_register
 
 
 def test_new_task_group():
@@ -186,3 +187,24 @@ def test_run_failed_by_invalid_io(mocker):
         tg.run()
     t1.run.assert_not_called()
     assert str(ex.value) == 'EXEC_STDOUT is required by a task in tg, but not registered'
+
+
+def test_copy_register():
+    reg1 = {
+        'g1': {
+            'o1': ['a', 'b'],
+            'o2': ['c'],
+        },
+        'g2': {
+            'o1': ['d'],
+            'o2': ['e', 'f'],
+            'o3': ['g'],
+        },
+    }
+
+    reg2 = copy_register(reg1)
+
+    assert reg1 == reg2
+    assert reg1 is not reg2
+    assert reg1['g1'] is not reg2['g1']
+    assert reg1['g2'] is not reg2['g2']
