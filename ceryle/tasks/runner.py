@@ -4,7 +4,7 @@ import pickle
 
 import ceryle.util as util
 from ceryle import IllegalOperation
-from ceryle.tasks import TaskDefinitionError, TaskIOError
+from ceryle.tasks import TaskDefinitionError
 from ceryle.tasks.resolver import DependencyResolver
 
 logger = logging.getLogger(__name__)
@@ -38,9 +38,9 @@ class TaskRunner:
         return self._run_cache
 
     def _run(self, chain, dry_run=False, register={}, last_execution=None):
-        reg = None
+        reg = copy.deepcopy(register)
         for c in chain.deps:
-            res, reg = self._run(c, dry_run=dry_run, register=register, last_execution=last_execution)
+            res, reg = self._run(c, dry_run=dry_run, register=reg, last_execution=last_execution)
             if not res:
                 return False, reg
 
@@ -60,7 +60,7 @@ class TaskRunner:
 
         try:
             util.print_out(f'running task group {chain.task_name}', level=logging.INFO)
-            res, reg = self._run_group(tg, dry_run=dry_run, register=reg or register)
+            res, reg = tg.run(dry_run=dry_run, register=reg or register)
             self._sw.elapse()
             util.print_out(f'finished {chain.task_name} {self._sw.str_last_lap()}', level=logging.INFO)
         except Exception:
@@ -69,29 +69,6 @@ class TaskRunner:
         self._run_cache.add_result((chain.task_name, res and not dry_run))
         self._run_cache.update_register(reg)
         return res, reg
-
-    def _run_group(self, tg, dry_run=False, register={}):
-        r = copy.deepcopy(register)
-        for t in tg.tasks:
-            inputs = []
-            if t.input_key:
-                if isinstance(t.input_key, str):
-                    logger.debug(f'read {tg.name}.{t.input_key} from register')
-                    inputs = util.getin(r, tg.name, t.input_key)
-                else:
-                    logger.debug(f'read {".".join(t.input_key)} from register')
-                    inputs = util.getin(r, *t.input_key)
-                if inputs is None:
-                    raise TaskIOError(f'{t.input_key} is required by a task in {tg.name}, but not registered')
-            if not t.run(dry_run=dry_run, inputs=inputs):
-                return False, r
-            if t.stdout_key:
-                logger.debug(f'register {t.stdout_key}')
-                _update_register(r, tg.name, t.stdout_key, t.stdout())
-            if t.stderr_key:
-                logger.debug(f'register {t.stderr_key}')
-                _update_register(r, tg.name, t.stderr_key, t.stderr())
-        return True, r
 
 
 def print_similar_task_groups(similars):
@@ -106,12 +83,6 @@ def print_similar_task_groups(similars):
         if len(names) > 5:
             msg.append(util.indent_s('...', 4))
         util.print_out(*msg)
-
-
-def _update_register(register, group, key, std):
-    tg_r = util.getin(register, group, default={})
-    tg_r.update({key: std})
-    register.update({group: tg_r})
 
 
 class RunCache:

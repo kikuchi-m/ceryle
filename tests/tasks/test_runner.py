@@ -2,7 +2,7 @@ import pytest
 
 import ceryle.util as util
 from ceryle import Command, Task, TaskGroup, TaskRunner, RunCache
-from ceryle import TaskDependencyError, TaskDefinitionError, TaskIOError, IllegalOperation
+from ceryle import TaskDependencyError, TaskDefinitionError, IllegalOperation
 
 
 def test_new_task_runner():
@@ -37,38 +37,27 @@ def test_raises_dependency_error():
 def test_run_tasks(mocker):
     mock = mocker.Mock()
 
-    g1_t1 = Task(Command('do some'), 'context')
-    g1_t2 = Task(Command('do some'), 'context')
-    g1 = TaskGroup('g1', [g1_t1, g1_t2], 'file1.ceryle', dependencies=['g2'])
+    g1 = TaskGroup('g1', [], 'file1.ceryle', dependencies=['g2'])
+    g1_run = mocker.patch.object(g1, 'run', return_value=(True, {}))
+    mock.attach_mock(g1_run, 'g1_run')
 
-    g2_t1 = Task(Command('do some'), 'context')
-    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
+    g2 = TaskGroup('g2', [], 'file1.ceryle', dependencies=[])
+    g2_run = mocker.patch.object(g2, 'run', return_value=(True, {}))
+    mock.attach_mock(g2_run, 'g2_run')
 
-    g3_t1 = Task(Command('do some'), 'context')
     g3 = TaskGroup('g3', [], 'file1.ceryle', dependencies=[])
-
-    g1_t1_run = mocker.patch.object(g1_t1, 'run', return_value=True)
-    mock.attach_mock(g1_t1_run, 'g1_t1_run')
-    g1_t2_run = mocker.patch.object(g1_t2, 'run', return_value=True)
-    mock.attach_mock(g1_t2_run, 'g1_t2_run')
-
-    g2_t1_run = mocker.patch.object(g2_t1, 'run', return_value=True)
-    mock.attach_mock(g2_t1_run, 'g2_t1_run')
-
-    g3_t1_run = mocker.patch.object(g3_t1, 'run')
-    mock.attach_mock(g3_t1_run, 'g3_t1_run')
+    g3_run = mocker.patch.object(g3, 'run', return_value=(True, {}))
+    mock.attach_mock(g3_run, 'g3_run')
 
     runner = TaskRunner([g1, g2, g3])
 
     assert runner.run('g1') is True
-    g2_t1.run.assert_called_once()
-    g1_t2.run.assert_called_once()
-    g1_t1.run.assert_called_once()
-    g3_t1.run.assert_not_called()
+    g2.run.assert_called_once()
+    g1.run.assert_called_once()
+    g3.run.assert_not_called()
     assert mock.mock_calls == [
-        mocker.call.g2_t1_run(dry_run=False, inputs=[]),
-        mocker.call.g1_t1_run(dry_run=False, inputs=[]),
-        mocker.call.g1_t2_run(dry_run=False, inputs=[]),
+        mocker.call.g2_run(dry_run=False, register={}),
+        mocker.call.g1_run(dry_run=False, register={}),
     ]
 
     cache = runner.get_cache()
@@ -127,23 +116,21 @@ def test_run_task_not_defined_print_similar_tasks():
 def test_run_tasks_fails(mocker):
     mock = mocker.Mock()
 
-    g1_t1 = Task(Command('do some'), 'context')
-    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g2'])
-    g2_t1 = Task(Command('do some'), 'context')
-    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
-
-    g1_t1_run = mocker.patch.object(g1_t1, 'run', return_value=True)
-    mock.attach_mock(g1_t1_run, 'g1_t1_run')
-
-    g2_t1_run = mocker.patch.object(g2_t1, 'run', return_value=False)
-    mock.attach_mock(g2_t1_run, 'g2_t1_run')
+    g1 = TaskGroup('g1', [], 'file1.ceryle', dependencies=['g2'])
+    g1_run = mocker.patch.object(g1, 'run', return_value=(True, {}))
+    mock.attach_mock(g1_run, 'g1_run')
+    g2 = TaskGroup('g2', [], 'file1.ceryle', dependencies=[])
+    g2_run = mocker.patch.object(g2, 'run', return_value=(False, {}))
+    mock.attach_mock(g2_run, 'g2_run')
 
     runner = TaskRunner([g1, g2])
 
     assert runner.run('g1') is False
-    g2_t1.run.assert_called_once()
-    g1_t1.run.assert_not_called()
-    assert mock.mock_calls == [mocker.call.g2_t1_run(dry_run=False, inputs=[])]
+    g2.run.assert_called_once()
+    g1.run.assert_not_called()
+    assert mock.mock_calls == [
+        mocker.call.g2_run(dry_run=False, register={}),
+    ]
 
     cache = runner.get_cache()
     assert cache.task_name == 'g1'
@@ -156,26 +143,23 @@ def test_run_tasks_fails(mocker):
 def test_run_tasks_fails_by_exception(mocker):
     mock = mocker.Mock()
 
-    g1_t1 = Task(Command('do some'), 'context')
-    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g2'])
-    g2_t1 = Task(Command('do some'), 'context')
-    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
+    g1 = TaskGroup('g1', [], 'file1.ceryle', dependencies=['g2'])
+    g1_run = mocker.patch.object(g1, 'run', side_effect=Exception('test'))
+    mock.attach_mock(g1_run, 'g1_run')
 
-    g1_t1_run = mocker.patch.object(g1_t1, 'run', side_effect=Exception('test'))
-    mock.attach_mock(g1_t1_run, 'g1_t1_run')
-
-    g2_t1_run = mocker.patch.object(g2_t1, 'run', return_value=True)
-    mock.attach_mock(g2_t1_run, 'g2_t1_run')
+    g2 = TaskGroup('g2', [], 'file1.ceryle', dependencies=[])
+    g2_run = mocker.patch.object(g2, 'run', return_value=(True, {}))
+    mock.attach_mock(g2_run, 'g2_run')
 
     runner = TaskRunner([g1, g2])
 
     with pytest.raises(Exception):
         runner.run('g1')
-    g2_t1.run.assert_called_once()
-    g1_t1.run.assert_called_once()
+    g2.run.assert_called_once()
+    g1.run.assert_called_once()
     assert mock.mock_calls == [
-        mocker.call.g2_t1_run(dry_run=False, inputs=[]),
-        mocker.call.g1_t1_run(dry_run=False, inputs=[]),
+        mocker.call.g2_run(dry_run=False, register={}),
+        mocker.call.g1_run(dry_run=False, register={}),
     ]
 
     cache = runner.get_cache()
@@ -188,19 +172,16 @@ def test_run_tasks_fails_by_exception(mocker):
 
 
 def test_dry_run(mocker):
-    g1_t1 = Task(Command('do some'), 'context')
-    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g2'])
-    g2_t1 = Task(Command('do some'), 'context')
-    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
-
-    mocker.patch.object(g1_t1, 'run', return_value=True)
-    mocker.patch.object(g2_t1, 'run', return_value=True)
+    g1 = TaskGroup('g1', [], 'file1.ceryle', dependencies=['g2'])
+    mocker.patch.object(g1, 'run', return_value=(True, {}))
+    g2 = TaskGroup('g2', [], 'file1.ceryle', dependencies=[])
+    mocker.patch.object(g2, 'run', return_value=(True, {}))
 
     runner = TaskRunner([g1, g2])
 
     assert runner.run('g1', dry_run=True) is True
-    g2_t1.run.assert_called_once_with(dry_run=True, inputs=[])
-    g1_t1.run.assert_called_once_with(dry_run=True, inputs=[])
+    g2.run.assert_called_once_with(dry_run=True, register={})
+    g1.run.assert_called_once_with(dry_run=True, register={})
 
     cache = runner.get_cache()
     assert cache.task_name == 'g1'
@@ -212,27 +193,29 @@ def test_dry_run(mocker):
 
 
 def test_run_task_with_stdout(mocker):
-    g1_t1 = Task(Command('do some'), 'context', input=('g2', 'EXEC_STDOUT'))
-    mocker.patch.object(g1_t1, 'stdout', return_value=[])
-    mocker.patch.object(g1_t1, 'stderr', return_value=[])
-    mocker.patch.object(g1_t1, 'run', return_value=True)
-    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g2'])
+    g1 = TaskGroup('g1', [], 'file1.ceryle', dependencies=['g2'])
+    mocker.patch.object(g1, 'run', return_value=(True, {
+        'g2': {
+            'EXEC_STDOUT': ['foo', 'bar'],
+        },
+    }))
 
-    g2_t1 = Task(Command('do some'), 'context', stdout='EXEC_STDOUT')
-    mocker.patch.object(g2_t1, 'stdout', return_value=['foo', 'bar'])
-    mocker.patch.object(g2_t1, 'stderr', return_value=[])
-    mocker.patch.object(g2_t1, 'run', return_value=True)
-    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
+    g2 = TaskGroup('g2', [], 'file1.ceryle', dependencies=[])
+    mocker.patch.object(g2, 'run', return_value=(True, {
+        'g2': {
+            'EXEC_STDOUT': ['foo', 'bar'],
+        },
+    }))
 
     runner = TaskRunner([g1, g2])
 
     assert runner.run('g1') is True
-    g2_t1.run.assert_called_once_with(dry_run=False, inputs=[])
-    g2_t1.stdout.assert_called_once()
-    g2_t1.stderr.assert_not_called()
-    g1_t1.run.assert_called_once_with(dry_run=False, inputs=['foo', 'bar'])
-    g1_t1.stdout.assert_not_called()
-    g1_t1.stderr.assert_not_called()
+    g2.run.assert_called_once_with(dry_run=False, register={})
+    g1.run.assert_called_once_with(dry_run=False, register={
+        'g2': {
+            'EXEC_STDOUT': ['foo', 'bar'],
+        },
+    })
 
     cache = runner.get_cache()
     assert cache.task_name == 'g1'
@@ -245,97 +228,6 @@ def test_run_task_with_stdout(mocker):
             'EXEC_STDOUT': ['foo', 'bar'],
         },
     }
-
-
-def test_run_task_with_stdout_from_same_group(mocker):
-    g1_t1 = Task(Command('do some'), 'context', stdout='EXEC_STDOUT')
-    mocker.patch.object(g1_t1, 'stdout', return_value=['foo', 'bar'])
-    mocker.patch.object(g1_t1, 'stderr', return_value=[])
-    mocker.patch.object(g1_t1, 'run', return_value=True)
-
-    g1_t2 = Task(Command('do some'), 'context', input='EXEC_STDOUT')
-    mocker.patch.object(g1_t2, 'stdout', return_value=[])
-    mocker.patch.object(g1_t2, 'stderr', return_value=[])
-    mocker.patch.object(g1_t2, 'run', return_value=True)
-
-    g1 = TaskGroup('g1', [g1_t1, g1_t2], 'file1.ceryle', dependencies=[])
-
-    runner = TaskRunner([g1])
-
-    assert runner.run('g1') is True
-    g1_t2.run.assert_called_once_with(dry_run=False, inputs=['foo', 'bar'])
-    g1_t2.stdout.assert_not_called()
-    g1_t2.stderr.assert_not_called()
-    g1_t1.run.assert_called_once_with(dry_run=False, inputs=[])
-    g1_t1.stdout.assert_called_once()
-    g1_t1.stderr.assert_not_called()
-
-    cache = runner.get_cache()
-    assert cache.task_name == 'g1'
-    assert cache.results == [
-        ('g1', True),
-    ]
-    assert cache.register == {
-        'g1': {
-            'EXEC_STDOUT': ['foo', 'bar'],
-        },
-    }
-
-
-def test_run_task_with_stderr(mocker):
-    g1_t1 = Task(Command('do some'), 'context', input=('g2', 'EXEC_STDERR'))
-    mocker.patch.object(g1_t1, 'stdout', return_value=[])
-    mocker.patch.object(g1_t1, 'stderr', return_value=[])
-    mocker.patch.object(g1_t1, 'run', return_value=True)
-    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=['g2'])
-
-    g2_t1 = Task(Command('do some'), 'context', stderr='EXEC_STDERR')
-    mocker.patch.object(g2_t1, 'stdout', return_value=[])
-    mocker.patch.object(g2_t1, 'stderr', return_value=['foo', 'bar'])
-    mocker.patch.object(g2_t1, 'run', return_value=True)
-    g2 = TaskGroup('g2', [g2_t1], 'file1.ceryle', dependencies=[])
-
-    runner = TaskRunner([g1, g2])
-
-    assert runner.run('g1') is True
-    g2_t1.run.assert_called_once_with(dry_run=False, inputs=[])
-    g2_t1.stdout.assert_not_called()
-    g2_t1.stderr.assert_called_once()
-    g1_t1.run.assert_called_once_with(dry_run=False, inputs=['foo', 'bar'])
-    g1_t1.stdout.assert_not_called()
-    g1_t1.stderr.assert_not_called()
-
-    cache = runner.get_cache()
-    assert cache.task_name == 'g1'
-    assert cache.results == [
-        ('g2', True),
-        ('g1', True),
-    ]
-    assert cache.register == {
-        'g2': {
-            'EXEC_STDERR': ['foo', 'bar'],
-        },
-    }
-
-
-def test_run_failed_by_invalid_io(mocker):
-    g1_t1 = Task(Command('do some'), 'context', input='EXEC_STDOUT')
-    mocker.patch.object(g1_t1, 'run', return_value=True)
-    g1 = TaskGroup('g1', [g1_t1], 'file1.ceryle', dependencies=[])
-
-    runner = TaskRunner([g1])
-
-    with pytest.raises(TaskIOError) as ex:
-        runner.run('g1')
-    g1_t1.run.assert_not_called()
-    assert str(ex.value) == 'EXEC_STDOUT is required by a task in g1, but not registered'
-
-    cache = runner.get_cache()
-    assert cache.task_name == 'g1'
-    assert cache.results == [
-        ('g1', False),
-    ]
-    assert cache.register == {}
 
 
 def test_run_skip_task_already_run(mocker):

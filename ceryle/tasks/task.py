@@ -1,9 +1,11 @@
+import copy
 import logging
 
 import ceryle
 import ceryle.util as util
 
 from ceryle.commands.executable import Executable, ExecutionResult
+from ceryle.tasks import TaskIOError
 from ceryle.tasks.condition import Condition
 
 logger = logging.getLogger(__name__)
@@ -109,3 +111,32 @@ class TaskGroup:
     @property
     def filename(self):
         return self._filename
+
+    def run(self, dry_run=False, register={}):
+        r = copy.deepcopy(register)
+        for t in self.tasks:
+            inputs = []
+            if t.input_key:
+                if isinstance(t.input_key, str):
+                    logger.debug(f'read {self.name}.{t.input_key} from register')
+                    inputs = util.getin(r, self.name, t.input_key)
+                else:
+                    logger.debug(f'read {".".join(t.input_key)} from register')
+                    inputs = util.getin(r, *t.input_key)
+                if inputs is None:
+                    raise TaskIOError(f'{t.input_key} is required by a task in {self.name}, but not registered')
+            if not t.run(dry_run=dry_run, inputs=inputs):
+                return False, r
+            if t.stdout_key:
+                logger.debug(f'register {t.stdout_key}')
+                _update_register(r, self.name, t.stdout_key, t.stdout())
+            if t.stderr_key:
+                logger.debug(f'register {t.stderr_key}')
+                _update_register(r, self.name, t.stderr_key, t.stderr())
+        return True, r
+
+
+def _update_register(register, group, key, std):
+    tg_r = util.getin(register, group, default={})
+    tg_r.update({key: std})
+    register.update({group: tg_r})
