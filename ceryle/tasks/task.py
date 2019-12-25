@@ -23,7 +23,7 @@ class Task:
             if len([util.assert_type(k, str) for k in self._input]) != 2:
                 raise ValueError('input key must be str or str list with length 2')
         self._ignore_failure = util.assert_type(ignore_failure, bool)
-        self._condition = conditional_on and Condition(conditional_on, context)
+        self._condition = conditional_on and Condition(conditional_on)
         self._res = None
 
     def run(self, dry_run=False, inputs=[]):
@@ -34,7 +34,7 @@ class Task:
         if iomsg:
             msg = f'{msg} ({iomsg})'
         util.print_out(msg)
-        if self._condition and not self._condition.test(dry_run=dry_run, inputs=inputs):
+        if self._condition and not self._condition.test(context=self._context, dry_run=dry_run, inputs=inputs):
             util.print_out('skipping task since condition did not match')
             self._res = ExecutionResult(0)
             return True
