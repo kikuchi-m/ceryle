@@ -1,4 +1,5 @@
 import logging
+import pathlib
 
 import ceryle
 import ceryle.util as util
@@ -82,9 +83,9 @@ class TaskGroup:
     def __init__(self, name, tasks, context, filename, dependencies=[], allow_skip=True):
         self._name = util.assert_type(name, str)
         self._tasks = [util.assert_type(t, Task) for t in util.assert_type(tasks, list)]
-        self._context = util.assert_type(context, str)
+        self._context = util.assert_type(context, str, pathlib.Path)
         self._dependencies = [util.assert_type(d, str) for d in util.assert_type(dependencies, list)]
-        self._filename = util.assert_type(filename, str)
+        self._filename = util.assert_type(filename, str, pathlib.Path)
         self._allow_skip = util.assert_type(allow_skip, bool)
 
     @property

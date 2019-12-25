@@ -1,4 +1,6 @@
 import os
+import pathlib
+
 import pytest
 
 from ceryle import ExecutionResult, TaskGroup, TaskFileLoader, ExtensionLoader
@@ -9,11 +11,12 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def file_path(f):
-    return os.path.join(SCRIPT_DIR, f)
+    return pathlib.Path(SCRIPT_DIR, f)
 
 
 def test_load_task_file():
     p = file_path('dsl_spec')
+    context = str(p.parent)
     loader = TaskFileLoader(p)
     task_def = loader.load()
 
@@ -32,6 +35,7 @@ def test_load_task_file():
         g = tasks[name]
         assert isinstance(g, TaskGroup)
         assert g.filename == p
+        assert g.context == context
 
 
 def test_load_task_file_no_task_def(mocker):
