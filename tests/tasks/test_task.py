@@ -6,24 +6,18 @@ from ceryle import IllegalOperation
 
 def test_raise_if_unacceptable_args():
     with pytest.raises(TypeError):
-        Task(None, 'context')
+        Task(None)
 
     with pytest.raises(TypeError):
-        Task('not an executable', 'context')
-
-    with pytest.raises(TypeError):
-        Task(Command('do some', None))
-
-    with pytest.raises(TypeError):
-        Task(Command('do some', 1))
+        Task('not an executable')
 
 
 def test_run_succeeded(mocker):
     executable = Command('do some')
     mocker.patch.object(executable, 'execute', return_value=ExecutionResult(0))
 
-    t = Task(executable, 'context')
-    success = t.run()
+    t = Task(executable)
+    success = t.run('context')
 
     assert success is True
     executable.execute.assert_called_once_with(context='context', inputs=[])
@@ -35,8 +29,8 @@ def test_run_failed(mocker):
     executable = Command('do some')
     mocker.patch.object(executable, 'execute', return_value=ExecutionResult(1))
 
-    t = Task(executable, 'context')
-    success = t.run()
+    t = Task(executable)
+    success = t.run('context')
 
     assert success is False
     executable.execute.assert_called_once_with(context='context', inputs=[])
@@ -46,8 +40,8 @@ def test_run_ignore_failure(mocker):
     executable = Command('do some')
     mocker.patch.object(executable, 'execute', return_value=ExecutionResult(255))
 
-    t = Task(executable, 'context', ignore_failure=True)
-    success = t.run()
+    t = Task(executable, ignore_failure=True)
+    success = t.run('context')
 
     assert success is True
     executable.execute.assert_called_once()
@@ -57,8 +51,8 @@ def test_dry_run(mocker):
     executable = Command('do some')
     mocker.patch.object(executable, 'execute', return_value=ExecutionResult(1))
 
-    t = Task(executable, 'context')
-    success = t.run(dry_run=True)
+    t = Task(executable)
+    success = t.run('context', dry_run=True)
 
     assert success is True
     executable.execute.assert_not_called()
@@ -71,8 +65,8 @@ def test_store_stds(mocker):
     res = ExecutionResult(0, stdout=['std', 'out'], stderr=['err'])
     mocker.patch.object(executable, 'execute', return_value=res)
 
-    t = Task(executable, 'context', stdout='EXEC_STDOUT', stderr='EXEC_STDERR')
-    success = t.run()
+    t = Task(executable, stdout='EXEC_STDOUT', stderr='EXEC_STDERR')
+    success = t.run('context')
 
     assert success is True
     executable.execute.assert_called_once_with(context='context', inputs=[])
@@ -87,8 +81,8 @@ def test_run_with_input(mocker):
     res = ExecutionResult(0)
     mocker.patch.object(executable, 'execute', return_value=res)
 
-    t = Task(executable, 'context', input='EXEC_INPUT')
-    success = t.run(inputs=['foo', 'bar'])
+    t = Task(executable, input='EXEC_INPUT')
+    success = t.run('context', inputs=['foo', 'bar'])
 
     assert success is True
     executable.execute.assert_called_once_with(context='context', inputs=['foo', 'bar'])
@@ -100,7 +94,7 @@ def test_get_stds_raise_before_run(mocker):
     res = ExecutionResult(0, stdout=['std', 'out'], stderr=['err'])
     mocker.patch.object(executable, 'execute', return_value=res)
 
-    t = Task(executable, 'context')
+    t = Task(executable)
 
     with pytest.raises(IllegalOperation) as ex1:
         t.stdout()
@@ -118,9 +112,9 @@ def test_run_conditional_on_true(mocker):
     condition_exe = Command('test condition')
     mocker.patch.object(condition_exe, 'execute', return_value=ExecutionResult(0))
 
-    t = Task(executable, 'context', conditional_on=condition_exe)
+    t = Task(executable, conditional_on=condition_exe)
 
-    assert t.run() is True
+    assert t.run('context') is True
     condition_exe.execute.assert_called_once_with(context='context', inputs=[])
     executable.execute.assert_called_once()
     assert t.stdout() == []
@@ -134,9 +128,9 @@ def test_run_conditional_on_false(mocker):
     condition_exe = Command('test condition')
     mocker.patch.object(condition_exe, 'execute', return_value=ExecutionResult(255))
 
-    t = Task(executable, 'context', conditional_on=condition_exe)
+    t = Task(executable, conditional_on=condition_exe)
 
-    assert t.run() is True
+    assert t.run('context') is True
     condition_exe.execute.assert_called_once_with(context='context', inputs=[])
     executable.execute.assert_not_called()
     assert t.stdout() == []
@@ -157,9 +151,9 @@ def test_run_conditional_by_dry_run_with_inputs(mocker, conditional_on, dry_run,
     condition_exe = Command('test condition')
     mocker.patch.object(condition_exe, 'execute', return_value=ExecutionResult(conditional_on))
 
-    t = Task(executable, 'context', conditional_on=condition_exe)
+    t = Task(executable, conditional_on=condition_exe)
 
-    assert t.run(dry_run=dry_run, inputs=inputs) is True
+    assert t.run('context', dry_run=dry_run, inputs=inputs) is True
     if dry_run:
         condition_exe.execute.assert_not_called()
         executable.execute.assert_not_called()

@@ -11,11 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 class Task:
-    def __init__(self, executable, context,
+    def __init__(self, executable,
                  stdout=None, stderr=None, input=None,
                  ignore_failure=False, conditional_on=None):
         self._executable = util.assert_type(executable, Executable)
-        self._context = util.assert_type(context, str)
         self._stdout = util.assert_type(stdout, None, str)
         self._stderr = util.assert_type(stderr, None, str)
         self._input = util.assert_type(input, None, str, tuple, list)
@@ -26,7 +25,7 @@ class Task:
         self._condition = conditional_on and Condition(conditional_on)
         self._res = None
 
-    def run(self, dry_run=False, inputs=[]):
+    def run(self, context, dry_run=False, inputs=[]):
         msg = f'running {self._executable}'
         iomsg = ', '.join([f'{io[0]}={io[1]}'
                            for io in [('input', self._input), ('stdout', self._stdout), ('stderr', self._stderr)]
@@ -34,16 +33,16 @@ class Task:
         if iomsg:
             msg = f'{msg} ({iomsg})'
         util.print_out(msg)
-        if self._condition and not self._condition.test(context=self._context, dry_run=dry_run, inputs=inputs):
+        if self._condition and not self._condition.test(context=context, dry_run=dry_run, inputs=inputs):
             util.print_out('skipping task since condition did not match')
             self._res = ExecutionResult(0)
             return True
         if dry_run:
             self._res = ExecutionResult(0)
             return True
-        logger.debug(f'context={self._context}')
+        logger.debug(f'context={context}')
         logger.debug(f'inputs={inputs}')
-        self._res = self._executable.execute(context=self._context, inputs=inputs)
+        self._res = self._executable.execute(context=context, inputs=inputs)
         success = self._res.return_code == 0
         if not success:
             msg = f'task failed: {self._executable}'
@@ -55,10 +54,6 @@ class Task:
     @property
     def executable(self):
         return self._executable
-
-    @property
-    def context(self):
-        return self._context
 
     @property
     def stdout_key(self):
@@ -84,9 +79,10 @@ class Task:
 
 
 class TaskGroup:
-    def __init__(self, name, tasks, filename, dependencies=[], allow_skip=True):
+    def __init__(self, name, tasks, context, filename, dependencies=[], allow_skip=True):
         self._name = util.assert_type(name, str)
         self._tasks = [util.assert_type(t, Task) for t in util.assert_type(tasks, list)]
+        self._context = util.assert_type(context, str)
         self._dependencies = [util.assert_type(d, str) for d in util.assert_type(dependencies, list)]
         self._filename = util.assert_type(filename, str)
         self._allow_skip = util.assert_type(allow_skip, bool)
@@ -98,6 +94,10 @@ class TaskGroup:
     @property
     def tasks(self):
         return list(self._tasks)
+
+    @property
+    def context(self):
+        return self._context
 
     @property
     def dependencies(self):
@@ -124,7 +124,7 @@ class TaskGroup:
                     inputs = util.getin(r, *t.input_key)
                 if inputs is None:
                     raise TaskIOError(f'{t.input_key} is required by a task in {self.name}, but not registered')
-            if not t.run(dry_run=dry_run, inputs=inputs):
+            if not t.run(self._context, dry_run=dry_run, inputs=inputs):
                 return False, r
             if t.stdout_key:
                 logger.debug(f'register {t.stdout_key}')
