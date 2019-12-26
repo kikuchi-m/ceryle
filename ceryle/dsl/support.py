@@ -1,9 +1,12 @@
 import abc
+import logging
 import os
 import pathlib
 
 import ceryle.util as util
 from . import NoArgumentError, NoEnvironmentError
+
+logger = logging.getLogger(__name__)
 
 
 def joinpath(*path):
@@ -73,15 +76,18 @@ class Env(ArgumentBase):
         super().__init__(name, default=default, allow_empty=allow_empty, format=format)
 
     def evaluate(self):
+        logger.debug(f'evaluating {self}')
         v = os.environ.get(self._name) or self._default or ''
         if not self._allow_empty and v == '':
             raise NoEnvironmentError(f'environment variable {self._name} is not defined')
         return self._eval_all(self._format_value(v))
 
     def _copy(self):
-        return Env(self._name, default=self._default, allow_empty=self._allow_empty)
+        return Env(self._name, default=self._default, allow_empty=self._allow_empty, format=self._format)
 
     def __str__(self):
+        if self._format:
+            return f'env({self._name}, format=\'{self._format}\')'
         return f'env({self._name})'
 
 
@@ -94,13 +100,16 @@ class Arg(ArgumentBase):
             util.assert_type(v, str)
 
     def evaluate(self):
+        logger.debug(f'evaluating {self}')
         v = self._args.get(self._name) or os.environ.get(self._name) or self._default or ''
         if not self._allow_empty and v == '':
             raise NoArgumentError(f'argument {self._name} is not defined')
         return self._eval_all(self._format_value(v))
 
     def _copy(self):
-        return Arg(self._name, self._args, default=self._default, allow_empty=self._allow_empty)
+        return Arg(self._name, self._args, default=self._default, allow_empty=self._allow_empty, format=self._format)
 
     def __str__(self):
+        if self._format:
+            return f'arg({self._name}, format=\'{self._format}\')'
         return f'arg({self._name})'

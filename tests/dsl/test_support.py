@@ -75,6 +75,15 @@ def test_env_format(mocker):
     env = support.Env('FOO', format='env: %(FOO)s')
     assert env.evaluate() == 'env: 1'
 
+    env2 = support.Env('FOO', format='env: %(FOO)s') + ' count'
+    assert env2.evaluate() == 'env: 1 count'
+
+    env3 = 'env: ' + support.Env('FOO', format='%(FOO)s')
+    assert env3.evaluate() == 'env: 1'
+
+    env4 = support.Env('FOO') + support.Env('FOO', format=', %(FOO)s')
+    assert env4.evaluate() == '1, 1'
+
 
 def test_arg_evaluate_returns_value():
     arg = support.Arg('FOO', {'FOO': '1'})
@@ -143,3 +152,12 @@ def test_arg_format():
 
     arg1 = support.Arg('FOO', args, format='arg: %(FOO)s')
     assert arg1.evaluate() == 'arg: 1'
+
+    arg2 = support.Arg('FOO', args, format='arg: %(FOO)s') + ' count'
+    assert arg2.evaluate() == 'arg: 1 count'
+
+    arg3 = 'arg: ' + support.Arg('FOO', args, format='%(FOO)s')
+    assert arg3.evaluate() == 'arg: 1'
+
+    arg4 = support.Arg('FOO', args) + support.Arg('FOO', args, format=', %(FOO)s')
+    assert arg4.evaluate() == '1, 1'

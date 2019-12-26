@@ -16,6 +16,7 @@ class Executable(abc.ABC):
         pass
 
     def preprocess(self, args, kwargs):
+        logger.debug(f'preprocessing args: [{args}], kwargs: {kwargs}')
         processed_args = [eval_arg(v, fail_on_unknown=False) for v in args]
         processed_kwargs = dict([(k, eval_arg(v, fail_on_unknown=False)) for k, v in kwargs.items()])
         return processed_args, processed_kwargs
@@ -53,7 +54,7 @@ class ExecutableWrapper(Executable):
     def execute(self, **kwargs):
         exact_kwargs = self._exact_kwargs(kwargs)
         processed = self.preprocess(self._args, exact_kwargs)
-        logger.debug(f'preprocessed args: {processed[0]}, kwargs: {processed[1]}')
+        logger.debug(f'preprocessed executable: {self._func.__name__}, args: {processed[0]}, kwargs: {processed[1]}')
         res = self._func(*processed[0], **processed[1])
         if isinstance(res, bool):
             return ExecutionResult(int(not res))
