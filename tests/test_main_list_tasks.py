@@ -12,6 +12,7 @@ TASKS = [
             ceryle.Task(ceryle.Command('do some 1'), '/foo/bar'),
             ceryle.Task(ceryle.Command('do some 2'), '/foo/bar'),
         ],
+        'context',
         str(SCRIPT_DIR.joinpath('file1.ceryle')),
         dependencies=[]),
     ceryle.TaskGroup(
@@ -19,6 +20,7 @@ TASKS = [
             ceryle.Task(ceryle.Command('do some 3'), '/foo/bar'),
             ceryle.Task(ceryle.Command('do some 4'), '/foo/bar'),
         ],
+        'context',
         str(SCRIPT_DIR.joinpath('file2.ceryle')),
         dependencies=['tg1']),
 ]

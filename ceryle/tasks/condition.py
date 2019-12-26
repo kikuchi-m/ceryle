@@ -16,21 +16,21 @@ class Condition:
     fail = builtin.expect_fail
     expression = builtin.expression
 
-    def __init__(self, condition, context):
+    def __init__(self, condition):
         self._condition = util.assert_type(condition, Executable, bool)
-        self._context = util.assert_type(context, str)
+        # self._context = util.assert_type(context, str)
         logger.debug(f'condition: {self._condition}')
 
-    def test(self, inputs=[], dry_run=False):
+    def test(self, context=None, inputs=[], dry_run=False):
         logger.info(f'testing {self._condition}')
-        logger.debug(f'context: {self._context}')
+        logger.debug(f'context: {context}')
         logger.debug(f'inputs: {inputs}')
         if isinstance(self._condition, bool):
             return dry_run or self._condition
-        return dry_run or self._test_executable(inputs=inputs)
+        return dry_run or self._test_executable(context=context, inputs=inputs)
 
-    def _test_executable(self, inputs=[]):
-        res = self._condition.execute(context=self._context, inputs=inputs)
+    def _test_executable(self, context=None, inputs=[]):
+        res = self._condition.execute(context=context, inputs=inputs)
         return res.return_code == 0
 
     def _no_input(self, inputs=[]):

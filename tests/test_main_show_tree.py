@@ -9,20 +9,20 @@ import ceryle.main
 def test_main_show_tree(mocker):
     script_dir = pathlib.Path(__file__).parent
 
-    tg1_t1 = ceryle.Task(ceryle.Command('do some 1 1'), 'ctx')
-    tg1_t2 = ceryle.Task(ceryle.Command('do some 1 2'), 'ctx')
-    tg1 = ceryle.TaskGroup('tg1', [tg1_t1, tg1_t2], str(script_dir.joinpath('file1.ceryle')))
+    tg1_t1 = ceryle.Task(ceryle.Command('do some 1 1'))
+    tg1_t2 = ceryle.Task(ceryle.Command('do some 1 2'))
+    tg1 = ceryle.TaskGroup('tg1', [tg1_t1, tg1_t2], 'context', str(script_dir.joinpath('file1.ceryle')))
 
-    tg2_t1 = ceryle.Task(ceryle.Command('do some 2 1'), 'ctx')
-    tg2_t2 = ceryle.Task(ceryle.Command('do some 2 2'), 'ctx')
-    tg2 = ceryle.TaskGroup('tg2', [tg2_t1, tg2_t2], str(script_dir.joinpath('file1.ceryle')),
+    tg2_t1 = ceryle.Task(ceryle.Command('do some 2 1'))
+    tg2_t2 = ceryle.Task(ceryle.Command('do some 2 2'))
+    tg2 = ceryle.TaskGroup('tg2', [tg2_t1, tg2_t2], 'context', str(script_dir.joinpath('file1.ceryle')),
                            dependencies=['tg1'])
 
-    tg3_t1 = ceryle.Task(ceryle.Command('do some 3'), 'ctx')
-    tg3 = ceryle.TaskGroup('tg3', [tg3_t1], str(script_dir.joinpath('file2.ceryle')))
+    tg3_t1 = ceryle.Task(ceryle.Command('do some 3'))
+    tg3 = ceryle.TaskGroup('tg3', [tg3_t1], 'context', str(script_dir.joinpath('file2.ceryle')))
 
-    tg4_t1 = ceryle.Task(ceryle.Command('do some 4'), 'ctx')
-    tg4 = ceryle.TaskGroup('tg4', [tg4_t1], str(script_dir.joinpath('file2.ceryle')),
+    tg4_t1 = ceryle.Task(ceryle.Command('do some 4'))
+    tg4 = ceryle.TaskGroup('tg4', [tg4_t1], 'context', str(script_dir.joinpath('file2.ceryle')),
                            dependencies=['tg2', 'tg3'])
 
     task_def = ceryle.TaskDefinition([tg1, tg2, tg3, tg4], default_task='tg4')
@@ -61,21 +61,21 @@ def test_main_show_tree(mocker):
 def test_main_show_tree_skip_already_depending(mocker):
     script_dir = pathlib.Path(__file__).parent
 
-    tg1_t1 = ceryle.Task(ceryle.Command('do some 1 1'), 'ctx')
-    tg1_t2 = ceryle.Task(ceryle.Command('do some 1 2'), 'ctx')
-    tg1 = ceryle.TaskGroup('tg1', [tg1_t1, tg1_t2], str(script_dir.joinpath('file1.ceryle')))
+    tg1_t1 = ceryle.Task(ceryle.Command('do some 1 1'))
+    tg1_t2 = ceryle.Task(ceryle.Command('do some 1 2'))
+    tg1 = ceryle.TaskGroup('tg1', [tg1_t1, tg1_t2], 'context', str(script_dir.joinpath('file1.ceryle')))
 
-    tg2_t1 = ceryle.Task(ceryle.Command('do some 2 1'), 'ctx')
-    tg2_t2 = ceryle.Task(ceryle.Command('do some 2 2'), 'ctx')
-    tg2 = ceryle.TaskGroup('tg2', [tg2_t1, tg2_t2], str(script_dir.joinpath('file1.ceryle')),
+    tg2_t1 = ceryle.Task(ceryle.Command('do some 2 1'))
+    tg2_t2 = ceryle.Task(ceryle.Command('do some 2 2'))
+    tg2 = ceryle.TaskGroup('tg2', [tg2_t1, tg2_t2], 'context', str(script_dir.joinpath('file1.ceryle')),
                            dependencies=['tg1'])
 
-    tg3_t1 = ceryle.Task(ceryle.Command('do some 3'), 'ctx')
-    tg3 = ceryle.TaskGroup('tg3', [tg3_t1], str(script_dir.joinpath('file2.ceryle')),
+    tg3_t1 = ceryle.Task(ceryle.Command('do some 3'))
+    tg3 = ceryle.TaskGroup('tg3', [tg3_t1], 'context', str(script_dir.joinpath('file2.ceryle')),
                            dependencies=['tg1'])
 
-    tg4_t1 = ceryle.Task(ceryle.Command('do some 4'), 'ctx')
-    tg4 = ceryle.TaskGroup('tg4', [tg4_t1], str(script_dir.joinpath('file2.ceryle')),
+    tg4_t1 = ceryle.Task(ceryle.Command('do some 4'))
+    tg4 = ceryle.TaskGroup('tg4', [tg4_t1], 'context', str(script_dir.joinpath('file2.ceryle')),
                            dependencies=['tg2', 'tg3'])
 
     task_def = ceryle.TaskDefinition([tg1, tg2, tg3, tg4], default_task='tg4')
@@ -101,12 +101,12 @@ def test_main_show_tree_skip_already_depending(mocker):
 
 def test_main_show_tree_failes_by_task_not_found(mocker):
     script_dir = pathlib.Path(__file__).parent
-    tg1 = ceryle.TaskGroup('build-task-xx1', [], str(script_dir.joinpath('file1.ceryle')))
-    tg2 = ceryle.TaskGroup('build-task-xx2', [], str(script_dir.joinpath('file1.ceryle')))
-    tg3 = ceryle.TaskGroup('build-task-xx3', [], str(script_dir.joinpath('file1.ceryle')))
-    tg4 = ceryle.TaskGroup('build-task-xx4', [], str(script_dir.joinpath('file1.ceryle')))
-    tg5 = ceryle.TaskGroup('build-task-xx5', [], str(script_dir.joinpath('file1.ceryle')))
-    tg6 = ceryle.TaskGroup('build-task-xy6', [], str(script_dir.joinpath('file1.ceryle')))
+    tg1 = ceryle.TaskGroup('build-task-xx1', [], 'context', str(script_dir.joinpath('file1.ceryle')))
+    tg2 = ceryle.TaskGroup('build-task-xx2', [], 'context', str(script_dir.joinpath('file1.ceryle')))
+    tg3 = ceryle.TaskGroup('build-task-xx3', [], 'context', str(script_dir.joinpath('file1.ceryle')))
+    tg4 = ceryle.TaskGroup('build-task-xx4', [], 'context', str(script_dir.joinpath('file1.ceryle')))
+    tg5 = ceryle.TaskGroup('build-task-xx5', [], 'context', str(script_dir.joinpath('file1.ceryle')))
+    tg6 = ceryle.TaskGroup('build-task-xy6', [], 'context', str(script_dir.joinpath('file1.ceryle')))
 
     task_def = ceryle.TaskDefinition([tg1, tg2, tg3, tg4, tg5, tg6])
     load_mock = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, '/foo/bar'))

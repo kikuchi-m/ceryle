@@ -34,8 +34,8 @@ def test_main_run_default_task_group(mocker, tmpdir):
 
     task_def = mocker.Mock()
     task_def.tasks = [
-        ceryle.TaskGroup('tg1', [], 'file1.ceryle'),
-        ceryle.TaskGroup('tg2', [], 'file1.ceryle'),
+        ceryle.TaskGroup('tg1', [], 'context', 'file1.ceryle'),
+        ceryle.TaskGroup('tg2', [], 'context', 'file1.ceryle'),
     ]
     task_def.default_task = 'tg1'
     load_task_files = mocker.patch('ceryle.load_task_files', return_value=task_def)
@@ -89,8 +89,8 @@ def test_main_run_specific_task_group(mocker, tmpdir):
 
     task_def = mocker.Mock()
     task_def.tasks = [
-        ceryle.TaskGroup('tg1', [], 'file1.ceryle'),
-        ceryle.TaskGroup('tg2', [], 'file1.ceryle'),
+        ceryle.TaskGroup('tg1', [], 'context', 'file1.ceryle'),
+        ceryle.TaskGroup('tg2', [], 'context', 'file1.ceryle'),
     ]
     task_def.default_task = 'tg1'
     load_task_files = mocker.patch('ceryle.load_task_files', return_value=task_def)
@@ -135,7 +135,7 @@ def test_main_run_fails_by_task_failure(mocker, tmpdir):
 
     task_def = mocker.Mock()
     task_def.tasks = [
-        ceryle.TaskGroup('tg1', [], 'file1.ceryle'),
+        ceryle.TaskGroup('tg1', [], 'context', 'file1.ceryle'),
     ]
     task_def.default_task = 'tg1'
     load_task_files = mocker.patch('ceryle.load_task_files', return_value=task_def)
@@ -189,7 +189,7 @@ def test_main_run_raises_by_no_default_and_no_task_to_run(mocker, tmpdir):
 
     task_def = mocker.Mock()
     task_def.tasks = [
-        ceryle.TaskGroup('tg1', [], 'file1.ceryle'),
+        ceryle.TaskGroup('tg1', [], 'context', 'file1.ceryle'),
     ]
     task_def.default_task = None
     load_task_files = mocker.patch('ceryle.load_task_files', return_value=task_def)
@@ -209,8 +209,8 @@ def test_main_run_save_last_execution_to_file(mocker, tmpdir):
 
     task_def = mocker.Mock()
     task_def.tasks = [
-        ceryle.TaskGroup('tg1', [], 'file1.ceryle', dependencies=['g2']),
-        ceryle.TaskGroup('tg2', [], 'file1.ceryle'),
+        ceryle.TaskGroup('tg1', [], 'context', 'file1.ceryle', dependencies=['g2']),
+        ceryle.TaskGroup('tg2', [], 'context', 'file1.ceryle'),
     ]
     task_def.default_task = 'tg1'
     load_tasks = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, str(context)))
@@ -254,8 +254,8 @@ def test_main_run_keep_last_execution_when_dry_run(mocker, tmpdir):
 
     task_def = mocker.Mock()
     task_def.tasks = [
-        ceryle.TaskGroup('tg1', [], 'file1.ceryle', dependencies=['g2']),
-        ceryle.TaskGroup('tg2', [], 'file1.ceryle'),
+        ceryle.TaskGroup('tg1', [], 'context', 'file1.ceryle', dependencies=['g2']),
+        ceryle.TaskGroup('tg2', [], 'context', 'file1.ceryle'),
     ]
     task_def.default_task = 'tg1'
     load_tasks = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, str(context)))
@@ -286,8 +286,8 @@ def test_main_run_continue_last_run(mocker, tmpdir):
 
     task_def = mocker.Mock()
     task_def.tasks = [
-        ceryle.TaskGroup('g1', [], 'file1.ceryle', dependencies=['g2']),
-        ceryle.TaskGroup('g2', [], 'file1.ceryle'),
+        ceryle.TaskGroup('g1', [], 'context', 'file1.ceryle', dependencies=['g2']),
+        ceryle.TaskGroup('g2', [], 'context', 'file1.ceryle'),
     ]
     task_def.default_task = 'g1'
     load_tasks = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, str(context)))
@@ -331,8 +331,8 @@ def test_main_run_continue_last_run_but_cache_not_found(mocker, tmpdir):
 
     task_def = mocker.Mock()
     task_def.tasks = [
-        ceryle.TaskGroup('g1', [], 'file1.ceryle', dependencies=['g2']),
-        ceryle.TaskGroup('g2', [], 'file1.ceryle'),
+        ceryle.TaskGroup('g1', [], 'context', 'file1.ceryle', dependencies=['g2']),
+        ceryle.TaskGroup('g2', [], 'context', 'file1.ceryle'),
     ]
     task_def.default_task = 'g1'
     load_tasks = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, str(context)))
@@ -364,8 +364,8 @@ def test_main_run_save_last_execution_to_file_even_when_exeption_raised(mocker, 
 
     task_def = mocker.Mock()
     task_def.tasks = [
-        ceryle.TaskGroup('tg1', [], 'file1.ceryle', dependencies=['g2']),
-        ceryle.TaskGroup('tg2', [], 'file1.ceryle'),
+        ceryle.TaskGroup('tg1', [], 'context', 'file1.ceryle', dependencies=['g2']),
+        ceryle.TaskGroup('tg2', [], 'context', 'file1.ceryle'),
     ]
     task_def.default_task = 'tg1'
     load_tasks = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, str(context)))

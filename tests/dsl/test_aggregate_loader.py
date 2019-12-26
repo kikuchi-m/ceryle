@@ -5,12 +5,12 @@ from ceryle import AggregateTaskFileLoader, TaskFileLoader, ExtensionLoader, Tas
 def test_load_multiple_task_files(mocker):
     mock = mocker.Mock()
 
-    task_def1 = TaskDefinition([TaskGroup('foo', [], 'file1.ceryle')], default_task='foo')
-    loader1 = TaskFileLoader('file1')
+    task_def1 = TaskDefinition([TaskGroup('foo', [], 'context', 'file1')], default_task='foo')
+    loader1 = TaskFileLoader('file1.ceryle')
     loader1.load = mocker.Mock(return_value=task_def1)
     mock.attach_mock(loader1.load, 'loader1_load')
 
-    task_def2 = TaskDefinition([TaskGroup('bar', [], 'file1.ceryle')], default_task='bar')
+    task_def2 = TaskDefinition([TaskGroup('bar', [], 'context', 'file2')], default_task='bar')
     loader2 = TaskFileLoader('file2')
     loader2.load = mocker.Mock(return_value=task_def2)
     mock.attach_mock(loader2.load, 'loader2_load')
@@ -35,11 +35,11 @@ def test_load_multiple_task_files(mocker):
 
 
 def test_load_multiple_task_files_override(mocker):
-    task_def1 = TaskDefinition(tasks=[TaskGroup('foo', [], 'file1.ceryle')])
+    task_def1 = TaskDefinition(tasks=[TaskGroup('foo', [], 'context', 'file1')])
     loader1 = TaskFileLoader('file1')
     loader1.load = mocker.Mock(return_value=task_def1)
 
-    task_def2 = TaskDefinition(tasks=[TaskGroup('foo', [], 'file1.ceryle')])
+    task_def2 = TaskDefinition(tasks=[TaskGroup('foo', [], 'context', 'file2')])
     loader2 = TaskFileLoader('file2')
     loader2.load = mocker.Mock(return_value=task_def2)
 
@@ -58,12 +58,12 @@ def test_load_multiple_task_files_override(mocker):
 def test_load_multiple_task_files_with_extensions(mocker):
     mock = mocker.Mock()
 
-    task_def1 = TaskDefinition([TaskGroup('foo', [], 'file1.ceryle')], default_task='foo')
+    task_def1 = TaskDefinition([TaskGroup('foo', [], 'context', 'file1')], default_task='foo')
     loader1 = TaskFileLoader('file1')
     loader1.load = mocker.Mock(return_value=task_def1)
     mock.attach_mock(loader1.load, 'loader1_load')
 
-    task_def2 = TaskDefinition([TaskGroup('bar', [], 'file1.ceryle')], default_task='bar')
+    task_def2 = TaskDefinition([TaskGroup('bar', [], 'context', 'file2')], default_task='bar')
     loader2 = TaskFileLoader('file2')
     loader2.load = mocker.Mock(return_value=task_def2)
     mock.attach_mock(loader2.load, 'loader2_load')

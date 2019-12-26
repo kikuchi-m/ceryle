@@ -26,27 +26,26 @@ def test_parse():
     g1 = tasks['g1']
     assert isinstance(g1, TaskGroup)
     assert g1.name == 'g1'
+    assert g1.context == 'context'
     assert g1.dependencies == []
     assert g1.filename == 'file1.ceryle'
 
     assert len(g1.tasks) == 2
     assert isinstance(g1.tasks[0], Task)
     assert g1.tasks[0].executable.cmd == ['do', 'some']
-    assert g1.tasks[0].context == 'context'
     assert isinstance(g1.tasks[1], Task)
     assert g1.tasks[1].executable.cmd == ['do', 'some', 'more']
-    assert g1.tasks[1].context == 'context'
 
     g2 = tasks['g2']
     assert isinstance(g2, TaskGroup)
     assert g2.name == 'g2'
+    assert g2.context == 'context'
     assert g2.dependencies == ['g1']
     assert g2.filename == 'file1.ceryle'
 
     assert len(g2.tasks) == 1
     assert isinstance(g2.tasks[0], Task)
     assert g2.tasks[0].executable.cmd == ['do', 'awesome']
-    assert g2.tasks[0].context == 'context'
 
 
 def test_parse_syntax_suger():
