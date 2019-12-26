@@ -48,3 +48,15 @@ def test_expect_fail_returns_success(mocker):
     assert res.stdout == ['out']
     assert res.stderr == ['err']
     cmd.execute.assert_called_once_with(context='context', inputs=['a'])
+
+
+@pytest.mark.parametrize(
+    'condition, ', [
+        (True),
+        (False),
+    ])
+def test_expect_fail_with_boolean(mocker, condition):
+    exe_xfail = builtin.expect_fail(condition)
+    res = exe_xfail.execute(context='context')
+    assert isinstance(res, ExecutionResult)
+    assert (res.return_code == 0) is not condition

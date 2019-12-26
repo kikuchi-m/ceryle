@@ -64,7 +64,6 @@ def test_execute_all_fails(mocker):
     ]
 
 
-
 @pytest.mark.parametrize(
     'conditions, eq_zero', [
         ([True], True),

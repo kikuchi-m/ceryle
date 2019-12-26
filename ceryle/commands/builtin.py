@@ -28,14 +28,14 @@ def has_input(inputs=[]):
     return len(inputs) > 0
 
 
-def assert_executables(*executables):
+def assert_exec_args(*executables):
     if len(executables) == 0:
         raise ValueError('one or more executables are required')
     for exe in executables:
         util.assert_type(exe, Executable, bool)
 
 
-@executable_with(assertion=assert_executables, name='all')
+@executable_with(assertion=assert_exec_args, name='all')
 def execute_all(*executables, context=None, inputs=None):
     for exe in executables:
         if isinstance(exe, bool):
@@ -49,7 +49,7 @@ def execute_all(*executables, context=None, inputs=None):
     return ExecutionResult(0)
 
 
-@executable_with(assertion=assert_executables, name='any')
+@executable_with(assertion=assert_exec_args, name='any')
 def execute_any(*executables, context=None, inputs=None):
     res = None
     for exe in executables:
@@ -64,12 +64,14 @@ def execute_any(*executables, context=None, inputs=None):
     return res or ExecutionResult(1)
 
 
-def assert_executable(executable):
-    util.assert_type(executable, Executable)
+def assert_xfail_arg(executable):
+    util.assert_type(executable, Executable, bool)
 
 
-@executable_with(assertion=assert_executable, name='fail')
+@executable_with(assertion=assert_xfail_arg, name='fail')
 def expect_fail(executable, context=None, inputs=None):
+    if isinstance(executable, bool):
+        return ExecutionResult(int(executable))
     res = executable.execute(context=context, inputs=inputs)
     return ExecutionResult(int(not bool(res.return_code)),
                            stdout=res.stdout,
