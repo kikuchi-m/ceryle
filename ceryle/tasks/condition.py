@@ -9,6 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 class Condition:
+    WIN = util.is_win()
+    LINUX = util.is_linux()
+    MAC = util.is_mac()
     NO_INPUT = builtin.no_input()
     HAS_INPUT = builtin.has_input()
     all = builtin.execute_all
