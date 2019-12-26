@@ -108,7 +108,7 @@ default = 'foo'
     }],
 
     'task_group_attributes': {
-        'conditional_on': Command('test'),
+        'conditional_on': command('test'),
         'allow_skip': False,
         'tasks': [
             command('run always'),
