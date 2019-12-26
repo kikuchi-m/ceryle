@@ -23,7 +23,7 @@ class Task:
             if len([util.assert_type(k, str) for k in self._input]) != 2:
                 raise ValueError('input key must be str or str list with length 2')
         self._ignore_failure = util.assert_type(ignore_failure, bool)
-        self._condition = conditional_on and Condition(conditional_on)
+        self._condition = None if conditional_on is None else Condition(conditional_on)
         self._res = None
 
     def run(self, context, dry_run=False, inputs=[]):

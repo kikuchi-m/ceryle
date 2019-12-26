@@ -138,6 +138,24 @@ def test_run_conditional_on_false(mocker):
 
 
 @pytest.mark.parametrize(
+    'condition', [
+        (True),
+        (False),
+    ])
+def test_run_conditional_on_boolean(mocker, condition):
+    executable = Command('do some')
+    mocker.patch.object(executable, 'execute', return_value=ExecutionResult(0))
+
+    t = Task(executable, conditional_on=condition)
+
+    assert t.run('context') is True
+    if condition:
+        executable.execute.assert_called_once()
+    else:
+        executable.execute.assert_not_called()
+
+
+@pytest.mark.parametrize(
     'conditional_on, dry_run, inputs, exe_calls', [
         (0, True, [], 0),
         (1, True, [], 0),
