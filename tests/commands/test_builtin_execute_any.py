@@ -62,3 +62,39 @@ def test_execute_any_fails(mocker):
         mocker.call.cmd1_execute(context='context', inputs=['a']),
         mocker.call.cmd2_execute(context='context', inputs=['a']),
     ]
+
+
+@pytest.mark.parametrize(
+    'conditions, eq_zero', [
+        ([True], True),
+        ([False, True], True),
+        ([False], False),
+        ([False, False], False),
+    ])
+def test_execute_any_only_bools(mocker, conditions, eq_zero):
+    exec_any = builtin.execute_any(*conditions)
+    res = exec_any.execute(context='context')
+    assert isinstance(res, ExecutionResult)
+    assert (res.return_code == 0) is eq_zero
+
+
+@pytest.mark.parametrize(
+    'conditions, called', [
+        ([True], False),
+        ([False, True], False),
+        ([False], True),
+        ([False, False], True),
+    ])
+def test_execute_any_with_bools(mocker, conditions, called):
+    cmd1 = Command('test 1')
+    mocker.patch.object(cmd1, 'execute', return_value=ExecutionResult(0))
+
+    exec_any = builtin.execute_any(*conditions, cmd1)
+
+    res = exec_any.execute(context='context')
+    assert isinstance(res, ExecutionResult)
+    assert res.return_code == 0
+    if called:
+        cmd1.execute.assert_called_once()
+    else:
+        cmd1.execute.assert_not_called()

@@ -53,7 +53,7 @@ def test_validate_fails_by_no_depnding_task():
     assert str(e.value) == 'task b depended by a is not defined'
 
 
-def test_consstruct_chain_map_no_dependency():
+def test_construct_chain_map_no_dependency():
     resolver = DependencyResolver([
         TaskGroup('a', [], 'context', 'file1.ceryle'),
         TaskGroup('b', [], 'context', 'file1.ceryle'),

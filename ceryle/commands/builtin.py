@@ -32,27 +32,36 @@ def assert_executables(*executables):
     if len(executables) == 0:
         raise ValueError('one or more executables are required')
     for exe in executables:
-        util.assert_type(exe, Executable)
+        util.assert_type(exe, Executable, bool)
 
 
 @executable_with(assertion=assert_executables, name='all')
 def execute_all(*executables, context=None, inputs=None):
-    res = None
     for exe in executables:
+        if isinstance(exe, bool):
+            if exe:
+                continue
+            else:
+                return ExecutionResult(1)
         res = exe.execute(context=context, inputs=inputs)
         if res.return_code != 0:
             return res
-    return res
+    return ExecutionResult(0)
 
 
 @executable_with(assertion=assert_executables, name='any')
 def execute_any(*executables, context=None, inputs=None):
     res = None
     for exe in executables:
+        if isinstance(exe, bool):
+            if exe:
+                return ExecutionResult(0)
+            else:
+                continue
         res = exe.execute(context=context, inputs=inputs)
         if res.return_code == 0:
             return res
-    return res
+    return res or ExecutionResult(1)
 
 
 def assert_executable(executable):
