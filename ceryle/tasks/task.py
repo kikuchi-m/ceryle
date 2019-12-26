@@ -81,14 +81,13 @@ class Task:
 
 class TaskGroup:
     def __init__(self, name, tasks, context, filename,
-                 dependencies=[], allow_skip=True, conditional_on=None):
+                 dependencies=[], allow_skip=True):
         self._name = util.assert_type(name, str)
         self._tasks = [util.assert_type(t, Task) for t in util.assert_type(tasks, list)]
         self._context = util.assert_type(context, str, pathlib.Path)
         self._dependencies = [util.assert_type(d, str) for d in util.assert_type(dependencies, list)]
         self._filename = util.assert_type(filename, str, pathlib.Path)
         self._allow_skip = util.assert_type(allow_skip, bool)
-        self._condition = conditional_on and Condition(conditional_on)
 
     @property
     def name(self):
@@ -115,10 +114,6 @@ class TaskGroup:
         return self._filename
 
     def run(self, dry_run=False, register={}):
-        if self._condition and not self._condition.test(context='context', dry_run=dry_run):
-            util.print_out(f'skipping task group {self.name} since condition did not match')
-            return True, register
-
         r = copy_register(register)
         for t in self.tasks:
             inputs = []

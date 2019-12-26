@@ -1,6 +1,6 @@
 import pytest
 
-from ceryle import Command, ExecutionResult, Task, TaskGroup
+from ceryle import Command, Task, TaskGroup
 from ceryle.tasks import TaskIOError
 from ceryle.tasks.task import copy_register
 
@@ -188,54 +188,6 @@ def test_run_failed_by_invalid_io(mocker):
         tg.run()
     t1.run.assert_not_called()
     assert str(ex.value) == 'EXEC_STDOUT is required by a task in tg, but not registered'
-
-
-def test_run_tasks_conditional_on_true(mocker):
-    t1 = Task(Command('do some'))
-    c1 = Command('test condition')
-    tg = TaskGroup('tg', [t1], 'context', 'file1.ceryle', conditional_on=c1)
-
-    mocker.patch.object(t1, 'run', return_value=True)
-    mocker.patch.object(c1, 'execute', return_value=ExecutionResult(0))
-
-    res, reg = tg.run()
-
-    assert res is True
-    assert reg == {}
-    c1.execute.assert_called_once_with(context='context', inputs=[])
-    t1.run.assert_called_once()
-
-
-def test_not_run_tasks_conditional_on_false(mocker):
-    t1 = Task(Command('do some'))
-    c1 = Command('test condition')
-    tg = TaskGroup('tg', [t1], 'context', 'file1.ceryle', conditional_on=c1)
-
-    mocker.patch.object(t1, 'run', return_value=True)
-    mocker.patch.object(c1, 'execute', return_value=ExecutionResult(1))
-
-    res, reg = tg.run()
-
-    assert res is True
-    assert reg == {}
-    c1.execute.assert_called_once_with(context='context', inputs=[])
-    t1.run.assert_not_called()
-
-
-def test_dry_run_no_tested_condition(mocker):
-    t1 = Task(Command('do some'))
-    c1 = Command('test condition')
-    tg = TaskGroup('tg', [t1], 'context', 'file1.ceryle', conditional_on=c1)
-
-    mocker.patch.object(t1, 'run', return_value=True)
-    mocker.patch.object(c1, 'execute', return_value=ExecutionResult(0))
-
-    res, reg = tg.run(dry_run=True)
-
-    assert res is True
-    assert reg == {}
-    c1.execute.assert_not_called()
-    t1.run.assert_called_once_with('context', dry_run=True, inputs=[])
 
 
 def test_copy_register():
