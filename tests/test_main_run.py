@@ -61,9 +61,6 @@ def test_main_run_default_task_group(mocker, tmpdir):
 
     runner_cls.assert_called_once_with(task_def.tasks)
     runner.run.assert_called_once_with('tg1', dry_run=False, last_run=None)
-    # resolver_cls.assert_called_once_with({'tg1': ['tg2'], 'tg2': [], 'tg3': []})
-    # resolver.validate.assert_called_once_with()
-    # resolver.deps_chain_map.assert_called_once_with()
 
 
 def test_main_run_specific_task_group(mocker, tmpdir):

@@ -42,7 +42,7 @@ def find_task_file(start):
 
 def collect_task_files(start):
     home = pathlib.Path.home().joinpath(CERYLE_DIR, CERYLE_TASK_DIR)
-    files = sorted([str(p) for p in home.glob('*' + CERYLE_TASK_EXT)])
+    files = _rglob_files(home, CERYLE_TASK_EXT)
 
     default_task_file = find_task_file(start)
     if default_task_file:
@@ -52,7 +52,7 @@ def collect_task_files(start):
         root_dir = pathlib.Path(default_task_file).parent.joinpath(CERYLE_DIR, CERYLE_TASK_DIR)
         files = [
             *files,
-            *sorted([str(p) for p in root_dir.glob('*' + CERYLE_TASK_EXT)])
+            *_rglob_files(root_dir, CERYLE_TASK_EXT)
         ]
 
     return files, default_task_file and str(pathlib.Path(default_task_file).parent)
@@ -60,14 +60,18 @@ def collect_task_files(start):
 
 def collect_extension_files(start):
     home = pathlib.Path.home().joinpath(CERYLE_DIR, CERYLE_EX_DIR)
-    ex_files = sorted([str(p) for p in home.glob('*' + CERYLE_EX_FILE_EXT)])
+    ex_files = _rglob_files(home, CERYLE_EX_FILE_EXT)
 
     default_task_file = find_task_file(start)
     if default_task_file:
         ex_dir = pathlib.Path(default_task_file).parent.joinpath(CERYLE_DIR, CERYLE_EX_DIR)
         ex_files = [
             *ex_files,
-            *sorted([str(p) for p in ex_dir.glob('*' + CERYLE_EX_FILE_EXT)]),
+            *_rglob_files(ex_dir, CERYLE_EX_FILE_EXT)
         ]
 
     return ex_files
+
+
+def _rglob_files(p, ext):
+    return sorted([str(p) for p in p.rglob('*' + ext)])

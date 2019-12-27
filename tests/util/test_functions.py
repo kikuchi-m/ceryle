@@ -123,6 +123,37 @@ def test_collect_task_files_additional_task_fils(mocker):
         home_mock.assert_called_once_with()
 
 
+def test_collect_task_files_additional_task_fils_in_subdirs(mocker, tmpdir):
+    wd = pathlib.Path(tmpdir, 'aa/bb/cc')
+    wd.mkdir(parents=True)
+
+    task_file = pathlib.Path(wd, DEFAULT_TASK_FILE)
+    task_file.touch()
+
+    task_dir_base = pathlib.Path(wd, CERYLE_DIR, CERYLE_TASK_DIR)
+    task_dir_sub1 = task_dir_base.joinpath('x')
+    task_dir_sub1.mkdir(parents=True, exist_ok=True)
+    task_dir_sub2 = task_dir_base.joinpath('y/z')
+    task_dir_sub2.mkdir(parents=True, exist_ok=True)
+
+    additional1 = pathlib.Path(task_dir_sub1, 'additional1.ceryle')
+    additional1.touch()
+    additional2 = pathlib.Path(task_dir_sub2, 'additional2.ceryle')
+    additional2.touch()
+
+    home_dir = pathlib.Path(tmpdir, 'home')
+    home_dir.mkdir(parents=True, exist_ok=True)
+    home_mock = mocker.patch('pathlib.Path.home', return_value=pathlib.Path(tmpdir, 'home'))
+
+    expected = [
+        str(task_file),
+        str(additional1),
+        str(additional2),
+    ]
+    assert collect_task_files(wd) == (expected, str(wd))
+    home_mock.assert_called_once_with()
+
+
 def test_collect_task_files_in_home_ceryle_dir(mocker):
     with tempfile.TemporaryDirectory() as tmpd:
         wd = pathlib.Path(tmpd, 'aa/bb/cc')
@@ -146,6 +177,34 @@ def test_collect_task_files_in_home_ceryle_dir(mocker):
         ]
         assert collect_task_files(wd) == (expected, str(wd))
         home_mock.assert_called_once_with()
+
+
+def test_collect_task_files_in_subdirs_in_home_ceryle_dir(mocker, tmpdir):
+    wd = pathlib.Path(tmpdir, 'aa/bb/cc')
+    wd.mkdir(parents=True)
+
+    task_file = pathlib.Path(wd, DEFAULT_TASK_FILE)
+    task_file.touch()
+
+    home_task_dir = pathlib.Path(tmpdir, 'home', CERYLE_DIR, CERYLE_TASK_DIR)
+    home_task_dir_sub1 = home_task_dir.joinpath('x')
+    home_task_dir_sub1.mkdir(parents=True, exist_ok=True)
+    home_task_dir_sub2 = home_task_dir.joinpath('y/z')
+    home_task_dir_sub2.mkdir(parents=True, exist_ok=True)
+
+    additional1 = pathlib.Path(home_task_dir_sub1, 'additional1.ceryle')
+    additional1.touch()
+    additional2 = pathlib.Path(home_task_dir_sub2, 'additional2.ceryle')
+    additional2.touch()
+    home_mock = mocker.patch('pathlib.Path.home', return_value=pathlib.Path(tmpdir, 'home'))
+
+    expected = [
+        str(additional1),
+        str(additional2),
+        str(task_file),
+    ]
+    assert collect_task_files(wd) == (expected, str(wd))
+    home_mock.assert_called_once_with()
 
 
 def test_collect_extension_files_no_extensions():
