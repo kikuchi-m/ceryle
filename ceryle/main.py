@@ -152,6 +152,7 @@ def parse_args(argv):
     p.add_argument('--log-filename')
     p.add_argument('-v', '--verbose', action='count', default=0,
                    help='show more information. this works with --list-tasks or --show option')
+    p.add_argument('-V', '--version', action='store_true')
 
     known_args, rest = p.parse_known_args(argv)
     args = vars(known_args)
@@ -195,6 +196,9 @@ def main(argv):
     logger.debug(f'arguments: {args}')
 
     try:
+        if args.pop('version', False):
+            util.print_out(ceryle.__version__)
+            return 0
         if args.pop('list_tasks', False):
             return list_tasks(verbose=args['verbose'])
         if args.pop('show', False):

@@ -1,10 +1,20 @@
+import pathlib
+import re
 import setuptools
+
+
+def read_version():
+    with open(pathlib.Path(__file__).parent.joinpath('ceryle/__init__.py')) as fp:
+        m = re.search(r"^__version__ = '([\d]+(?:\.[\d]+)*)'", fp.read())
+        if m:
+            return m.group(1)
+        raise RuntimeError('version not fount')
 
 
 setuptools.setup(
     name='ceryle',
     description='Task based command runner tool',
-    version='0.2.1',
+    version=read_version(),
     python_requires='>=3.6.5',
     packages=setuptools.find_packages(),
     entry_points={
