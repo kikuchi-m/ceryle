@@ -30,8 +30,9 @@ class FileLoaderBase(abc.ABC):
 
 
 class TaskFileLoader(FileLoaderBase):
-    def __init__(self, file):
+    def __init__(self, file, root_context):
         super().__init__(file)
+        self._root_context = pathlib.Path(util.assert_type(root_context, str, pathlib.Path))
 
     def load(self, global_vars={}, local_vars={}, additional_args={}):
         module = util.parse_to_ast(self._file)
@@ -48,14 +49,14 @@ class TaskFileLoader(FileLoaderBase):
         self._evaluate_file(body[:-1], gvars, lvars)
         tasks = eval(compile(ast.Expression(task_node.value), self._file, 'eval'), gvars, lvars)
         context = self._resolve_context(lvars.get('context'))
-        return TaskDefinition(parse_tasks(tasks, context, self._file), lvars.get('default'))
+        return TaskDefinition(parse_tasks(tasks, str(context), self._file), lvars.get('default'))
 
     def _resolve_context(self, context):
         if not context:
-            return os.path.dirname(os.path.abspath(self._file))
+            return self._root_context
         if os.path.isabs(context):
             return context
-        return os.path.abspath(os.path.join(os.path.dirname(self._file), context))
+        return self._root_context.joinpath(context)
 
 
 class ExtensionLoader(FileLoaderBase):

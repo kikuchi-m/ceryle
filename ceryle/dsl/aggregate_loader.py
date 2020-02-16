@@ -1,10 +1,13 @@
+import pathlib
+
 import ceryle
 import ceryle.util as util
 
 
 class AggregateTaskFileLoader:
-    def __init__(self, files, extensions=[], additional_args={}):
+    def __init__(self, files, root_context, extensions=[], additional_args={}):
         self._files = util.assert_type(files, list)[:]
+        self._root_context = util.assert_type(root_context, str, pathlib.Path)
         self._extensions = util.assert_type(extensions, list)[:]
         self._additional_args = additional_args.copy()
 
@@ -18,7 +21,7 @@ class AggregateTaskFileLoader:
                 additional_args=self._additional_args)
             lvars.update(x)
         for f in self._files:
-            d = ceryle.TaskFileLoader(f).load(
+            d = ceryle.TaskFileLoader(f, self._root_context).load(
                 local_vars=lvars.copy(),
                 additional_args=self._additional_args)
             for t in d.tasks:
@@ -30,5 +33,5 @@ class AggregateTaskFileLoader:
         return ceryle.TaskDefinition(list(tasks.values()), default)
 
 
-def load_task_files(files, extensions, additional_args={}):
-    return AggregateTaskFileLoader(files, extensions=extensions, additional_args=additional_args).load()
+def load_task_files(files, extensions, root_context, additional_args={}):
+    return AggregateTaskFileLoader(files, root_context, extensions=extensions, additional_args=additional_args).load()

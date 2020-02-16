@@ -17,7 +17,7 @@ def file_path(f):
 def test_load_task_file():
     p = file_path('dsl_spec')
     context = str(p.parent)
-    loader = TaskFileLoader(p)
+    loader = TaskFileLoader(p, context)
     task_def = loader.load()
 
     assert task_def.default_task == 'foo'
@@ -38,9 +38,19 @@ def test_load_task_file():
         assert g.context == context
 
 
+def test_load_task_file_with_context(mocker):
+    test_file = file_path('dsl_context')
+    context = test_file.parent
+    loader = TaskFileLoader(test_file, context)
+    task_def = loader.load()
+
+    assert task_def.tasks[0].context == str(context.joinpath('foo/bar'))
+
+
 def test_load_task_file_no_task_def(mocker):
     test_file = file_path('dsl_no_task_def')
-    loader = TaskFileLoader(test_file)
+    context = str(test_file.parent)
+    loader = TaskFileLoader(test_file, context)
     with pytest.raises(TaskFileError) as e:
         loader.load()
     assert str(e.value) == f'No task definition found: {test_file}'
@@ -48,14 +58,17 @@ def test_load_task_file_no_task_def(mocker):
 
 def test_load_task_file_not_dict(mocker):
     test_file = file_path('dsl_not_dict')
-    loader = TaskFileLoader(test_file)
+    context = str(test_file.parent)
+    loader = TaskFileLoader(test_file, context)
     with pytest.raises(TaskFileError) as e:
         loader.load()
     assert str(e.value) == f'Not task definition, declare by dict form: {test_file}'
 
 
 def test_load_task_file_contains_custome_executable():
-    loader = TaskFileLoader(file_path('dsl_executable'))
+    test_file = file_path('dsl_executable')
+    context = str(test_file.parent)
+    loader = TaskFileLoader(test_file, context)
     task_def = loader.load()
 
     foo = task_def.tasks[0]

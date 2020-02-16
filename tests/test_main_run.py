@@ -5,40 +5,18 @@ import ceryle
 import ceryle.const as const
 import ceryle.main
 
-from ceryle import TaskDefinitionError, TaskFileError
+from ceryle import TaskDefinitionError
 
 
-def test_main_run_default_task_group(mocker, tmpdir):
-    context = pathlib.Path(tmpdir, 'foo', 'bar')
-    context.mkdir(parents=True)
-    home = pathlib.Path(tmpdir, 'home')
-    home.mkdir(parents=True)
-
-    util_mocks = mocker.Mock()
-    dummy_extensions = [
-        str(home.joinpath('.ceryle', 'extensions', 'x1.py')),
-        str(context.joinpath('.ceryle', 'extensions', 'x2.py')),
-    ]
-    collect_ex_mock = mocker.patch('ceryle.util.collect_extension_files', return_value=dummy_extensions)
-    util_mocks.attach_mock(collect_ex_mock, 'collect_ex_mock')
-
-    dummy_task_files = [
-        str(home.joinpath('.ceryle', 'tasks', 'a.ceryle')),
-        str(context.joinpath('CERYLE')),
-        str(context.joinpath('.ceryle', 'tasks', 'b.ceryle')),
-    ]
-    collect_tasks_mock = mocker.patch(
-        'ceryle.util.collect_task_files',
-        return_value=(dummy_task_files, str(context)))
-    util_mocks.attach_mock(collect_tasks_mock, 'collect_tasks_mock')
-
+def test_main_run_default_task_group(mocker):
     task_def = mocker.Mock()
     task_def.tasks = [
         ceryle.TaskGroup('tg1', [], 'context', 'file1.ceryle'),
         ceryle.TaskGroup('tg2', [], 'context', 'file1.ceryle'),
     ]
     task_def.default_task = 'tg1'
-    load_task_files = mocker.patch('ceryle.load_task_files', return_value=task_def)
+    load_tasks_mock = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, 'context'))
+    save_run_cache_mock = mocker.patch('ceryle.main.save_run_cache')
 
     runner = mocker.Mock()
     runner.run = mocker.Mock(return_value=True)
@@ -49,48 +27,22 @@ def test_main_run_default_task_group(mocker, tmpdir):
 
     # verification
     assert res == 0
-    collect_tasks_mock.assert_called_once_with(mocker.ANY)
-    collect_ex_mock.assert_called_once_with(mocker.ANY)
-    load_task_files.assert_called_once_with(dummy_task_files, dummy_extensions, additional_args={})
-
-    util_expected_calls = [
-        mocker.call.collect_tasks_mock(mocker.ANY),
-        mocker.call.collect_ex_mock(mocker.ANY),
-    ]
-    assert util_mocks.mock_calls == util_expected_calls
+    load_tasks_mock.assert_called_once()
+    save_run_cache_mock.assert_called_once()
 
     runner_cls.assert_called_once_with(task_def.tasks)
     runner.run.assert_called_once_with('tg1', dry_run=False, last_run=None)
 
 
 def test_main_run_specific_task_group(mocker, tmpdir):
-    context = pathlib.Path(tmpdir, 'foo', 'bar')
-    context.mkdir(parents=True)
-    home = pathlib.Path(tmpdir, 'home')
-    home.mkdir(parents=True)
-
-    dummy_extensions = [
-        str(home.joinpath('.ceryle', 'extensions', 'x1.py')),
-        str(context.joinpath('.ceryle', 'extensions', 'x2.py')),
-    ]
-    collect_ex_mock = mocker.patch('ceryle.util.collect_extension_files', return_value=dummy_extensions)
-
-    dummy_task_files = [
-        str(home.joinpath('.ceryle', 'tasks', 'a.ceryle')),
-        str(context.joinpath('CERYLE')),
-        str(context.joinpath('.ceryle', 'tasks', 'b.ceryle')),
-    ]
-    collect_tasks_mock = mocker.patch(
-        'ceryle.util.collect_task_files',
-        return_value=(dummy_task_files, str(context)))
-
     task_def = mocker.Mock()
     task_def.tasks = [
         ceryle.TaskGroup('tg1', [], 'context', 'file1.ceryle'),
         ceryle.TaskGroup('tg2', [], 'context', 'file1.ceryle'),
     ]
     task_def.default_task = 'tg1'
-    load_task_files = mocker.patch('ceryle.load_task_files', return_value=task_def)
+    load_tasks_mock = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, 'context'))
+    save_run_cache_mock = mocker.patch('ceryle.main.save_run_cache')
 
     runner = mocker.Mock()
     runner.run = mocker.Mock(return_value=True)
@@ -101,41 +53,21 @@ def test_main_run_specific_task_group(mocker, tmpdir):
 
     # verification
     assert res == 0
-    collect_tasks_mock.assert_called_once_with(mocker.ANY)
-    collect_ex_mock.assert_called_once_with(mocker.ANY)
-    load_task_files.assert_called_once_with(dummy_task_files, dummy_extensions, additional_args={})
+    load_tasks_mock.assert_called_once()
+    save_run_cache_mock.assert_called_once()
 
     runner_cls.assert_called_once_with(task_def.tasks)
     runner.run.assert_called_once_with('tg2', dry_run=False, last_run=None)
 
 
 def test_main_run_fails_by_task_failure(mocker, tmpdir):
-    context = pathlib.Path(tmpdir, 'foo', 'bar')
-    context.mkdir(parents=True)
-    home = pathlib.Path(tmpdir, 'home')
-    home.mkdir(parents=True)
-
-    dummy_extensions = [
-        str(home.joinpath('.ceryle', 'extensions', 'x1.py')),
-        str(context.joinpath('.ceryle', 'extensions', 'x2.py')),
-    ]
-    collect_ex_mock = mocker.patch('ceryle.util.collect_extension_files', return_value=dummy_extensions)
-
-    dummy_task_files = [
-        str(home.joinpath('.ceryle', 'tasks', 'a.ceryle')),
-        str(context.joinpath('CERYLE')),
-        str(context.joinpath('.ceryle', 'tasks', 'b.ceryle')),
-    ]
-    collect_tasks_mock = mocker.patch(
-        'ceryle.util.collect_task_files',
-        return_value=(dummy_task_files, str(context)))
-
     task_def = mocker.Mock()
     task_def.tasks = [
         ceryle.TaskGroup('tg1', [], 'context', 'file1.ceryle'),
     ]
     task_def.default_task = 'tg1'
-    load_task_files = mocker.patch('ceryle.load_task_files', return_value=task_def)
+    load_tasks_mock = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, 'context'))
+    save_run_cache_mock = mocker.patch('ceryle.main.save_run_cache')
 
     runner = mocker.Mock()
     runner.run = mocker.Mock(return_value=False)
@@ -146,58 +78,29 @@ def test_main_run_fails_by_task_failure(mocker, tmpdir):
 
     # verification
     assert res == 1
-    collect_tasks_mock.assert_called_once_with(mocker.ANY)
-    collect_ex_mock.assert_called_once_with(mocker.ANY)
-    load_task_files.assert_called_once_with(dummy_task_files, dummy_extensions, additional_args={})
+    load_tasks_mock.assert_called_once()
+    save_run_cache_mock.assert_called_once()
 
     runner_cls.assert_called_once_with(task_def.tasks)
     runner.run.assert_called_once_with('tg1', dry_run=False, last_run=None)
 
 
-def test_main_run_fails_by_task_file_not_found(mocker):
-    collect_ex_mock = mocker.patch('ceryle.util.collect_extension_files', return_value=[])
-    collect_tasks_mock = mocker.patch('ceryle.util.collect_task_files', return_value=([], None))
-
-    with pytest.raises(TaskFileError) as e:
-        ceryle.main.run()
-    assert str(e.value) == 'task file not found'
-    collect_tasks_mock.assert_called_once_with(mocker.ANY)
-    collect_ex_mock.assert_not_called()
-
-
 def test_main_run_raises_by_no_default_and_no_task_to_run(mocker, tmpdir):
-    context = pathlib.Path(tmpdir, 'foo', 'bar')
-    context.mkdir(parents=True)
-    home = pathlib.Path(tmpdir, 'home')
-    home.mkdir(parents=True)
-
-    dummy_extensions = [
-        str(home.joinpath('.ceryle', 'extensions', 'x1.py')),
-        str(context.joinpath('.ceryle', 'extensions', 'x2.py')),
-    ]
-    collect_ex_mock = mocker.patch('ceryle.util.collect_extension_files', return_value=dummy_extensions)
-
-    dummy_task_files = [
-        str(context.joinpath('CERYLE')),
-    ]
-    collect_tasks_mock = mocker.patch(
-        'ceryle.util.collect_task_files',
-        return_value=(dummy_task_files, str(context)))
 
     task_def = mocker.Mock()
     task_def.tasks = [
         ceryle.TaskGroup('tg1', [], 'context', 'file1.ceryle'),
     ]
     task_def.default_task = None
-    load_task_files = mocker.patch('ceryle.load_task_files', return_value=task_def)
+    load_tasks_mock = mocker.patch('ceryle.main.load_tasks', return_value=(task_def, 'context'))
+    save_run_cache_mock = mocker.patch('ceryle.main.save_run_cache')
 
     # excercise
     with pytest.raises(TaskDefinitionError) as e:
         ceryle.main.run()
     assert str(e.value) == 'default task is not declared, specify task to run'
-    collect_tasks_mock.assert_called_once_with(mocker.ANY)
-    collect_ex_mock.assert_called_once_with(mocker.ANY)
-    load_task_files.assert_called_once_with(dummy_task_files, dummy_extensions, additional_args={})
+    load_tasks_mock.assert_called_once()
+    save_run_cache_mock.assert_not_called()
 
 
 def test_main_run_save_last_execution_to_file(mocker, tmpdir):

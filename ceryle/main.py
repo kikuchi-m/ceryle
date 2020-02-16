@@ -20,7 +20,7 @@ def load_tasks(additional_args={}):
     extensions = util.collect_extension_files(os.getcwd())
     logger.info(f'extensions: {extensions}')
 
-    return ceryle.load_task_files(task_files, extensions, additional_args=additional_args), root_context
+    return ceryle.load_task_files(task_files, extensions, root_context, additional_args=additional_args), root_context
 
 
 def run(task=None, dry_run=False, additional_args={},
