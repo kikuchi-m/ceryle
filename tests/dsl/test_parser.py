@@ -1,3 +1,5 @@
+import pathlib
+
 from ceryle import Command, Task, TaskGroup
 from ceryle.dsl.parser import parse_tasks
 
@@ -26,7 +28,7 @@ def test_parse():
     g1 = tasks['g1']
     assert isinstance(g1, TaskGroup)
     assert g1.name == 'g1'
-    assert g1.context == 'context'
+    assert g1.context == pathlib.Path('context')
     assert g1.dependencies == []
     assert g1.filename == 'file1.ceryle'
 
@@ -39,7 +41,7 @@ def test_parse():
     g2 = tasks['g2']
     assert isinstance(g2, TaskGroup)
     assert g2.name == 'g2'
-    assert g2.context == 'context'
+    assert g2.context == pathlib.Path('context')
     assert g2.dependencies == ['g1']
     assert g2.filename == 'file1.ceryle'
 

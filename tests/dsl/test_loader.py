@@ -16,8 +16,8 @@ def file_path(f):
 
 def test_load_task_file():
     p = file_path('dsl_spec')
-    context = str(p.parent)
-    loader = TaskFileLoader(p, context)
+    context = p.parent
+    loader = TaskFileLoader(p, str(context))
     task_def = loader.load()
 
     assert task_def.default_task == 'foo'
@@ -44,7 +44,7 @@ def test_load_task_file_with_context(mocker):
     loader = TaskFileLoader(test_file, context)
     task_def = loader.load()
 
-    assert task_def.tasks[0].context == str(context.joinpath('foo/bar'))
+    assert task_def.tasks[0].context == context.joinpath('foo/bar')
 
 
 def test_load_task_file_no_task_def(mocker):

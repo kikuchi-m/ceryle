@@ -43,23 +43,23 @@ def _construct_chain_map(task_groups):
     deps_map = dict([(tg.name, tg) for tg in task_groups])
     dcm = {}
     for tg in task_groups:
-        t = tg.name
-        c = dcm.get(t)
+        tgn = tg.name
+        c = dcm.get(tgn)
         if c is None:
             c = DependencyChain(tg)
-            dcm[t] = c
-        for t_dep in tg.dependencies:
-            if t_dep not in deps_map:
-                raise TaskDependencyError(f'task {t_dep} depended by {t} is not defined')
-            if t == t_dep:
-                raise TaskDependencyError(f'cyclic dependency was found: {t} -> {t_dep}')
-            t_dep_c = dcm.get(t_dep, DependencyChain(deps_map.get(t_dep)))
-            if t_dep_c.depends_on(c):
-                chain_str = ' -> '.join([t, *[c1.task_name for c1 in t_dep_c.get_chain(c, include_self=True)]])
+            dcm[tgn] = c
+        for tg_dep in tg.dependencies:
+            if tg_dep not in deps_map:
+                raise TaskDependencyError(f'task {tg_dep} depended by {tgn} is not defined')
+            if tgn == tg_dep:
+                raise TaskDependencyError(f'cyclic dependency was found: {tgn} -> {tg_dep}')
+            tg_dep_c = dcm.get(tg_dep, DependencyChain(deps_map.get(tg_dep)))
+            if tg_dep_c.depends_on(c):
+                chain_str = ' -> '.join([tgn, *[c1.task_name for c1 in tg_dep_c.get_chain(c, include_self=True)]])
                 raise TaskDependencyError(f'cyclic dependency was found: {chain_str}')
 
-            dcm[t_dep] = t_dep_c
-            c.add_dependency(t_dep_c)
+            dcm[tg_dep] = tg_dep_c
+            c.add_dependency(tg_dep_c)
     return dcm
 
 

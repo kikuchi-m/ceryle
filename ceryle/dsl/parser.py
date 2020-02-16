@@ -1,3 +1,5 @@
+import pathlib
+
 import ceryle.util as util
 
 from . import TaskFileError
@@ -10,19 +12,19 @@ RUN = 'run'
 
 def parse_tasks(raw_tasks, context, filename):
     util.assert_type(raw_tasks, dict)
-    util.assert_type(context, str)
+    ctx = pathlib.Path(util.assert_type(context, str))
 
     tasks = []
     for gn, raw_group in raw_tasks.items():
         if isinstance(raw_group, list):
             g_tasks = [_to_task(t, gn) for t in raw_group]
-            tasks.append(TaskGroup(gn, g_tasks, context, filename))
+            tasks.append(TaskGroup(gn, g_tasks, ctx, filename))
         else:
             if TASKS not in raw_group:
                 g_tasks = []
             else:
                 g_tasks = [_to_task(t, gn) for t in raw_group.pop(TASKS)]
-            tasks.append(TaskGroup(gn, g_tasks, context, filename, **raw_group))
+            tasks.append(TaskGroup(gn, g_tasks, ctx, filename, **raw_group))
     return tasks
 
 

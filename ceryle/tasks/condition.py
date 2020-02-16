@@ -21,7 +21,6 @@ class Condition:
 
     def __init__(self, condition):
         self._condition = util.assert_type(condition, Executable, bool)
-        # self._context = util.assert_type(context, str)
         logger.debug(f'condition: {self._condition}')
 
     def test(self, context=None, inputs=[], dry_run=False):

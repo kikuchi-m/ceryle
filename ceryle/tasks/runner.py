@@ -60,7 +60,7 @@ class TaskRunner:
 
         try:
             util.print_out(f'running task group {chain.task_name} ({tg.context})', level=logging.INFO)
-            res, reg = tg.run(dry_run=dry_run, register=reg or register)
+            res, reg = tg.run(dry_run=dry_run, register=reg)
             self._sw.elapse()
             util.print_out(f'finished {chain.task_name} {self._sw.str_last_lap()}', level=logging.INFO)
         except Exception:
