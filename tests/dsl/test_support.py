@@ -115,6 +115,27 @@ def test_env_format(mocker):
     assert env4.evaluate() == '1, 1'
 
 
+@pytest.mark.parametrize(
+    'default, allow_empty, format, expected', [
+        (None, False, None, 'env(FOO)'),
+        ('x', False, None, 'env(FOO, default=x)'),
+        (None, True, None, 'env(FOO, allow_empty)'),
+        (None, False, 'option=%(FOO)s', 'env(FOO, format=\'option=%(FOO)s\')'),
+        ('x', True, 'option=%(FOO)s', 'env(FOO, default=x, allow_empty, format=\'option=%(FOO)s\')'),
+    ])
+def test_env_str(default, allow_empty, format, expected):
+    env = support.Env('FOO', default=default, allow_empty=allow_empty, format=format)
+    assert str(env) == expected
+
+
+def test_env_str_combined():
+    env1 = '2' + support.Env('FOO') + '3'
+    env2 = '4' + support.Env('BAR') + '5'
+    env = env1 + env2
+    assert isinstance(env, support.Env)
+    assert str(env) == "'2' + env(FOO) + '3' + '4' + env(BAR) + '5'"
+
+
 def test_arg_evaluate_returns_value():
     arg = support.Arg('FOO', {'FOO': '1'})
     assert arg.evaluate() == '1'
@@ -221,3 +242,26 @@ def test_arg_format():
 
     arg4 = support.Arg('FOO', args) + support.Arg('FOO', args, format=', %(FOO)s')
     assert arg4.evaluate() == '1, 1'
+
+
+@pytest.mark.parametrize(
+    'default, allow_empty, format, expected', [
+        (None, False, None, 'arg(FOO)'),
+        ('x', False, None, 'arg(FOO, default=x)'),
+        (None, True, None, 'arg(FOO, allow_empty)'),
+        (None, False, 'option=%(FOO)s', 'arg(FOO, format=\'option=%(FOO)s\')'),
+        ('x', True, 'option=%(FOO)s', 'arg(FOO, default=x, allow_empty, format=\'option=%(FOO)s\')'),
+    ])
+def test_arg_str(default, allow_empty, format, expected):
+    arg = support.Arg('FOO', {}, default=default, allow_empty=allow_empty, format=format)
+    assert str(arg) == expected
+
+
+def test_arg_str_combined():
+    args = {'FOO': '1', 'BAR': '0'}
+
+    arg1 = '2' + support.Arg('FOO', args) + '3'
+    arg2 = '4' + support.Arg('BAR', args) + '5'
+    arg = arg1 + arg2
+    assert isinstance(arg, support.Arg)
+    assert str(arg) == "'2' + arg(FOO) + '3' + '4' + arg(BAR) + '5'"

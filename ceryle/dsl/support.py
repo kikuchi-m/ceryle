@@ -55,9 +55,26 @@ class ArgumentBase(abc.ABC):
     def _format_value(self, v):
         return self._format and self._format % {self._name: v} or v
 
-    @abc.abstractmethod
     def __str__(self):
+        v = str(self._original) if self._original else self._str_format()
+        if self._other:
+            o = _str_format(self._other)
+            return f'{o} + {v}' if self._left else f'{v} + {o}'
+        return v
+
+    @abc.abstractmethod
+    def _str_format(self):
         pass
+
+    def _str_args(self):
+        ss = [self._name]
+        if self._default is not None:
+            ss.append(f'default={self._default}')
+        if self._allow_empty:
+            ss.append('allow_empty')
+        if self._format:
+            ss.append(f'format=\'{self._format}\'')
+        return ss
 
     def __repr__(self):
         return str(self)
@@ -73,6 +90,14 @@ def eval_arg(a, fail_on_unknown=True):
     return a
 
 
+def _str_format(a):
+    util.assert_type(a, str, ArgumentBase)
+    if isinstance(a, str):
+        return f"'{a}'"
+    if isinstance(a, ArgumentBase):
+        return str(a)
+
+
 class Env(ArgumentBase):
     def __init__(self, name, default=None, allow_empty=False, format=None):
         super().__init__(name, default=default, allow_empty=allow_empty, format=format)
@@ -86,10 +111,9 @@ class Env(ArgumentBase):
     def _copy(self):
         return Env(self._name, default=self._default, allow_empty=self._allow_empty, format=self._format)
 
-    def __str__(self):
-        if self._format:
-            return f'env({self._name}, format=\'{self._format}\')'
-        return f'env({self._name})'
+    def _str_format(self):
+        args = ', '.join(self._str_args())
+        return f'env({args})'
 
 
 class Arg(ArgumentBase):
@@ -109,7 +133,6 @@ class Arg(ArgumentBase):
     def _copy(self):
         return Arg(self._name, self._args, default=self._default, allow_empty=self._allow_empty, format=self._format)
 
-    def __str__(self):
-        if self._format:
-            return f'arg({self._name}, format=\'{self._format}\')'
-        return f'arg({self._name})'
+    def _str_format(self):
+        args = ', '.join(self._str_args())
+        return f'arg({args})'
