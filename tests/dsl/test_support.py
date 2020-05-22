@@ -39,34 +39,64 @@ def test_env_evaluate_raises_if_absent(mocker):
     assert str(e.value) == 'environment variable FOO is not defined'
 
 
-def test_env_combine(mocker):
+def test_env_combine_right(mocker):
+    mocker.patch.dict('os.environ', {'FOO': '1'})
+
+    env1 = support.Env('FOO')
+    env = env1 + '2'
+    assert isinstance(env, support.Env)
+    assert env1 is not env
+    assert env.evaluate() == '12'
+
+
+def test_env_combine_left(mocker):
+    mocker.patch.dict('os.environ', {'FOO': '1'})
+
+    env1 = support.Env('FOO')
+    env = '3' + env1
+    assert isinstance(env, support.Env)
+    assert env1 is not env
+    assert env.evaluate() == '31'
+
+
+def test_env_combine_left_right(mocker):
+    mocker.patch.dict('os.environ', {'FOO': '1'})
+
+    env1 = support.Env('FOO')
+    env = '3' + env1 + '2'
+    assert isinstance(env, support.Env)
+    assert env1 is not env
+    assert env.evaluate() == '312'
+
+
+def test_env_combine_envs(mocker):
     mocker.patch.dict('os.environ', {'FOO': '1', 'BAR': '0'})
 
     env1 = support.Env('FOO')
-    env2 = env1 + '2'
-    assert isinstance(env2, support.Env)
-    assert env1 is not env2
-    assert env2.evaluate() == '12'
+    env = env1 + support.Env('BAR')
+    assert isinstance(env, support.Env)
+    assert env1 is not env
+    assert env.evaluate() == '10'
 
-    env3 = '3' + env1
-    assert isinstance(env3, support.Env)
-    assert env1 is not env3
-    assert env3.evaluate() == '31'
 
-    env4 = env1 + support.Env('BAR')
-    assert isinstance(env4, support.Env)
-    assert env1 is not env4
-    assert env4.evaluate() == '10'
+def test_env_combine_self(mocker):
+    mocker.patch.dict('os.environ', {'FOO': '1'})
 
-    env5 = support.Env('BAR') + env1
-    assert isinstance(env5, support.Env)
-    assert env1 is not env5
-    assert env5.evaluate() == '01'
+    env1 = support.Env('FOO')
+    env = env1 + env1
+    assert isinstance(env, support.Env)
+    assert env1 is not env
+    assert env.evaluate() == '11'
 
-    env6 = env1 + env1
-    assert isinstance(env6, support.Env)
-    assert env1 is not env6
-    assert env6.evaluate() == '11'
+
+def test_env_combine_multiple(mocker):
+    mocker.patch.dict('os.environ', {'FOO': '1', 'BAR': '0'})
+
+    env1 = '2' + support.Env('FOO') + '3'
+    env2 = '4' + support.Env('BAR') + '5'
+    env = env1 + env2
+    assert isinstance(env, support.Env)
+    assert env.evaluate() == '213405'
 
 
 def test_env_format(mocker):
@@ -117,34 +147,64 @@ def test_arg_evaluate_raises_if_absent():
     assert str(e.value) == 'argument FOO is not defined'
 
 
-def test_arg_combine():
+def test_arg_combine_right():
+    args = {'FOO': '1'}
+
+    arg1 = support.Arg('FOO', args)
+    arg = arg1 + '2'
+    assert isinstance(arg, support.Arg)
+    assert arg1 is not arg
+    assert arg.evaluate() == '12'
+
+
+def test_arg_combine_left():
+    args = {'FOO': '1'}
+
+    arg1 = support.Arg('FOO', args)
+    arg = '3' + arg1
+    assert isinstance(arg, support.Arg)
+    assert arg1 is not arg
+    assert arg.evaluate() == '31'
+
+
+def test_arg_combine_left_right():
+    args = {'FOO': '1'}
+
+    arg1 = support.Arg('FOO', args)
+    arg = '3' + arg1 + '2'
+    assert isinstance(arg, support.Arg)
+    assert arg1 is not arg
+    assert arg.evaluate() == '312'
+
+
+def test_arg_combine_args():
     args = {'FOO': '1', 'BAR': '0'}
 
     arg1 = support.Arg('FOO', args)
-    arg2 = arg1 + '2'
-    assert isinstance(arg2, support.Arg)
-    assert arg1 is not arg2
-    assert arg2.evaluate() == '12'
+    arg = arg1 + support.Arg('BAR', args)
+    assert isinstance(arg, support.Arg)
+    assert arg1 is not arg
+    assert arg.evaluate() == '10'
 
-    arg3 = '3' + arg1
-    assert isinstance(arg3, support.Arg)
-    assert arg1 is not arg3
-    assert arg3.evaluate() == '31'
 
-    arg4 = arg1 + support.Arg('BAR', args)
-    assert isinstance(arg4, support.Arg)
-    assert arg1 is not arg4
-    assert arg4.evaluate() == '10'
+def test_arg_combine_self():
+    args = {'FOO': '1'}
 
-    arg5 = support.Arg('BAR', args) + arg1
-    assert isinstance(arg5, support.Arg)
-    assert arg1 is not arg5
-    assert arg5.evaluate() == '01'
+    arg1 = support.Arg('FOO', args)
+    arg = arg1 + arg1
+    assert isinstance(arg, support.Arg)
+    assert arg1 is not arg
+    assert arg.evaluate() == '11'
 
-    arg6 = arg1 + arg1
-    assert isinstance(arg6, support.Arg)
-    assert arg1 is not arg6
-    assert arg6.evaluate() == '11'
+
+def test_arg_combine_multiple():
+    args = {'FOO': '1', 'BAR': '0'}
+
+    arg1 = '2' + support.Arg('FOO', args) + '3'
+    arg2 = '4' + support.Arg('BAR', args) + '5'
+    arg = arg1 + arg2
+    assert isinstance(arg, support.Arg)
+    assert arg.evaluate() == '213405'
 
 
 def test_arg_format():
