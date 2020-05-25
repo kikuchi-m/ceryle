@@ -2,6 +2,7 @@ import abc
 import ast
 import os
 import pathlib
+import sys
 
 import ceryle
 import ceryle.util as util
@@ -16,12 +17,22 @@ from ceryle.dsl.parser import parse_tasks
 from . import support, TaskFileError
 
 
+if sys.version_info[0] < 3:
+    raise RuntimeError(f'python {sys.version_info[0]}.{sys.version_info[1]} is not supported')
+if sys.version_info[1] < 8:
+    def ast_module(body):
+        return ast.Module(body)
+else:
+    def ast_module(body):
+        return ast.Module(body,  [])
+
+
 class FileLoaderBase(abc.ABC):
     def __init__(self, file):
         self._file = util.assert_type(file, str, pathlib.Path)
 
     def _evaluate_file(self, body, gvars, lvars):
-        co = compile(ast.Module(body), str(self._file), 'exec')
+        co = compile(ast_module(body), str(self._file), 'exec')
         exec(co, gvars, lvars)
 
     @abc.abstractmethod
