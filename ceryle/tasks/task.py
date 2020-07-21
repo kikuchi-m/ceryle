@@ -1,4 +1,6 @@
+import abc
 import logging
+import os
 import pathlib
 
 import ceryle
@@ -145,3 +147,106 @@ def _update_register(register, group, key, std):
 
 def copy_register(register):
     return dict([(g, register[g].copy()) for g in register])
+
+
+class CommandInputBase(abc.ABC):
+
+    @property
+    @abc.abstractmethod
+    def key(self):
+        pass
+
+    @abc.abstractmethod
+    def resolve(self, register, omitted_group):
+        pass
+
+    @abc.abstractmethod
+    def __str__(self):
+        pass
+
+    @abc.abstractmethod
+    def __eq__(self, other):
+        pass
+
+
+class CommandInput(CommandInputBase):
+    def __init__(self, *key):
+        key_len = len(key)
+        if key_len == 0:
+            raise ValueError('input key is required')
+        if key_len == 1:
+            self._key = util.assert_type(key[0], str)
+        elif key_len == 2:
+            self._key = tuple([util.assert_type(k, str) for k in key])
+        else:
+            raise ValueError('input key must be str or str tuple with length 2')
+
+    @property
+    def key(self):
+        return self._key
+
+    def resolve(self, register, omitted_group):
+        if isinstance(self._key, str):
+            logger.debug(f'read {omitted_group}.{self._key} from register')
+            return util.getin(register, omitted_group, self._key)
+        elif isinstance(self._key, tuple):
+            logger.debug(f'read {".".join(self._key)} from register')
+            return util.getin(register, *self._key)
+
+    def __str__(self):
+        return str(self._key)
+
+    def __eq__(self, other):
+        return isinstance(other, CommandInput) and self._key == other._key
+
+
+class SingleValueCommandInput(CommandInputBase):
+    def __init__(self, *key):
+        self._input = CommandInput(*key)
+
+    @property
+    def key(self):
+        return self._input.key
+
+    def resolve(self, register, omitted_group):
+        out = self._input.resolve(register, omitted_group)
+        return out and [os.linesep.join(out)]
+
+    def __str__(self):
+        return f'str(self._input) (as single value)'
+
+    def __eq__(self, other):
+        return isinstance(other, SingleValueCommandInput) and self._input == other._input
+
+
+class MultiCommandInput(CommandInputBase):
+    def __init__(self, *keys):
+        if len(keys) == 0:
+            raise ValueError('one or more keys are required')
+        self._key = [_to_command_input_key(key) for key in keys]
+
+    @property
+    def key(self):
+        return self._key[:]
+
+    def resolve(self, register, omitted_group):
+        outs = [i.resolve(register, omitted_group) for i in self._key]
+        if all(outs):
+            return sum(outs, [])
+        return None
+
+    def __str__(self):
+        return str(self._key)
+
+    def __eq__(self, other):
+        return isinstance(other, MultiCommandInput) and self._key == other._key
+
+
+def _to_command_input_key(key):
+    if isinstance(key, str):
+        return CommandInput(key)
+    if isinstance(key, tuple):
+        return CommandInput(*key)
+    if isinstance(key, CommandInputBase):
+        return key
+    raise TypeError(f'unsupported command key: {type(key)}')
