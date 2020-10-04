@@ -2,6 +2,7 @@ import pytest
 
 from ceryle import Command, ExecutionResult, Task
 from ceryle import IllegalOperation
+from ceryle.tasks.task import CommandInput, SingleValueCommandInput, MultiCommandInput
 
 
 def test_raise_if_unacceptable_args():
@@ -76,17 +77,33 @@ def test_store_stds(mocker):
     assert t.stderr() == ['err']
 
 
+@pytest.mark.parametrize(
+    'input, expected', [
+        ('a', CommandInput('a')),
+        (('a', 'b'), CommandInput('a', 'b')),
+        (CommandInput('a', 'b'), CommandInput('a', 'b')),
+        (SingleValueCommandInput('a', 'b'), SingleValueCommandInput('a', 'b')),
+        (MultiCommandInput('a', 'b'), MultiCommandInput('a', 'b')),
+        (['a', 'b'], MultiCommandInput(CommandInput('a'), CommandInput('b'))),
+        (['a', CommandInput('b')], MultiCommandInput(CommandInput('a'), CommandInput('b'))),
+        (['a', SingleValueCommandInput('b')], MultiCommandInput(CommandInput('a'), SingleValueCommandInput('b'))),
+    ])
+def test_init_with_command_input(mocker, input, expected):
+    t = Task(Command('do some'), input=input)
+
+    assert t.command_input == expected
+
+
 def test_run_with_input(mocker):
     executable = Command('do some')
     res = ExecutionResult(0)
     mocker.patch.object(executable, 'execute', return_value=res)
 
-    t = Task(executable, input='EXEC_INPUT')
+    t = Task(executable)
     success = t.run('context', inputs=['foo', 'bar'])
 
     assert success is True
     executable.execute.assert_called_once_with(context='context', inputs=['foo', 'bar'])
-    assert t.input_key == 'EXEC_INPUT'
 
 
 def test_get_stds_raise_before_run(mocker):

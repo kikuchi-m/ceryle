@@ -20,10 +20,7 @@ class Task:
         self._executable = util.assert_type(executable, Executable)
         self._stdout = util.assert_type(stdout, None, str)
         self._stderr = util.assert_type(stderr, None, str)
-        self._input = util.assert_type(input, None, str, tuple, list)
-        if self._input and not isinstance(self._input, str):
-            if len([util.assert_type(k, str) for k in self._input]) != 2:
-                raise ValueError('input key must be str or str list with length 2')
+        self._input = _to_command_input(input)
         self._ignore_failure = util.assert_type(ignore_failure, bool)
         self._condition = None if conditional_on is None else Condition(conditional_on)
         self._res = None
@@ -67,7 +64,7 @@ class Task:
         return self._stderr
 
     @property
-    def input_key(self):
+    def command_input(self):
         return self._input
 
     def stdout(self):
@@ -79,6 +76,24 @@ class Task:
         if self._res is None:
             raise ceryle.IllegalOperation('task is not run yet')
         return self._res.stderr
+
+
+def _to_command_input(input):
+    if input is None:
+        return None
+    c_in = util.assert_type(input, str, tuple, list, CommandInputBase)
+
+    def identity(x):
+        return x
+
+    return {
+        str: CommandInput,
+        tuple: lambda i: CommandInput(*i),
+        list: lambda i: MultiCommandInput(*i),
+        CommandInput: identity,
+        SingleValueCommandInput: identity,
+        MultiCommandInput: identity,
+    }.get(type(c_in))(c_in)
 
 
 class TaskGroup:
@@ -118,17 +133,12 @@ class TaskGroup:
     def run(self, dry_run=False, register={}):
         r = copy_register(register)
         for t in self.tasks:
-            inputs = []
-            if t.input_key:
-                if isinstance(t.input_key, str):
-                    logger.debug(f'read {self.name}.{t.input_key} from register')
-                    inputs = util.getin(r, self.name, t.input_key)
-                else:
-                    logger.debug(f'read {".".join(t.input_key)} from register')
-                    inputs = util.getin(r, *t.input_key)
+            inputs = t.command_input
+            if inputs:
+                inputs = t.command_input.resolve(r, self.name)
                 if inputs is None:
-                    raise TaskIOError(f'{t.input_key} is required by a task in {self.name}, but not registered')
-            if not t.run(self._context, dry_run=dry_run, inputs=inputs):
+                    raise TaskIOError(f'{t.command_input.key} is required by a task in {self.name}, but not registered')
+            if not t.run(self._context, dry_run=dry_run, inputs=inputs or []):
                 return False, r
             if t.stdout_key:
                 logger.debug(f'register {t.stdout_key}')
