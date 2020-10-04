@@ -12,6 +12,7 @@ from ceryle.commands.copy import Copy
 from ceryle.commands.remove import Remove
 from ceryle.commands.executable import executable, executable_with
 from ceryle.commands.builtin import save_input_to
+from ceryle.tasks.task import SingleValueCommandInput
 from ceryle.tasks.condition import Condition
 from ceryle.dsl.parser import parse_tasks
 from . import support, TaskFileError
@@ -101,6 +102,7 @@ def _prepare_vars(global_vars, local_vars, additional_args):
         path=support.joinpath,
         env=support.Env,
         arg=arg_fun,
+        as_single_value=SingleValueCommandInput,
     )
     return gvars, lvars
 

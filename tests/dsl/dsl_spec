@@ -55,6 +55,14 @@ default = 'foo'
             'run': save_input_to(path('output/logs/pipe.log')),
             'conditional_on': condition.HAS_INPUT,
             'input': ('pipe', 'PIPE_OUTPUT'),
+        }, {
+            'run': command('do some'),
+            # multi lines as single value
+            'input': as_single_value('pipe', 'PIPE_OUTPUT'),
+        }, {
+            'run': command('do some'),
+            # multi inputs
+            'input': [('pipe', 'PIPE_OUTPUT'), as_single_value('pipe', 'PIPE_OUTPUT')]
         }],
     },
 
