@@ -2,11 +2,7 @@ import pathlib
 import pytest
 
 from ceryle import NoArgumentError, NoEnvironmentError
-from ceryle.dsl.support import joinpath, Arg, Env
-
-
-def test_joinpath():
-    assert joinpath('foo', 'bar') == str(pathlib.Path('foo', 'bar'))
+from ceryle.dsl.support import joinpath, ArgumentBase, Arg, Env, PathArg
 
 
 class TestEnv:
@@ -242,3 +238,118 @@ class TestArg:
         arg = arg1 + arg2
         assert isinstance(arg, Arg)
         assert str(arg) == "'2' + arg(FOO) + '3' + '4' + arg(BAR) + '5'"
+
+
+def stub_arg(v):
+    return Arg('A', {'A': v})
+
+
+class TestPathArg:
+    @pytest.mark.parametrize(
+        'path, expected', [
+            (('x',), pathlib.Path('x')),
+            ((stub_arg('x'),), pathlib.Path('x')),
+            (('a', stub_arg('x')), pathlib.Path('a', 'x')),
+            ((stub_arg('x'), 'b'), pathlib.Path('x', 'b')),
+            (('a', stub_arg('x'), 'b'), pathlib.Path('a', 'x', 'b')),
+            ((stub_arg('x'), stub_arg('y')), pathlib.Path('x', 'y')),
+            ((stub_arg('x'), 'a', stub_arg('y')), pathlib.Path('x', 'a', 'y')),
+        ])
+    def test_evaluate_returns_value(self, path, expected):
+        assert PathArg(*path).evaluate() == str(expected)
+
+    def test_combine_str_right(self):
+        p_arg1 = PathArg('x', 'y')
+
+        p_arg = p_arg1 + '.png'
+
+        assert isinstance(p_arg, PathArg)
+        assert p_arg is not p_arg1
+        assert p_arg.evaluate() == str(pathlib.Path('x', 'y.png'))
+
+    def test_combine_str_left(self):
+        p_arg1 = PathArg('x', 'y')
+
+        p_arg = 'protocol:' + p_arg1
+
+        assert isinstance(p_arg, PathArg)
+        assert p_arg is not p_arg1
+        assert p_arg.evaluate() == 'protocol:' + str(pathlib.Path('x', 'y'))
+
+    def test_combine_str_left_right(self):
+        p_arg1 = PathArg('x', 'y')
+
+        p_arg = 'protocol:' + p_arg1 + '.png'
+
+        assert isinstance(p_arg, PathArg)
+        assert p_arg is not p_arg1
+        assert p_arg.evaluate() == 'protocol:' + str(pathlib.Path('x', 'y.png'))
+
+    def test_combine_arg_right(self):
+        arg = Arg('FOO', {'FOO': '.png'})
+        p_arg1 = PathArg('x', 'y')
+
+        p_arg = p_arg1 + arg
+
+        assert isinstance(p_arg, ArgumentBase)
+        assert p_arg is not arg
+        assert p_arg is not p_arg1
+        assert p_arg.evaluate() == str(pathlib.Path('x', 'y.png'))
+
+    def test_combine_arg_left(self):
+        arg = Arg('FOO', {'FOO': 'abc:'})
+        p_arg1 = PathArg('x', 'y')
+
+        p_arg = arg + p_arg1
+
+        assert isinstance(p_arg, ArgumentBase)
+        assert p_arg is not arg
+        assert p_arg is not p_arg1
+        assert p_arg.evaluate() == 'abc:' + str(pathlib.Path('x', 'y'))
+
+    def test_combine_arg_left_right(self):
+        arg1 = Arg('FOO', {'FOO': 'abc:'})
+        arg2 = Arg('BAR', {'BAR': '.png'})
+        p_arg1 = PathArg('x', 'y')
+
+        p_arg = arg1 + p_arg1 + arg2
+
+        assert isinstance(p_arg, ArgumentBase)
+        assert p_arg is not arg1
+        assert p_arg is not arg2
+        assert p_arg is not p_arg1
+        assert p_arg.evaluate() == 'abc:' + str(pathlib.Path('x', 'y.png'))
+
+    @pytest.mark.parametrize(
+        'p_arg, expected', [
+            (PathArg('x'), 'path(x)'),
+            (PathArg('x', 'y'), 'path(x/y)'),
+            (PathArg('x\\y'), 'path(x\\y)'),
+            ('abc:' + PathArg('x', 'y'), "'abc:' + path(x/y)"),
+            (PathArg('x', 'y') + '.png', "path(x/y) + '.png'"),
+            (PathArg(stub_arg('v'), 'x'), f'path({stub_arg("v")}/x)'),
+            (stub_arg('v') + PathArg('x', 'y'), f'{stub_arg("v")} + path(x/y)'),
+        ])
+    def test_str(self, p_arg, expected):
+        assert str(p_arg) == expected
+
+
+class TestJoinpath:
+    def test_only_strs(self):
+        p = joinpath('foo', 'bar')
+        assert p.evaluate() == str(pathlib.Path('foo', 'bar'))
+
+    @pytest.mark.parametrize(
+        'path, expected', [
+            ((stub_arg('x'),), pathlib.Path('x')),
+            (('a', stub_arg('x')), pathlib.Path('a', 'x')),
+            ((stub_arg('x'), 'b'), pathlib.Path('x', 'b')),
+            (('a', stub_arg('x'), 'b'), pathlib.Path('a', 'x', 'b')),
+            ((stub_arg('x'), stub_arg('y')), pathlib.Path('x', 'y')),
+            ((stub_arg('x'), 'a', stub_arg('y')), pathlib.Path('x', 'a', 'y')),
+        ])
+    def test_with_arg(self, path, expected):
+        p = joinpath(*path)
+
+        assert isinstance(p, PathArg)
+        assert p.evaluate() == str(expected)

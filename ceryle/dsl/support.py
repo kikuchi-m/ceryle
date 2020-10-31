@@ -9,10 +9,6 @@ from . import NoArgumentError, NoEnvironmentError
 logger = logging.getLogger(__name__)
 
 
-def joinpath(*path):
-    return str(pathlib.Path(*path))
-
-
 class ArgumentBase(abc.ABC):
     def __init__(self, name, default=None, allow_empty=False, format=None):
         self._name = util.assert_type(name, str)
@@ -136,3 +132,33 @@ class Arg(ArgumentBase):
     def _str_format(self):
         args = ', '.join(self._str_args())
         return f'arg({args})'
+
+
+class PathArg(ArgumentBase):
+    def __init__(self, *segments):
+        super().__init__('PathArg')
+        if len(segments) == 0:
+            raise ValueError('require at least 1 segment')
+        self._segments = [util.assert_type(seg, str, ArgumentBase) for seg in segments]
+
+    def _copy(self):
+        return PathArg(*self._segments)
+
+    def _eval_var(self):
+        return pathlib.Path(*[_eval_path_seg(s) for s in self._segments])
+
+    def _str_format(self):
+        p = '/'.join([str(s) for s in self._segments])
+        return f'path({p})'
+
+
+def _eval_path_seg(s):
+    if isinstance(s, str):
+        return s
+    if isinstance(s, ArgumentBase):
+        return s.evaluate()
+    raise TypeError(f'could not evaluate {type(s)} ({s})')
+
+
+def joinpath(*path):
+    return PathArg(*path)
