@@ -1,7 +1,10 @@
 import pathlib
 import tempfile
 
+import pytest
+
 from ceryle import Copy, ExecutionResult
+from ceryle.dsl.support import Arg, PathArg
 
 
 def test_copy_file_to_file():
@@ -91,7 +94,7 @@ def test_copy_file_into_directory():
             assert fp.read().rstrip() == 'copy test'
 
 
-def test_copy_file_into_directory_overwite():
+def test_copy_file_into_directory_overwrite():
     '''
     src: file1
     dst: dst_dir/
@@ -128,7 +131,7 @@ def test_copy_directory_to_directory():
     '''
     src: d1/
       d1/f1
-    dst: d2 (directory not exists)
+    dst: d2 (not exist)
     expected:
       d2/f1
     '''
@@ -160,7 +163,7 @@ def test_copy_directory_to_existing_directory():
     src: d1/
       d1/f1
       d1/d2/f2
-    dst: d/d1/
+    dst: d/d1/ (directory exists)
       d/d1/f3
     expected:
       d/d1/f1
@@ -289,3 +292,37 @@ def test_copy_glob_files_recursive():
         assert dstd.joinpath('f1.txt').is_file() is True
         assert dstd.joinpath('f2.py').exists() is False
         assert dstd.joinpath('d2', 'd3', 'f3.txt').is_file() is True
+
+
+@pytest.mark.parametrize(
+    'src_arg, dst_arg', [
+        (Arg('TEST_SRC', {'TEST_SRC': 'file1'}), Arg('TEST_DST', {'TEST_DST': 'dst_dir/dst_file'})),
+        (PathArg('file1'), PathArg('dst_dir', 'dst_file')),
+    ])
+def test_copy_file_by_arg(src_arg, dst_arg):
+    '''
+    src: file1
+    dst: dst_dir/dst_file (neither directory nor file exists)
+    expected:
+      dst_dir/dst_file
+    '''
+    with tempfile.TemporaryDirectory() as tmpd:
+        srcf = pathlib.Path(tmpd, 'file1')
+        with open(srcf, 'w') as fp:
+            fp.write('copy test')
+
+        dstd = pathlib.Path(tmpd, 'dst_dir')
+        dstf = dstd.joinpath('dst_file')
+
+        assert srcf.is_file() is True
+        assert dstf.exists() is False
+
+        # copy = Copy('file1', str(pathlib.Path('dst_dir', 'dst_file')))
+        copy = Copy(src_arg, dst_arg)
+        res = copy.execute(context=tmpd)
+
+        assert isinstance(res, ExecutionResult)
+        assert res.return_code == 0
+        assert dstf.is_file() is True
+        with open(dstf) as fp:
+            assert fp.read().rstrip() == 'copy test'

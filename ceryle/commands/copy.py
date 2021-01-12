@@ -4,19 +4,21 @@ import shutil
 
 import ceryle.util as util
 from ceryle.commands.executable import Executable, ExecutionResult
+from ceryle.dsl.support import ArgumentBase
 
 logger = logging.getLogger(__name__)
 
 
 class Copy(Executable):
     def __init__(self, src, dst, glob=None):
-        self._src = util.assert_type(src, str, pathlib.Path)
-        self._dst = util.assert_type(dst, str, pathlib.Path)
+        self._src = util.assert_type(src, str, pathlib.Path, ArgumentBase)
+        self._dst = util.assert_type(dst, str, pathlib.Path, ArgumentBase)
         self._glob = util.assert_type(glob, None, str)
 
     def execute(self, *args, context=None, **kwargs):
-        srcpath = pathlib.Path(context, self._src)
-        dstpath = pathlib.Path(context, self._dst)
+        [src, dst], _ = self.preprocess([self._src, self._dst], {})
+        srcpath = pathlib.Path(context, src)
+        dstpath = pathlib.Path(context, dst)
 
         if not srcpath.exists():
             util.print_err(f'copy source not found: {self._src}')

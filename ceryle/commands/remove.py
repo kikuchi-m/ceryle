@@ -5,18 +5,20 @@ import pathlib
 
 import ceryle.util as util
 from ceryle.commands.executable import Executable, ExecutionResult
+from ceryle.dsl.support import ArgumentBase
 
 logger = logging.getLogger(__name__)
 
 
 class Remove(Executable):
     def __init__(self, *targets, glob=False):
-        self._targets = [util.assert_type(t, str, pathlib.Path) for t in targets]
+        self._targets = [util.assert_type(t, str, pathlib.Path, ArgumentBase) for t in targets]
         self._glob = util.assert_type(glob, bool)
 
     def execute(self, context=None, **kwargs):
         rm_fun = _remove_glob if self._glob else _remove
-        for target in self._targets:
+        targets, _ = self.preprocess(self._targets, {})
+        for target in targets:
             if not rm_fun(pathlib.Path(context, target)):
                 return ExecutionResult(1)
         return ExecutionResult(0)

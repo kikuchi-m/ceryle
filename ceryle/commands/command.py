@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 import ceryle.util as util
 from ceryle import CeryleException
 from ceryle.commands.executable import Executable, ExecutionResult
+from ceryle.dsl.support import ArgumentBase
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 class Command(Executable):
     def __init__(self, cmd, cwd=None, inputs_as_args=False, env={}):
         self._cmd = extract_cmd(cmd)
-        self._cwd = util.assert_type(cwd, None, str, pathlib.Path)
+        self._cwd = util.assert_type(cwd, None, str, pathlib.Path, ArgumentBase)
         self._as_args = util.assert_type(inputs_as_args, bool)
         self._env = util.assert_type(env, dict)
 
@@ -53,12 +54,13 @@ class Command(Executable):
 
     def _get_cwd(self, context=None):
         if self._cwd:
-            cwd = pathlib.Path(self._cwd)
+            [cwd], _ = self.preprocess([self._cwd], {})
+            cwd = pathlib.Path(cwd)
             if cwd.is_absolute():
-                return self._cwd
+                return cwd
             if context:
-                return str(pathlib.Path(context, self._cwd))
-            return self._cwd
+                return str(pathlib.Path(context, cwd))
+            return cwd
         return context
 
     def _with_os_env(self, env):

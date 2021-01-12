@@ -6,6 +6,7 @@ import tempfile
 import pytest
 
 from ceryle import Remove, ExecutionResult
+from ceryle.dsl.support import Arg, Env, PathArg
 
 IS_WIN = platform.system() == 'Windows'
 WIN_ADMIN = False
@@ -213,3 +214,35 @@ def test_remove_directory_tree_containing_symlinks_to_outside_of_direcotry():
         assert pathlib.Path(tmpd, 'd1').exists() is False
         for f in [f1, f2]:
             assert f.is_file() is True
+
+
+def test_remove_file_by_args(mocker):
+    '''
+    context:
+      d/f1
+      d/f2
+      d/f3
+    '''
+    with tempfile.TemporaryDirectory() as tmpd:
+        f1 = pathlib.Path(tmpd, 'd', 'f1')
+        f2 = pathlib.Path(tmpd, 'd', 'f2')
+        f3 = pathlib.Path(tmpd, 'd', 'f3')
+        f1.parent.mkdir(parents=True)
+        for f in [f1, f2, f3]:
+            with open(f, 'w'):
+                pass
+            assert f.is_file() is True
+
+        mocker.patch.dict('os.environ', {'TEST_REMOVE_TARGET2': 'd/f2'})
+
+        remove = Remove(
+            Arg('TEST_REMOVE_TARGET1', {'TEST_REMOVE_TARGET1': 'd/f1'}),
+            Env('TEST_REMOVE_TARGET2'),
+            PathArg('d', 'f3'))
+        res = remove.execute(context=tmpd)
+
+        assert isinstance(res, ExecutionResult)
+        assert res.return_code == 0
+        for f in [f1, f2, f3]:
+            assert f.exists() is False
+        assert f2.parent.is_dir() is True

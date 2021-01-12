@@ -8,7 +8,7 @@ import tempfile
 import pytest
 
 from ceryle import Command, CommandFormatError
-from ceryle.dsl.support import Arg, Env
+from ceryle.dsl.support import Arg, Env, PathArg
 from ceryle.util import std_capture
 
 FILE_DIR = os.path.dirname(__file__)
@@ -87,7 +87,7 @@ class TestForPosix:
 
     def test_execute_command(self):
         with std_capture() as (o, e):
-            command = Command('echo foo')
+            command = Command(['echo', 'foo'])
             assert command.execute().return_code == 0
             assert o.getvalue().rstrip() == 'foo'
 
@@ -237,6 +237,26 @@ class TestForPosix:
         res = command.execute()
         assert res.return_code == 0
         assert res.stdout == ['AAA BBB']
+
+    def test_execute_command_containing_arg(self):
+        arg = Arg('FOO', {'FOO': 'ceryle command arg test'})
+        command = Command(['echo', arg])
+        res = command.execute()
+
+        assert res.return_code == 0
+        assert res.stdout == ['ceryle command arg test']
+
+    @pytest.mark.parametrize(
+        'cwd', [
+            Arg('TEST_CWD', {'TEST_CWD': str(FILE_DIR)}),
+            PathArg(str(FILE_DIR)),
+        ])
+    def test_execute_with_cwd_by_arg(self, cwd):
+        with_env = Command('./scripts/env_test.sh', cwd=cwd)
+        with_env_res = with_env.execute()
+
+        assert with_env_res.return_code == 0
+        assert with_env_res.stdout == ['']
 
 
 @pytest.mark.skipif(platform.system() != 'Windows', reason='Not a Windows platform')
