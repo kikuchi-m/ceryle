@@ -426,3 +426,23 @@ class TestForWin:
         res = command.execute()
         assert res.return_code == 0
         assert res.stdout == ['AAA BBB']
+
+    def test_execute_command_containing_arg(self):
+        arg = Arg('FOO', {'FOO': 'ceryle command arg test'})
+        command = Command(['echo', arg])
+        res = command.execute()
+
+        assert res.return_code == 0
+        assert res.stdout == ['"ceryle command arg test"']
+
+    @pytest.mark.parametrize(
+        'cwd', [
+            Arg('TEST_CWD', {'TEST_CWD': str(FILE_DIR)}),
+            PathArg(str(FILE_DIR)),
+        ])
+    def test_execute_with_cwd_by_arg(self, cwd):
+        with_env = Command('./scripts/env_test', cwd=cwd)
+        with_env_res = with_env.execute()
+
+        assert with_env_res.return_code == 0
+        assert with_env_res.stdout == ['""']
