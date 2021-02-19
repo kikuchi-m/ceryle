@@ -120,6 +120,39 @@ class TestEnv:
         assert isinstance(env, Env)
         assert str(env) == "'2' + env(FOO) + '3' + '4' + env(BAR) + '5'"
 
+    def test_eq_self(self):
+        env = Env('FOO')
+
+        assert env == env
+
+    @pytest.mark.parametrize(
+        'env1, env2, expected', [
+            (Env('FOO'), Env('FOO'), True),
+            (Env('FOO', allow_empty=True, default='dev', format='lib-%s.so'),
+             Env('FOO', allow_empty=True, default='dev', format='lib-%s.so'),
+             True),
+            (Env('FOO', allow_empty=False), Env('FOO', allow_empty=True), False),
+            (Env('FOO', default='dev'), Env('FOO', default='prod'), False),
+            (Env('FOO', format='lib-%s.so'), Env('FOO', format='lib-%s.dll'), False),
+            (Env('FOO'), None, False),
+            (Env('FOO'), 'FOO', False),
+
+            (Env('FOO') + 'X', Env('FOO') + 'X', True),
+            ('X' + Env('FOO'), 'X' + Env('FOO'), True),
+            (Env('FOO') + Env('X'), Env('FOO') + Env('X'), True),
+            (Env('FOO') + Arg('X', {}), Env('FOO') + Arg('X', {}), True),
+            (Env('FOO') + PathArg('X'), Env('FOO') + PathArg('X'), True),
+
+            (Env('FOO'), Env('FOO') + 'X', False),
+            (Env('FOO'), 'X' + Env('FOO'), False),
+            (Env('FOO'), Env('FOO') + Env('X'), False),
+            (Env('FOO'), Env('FOO') + Arg('X', {}), False),
+            (Env('FOO'), Env('FOO') + PathArg('X'), False),
+        ])
+    def test_eq_other(self, env1, env2, expected):
+        assert (env1 == env2) is expected
+        assert (env2 == env1) is expected
+
 
 class TestArg:
     def test_evaluate_returns_value(self):
@@ -239,6 +272,52 @@ class TestArg:
         assert isinstance(arg, Arg)
         assert str(arg) == "'2' + arg(FOO) + '3' + '4' + arg(BAR) + '5'"
 
+    def test_eq_self(self):
+        arg = Arg('FOO', {'FOO': 'xxx'})
+
+        assert arg == arg
+
+    @pytest.mark.parametrize(
+        'arg1, arg2, expected', [
+            (Arg('FOO', {}), Arg('FOO', {}), True),
+            (Arg('FOO', {'FOO': 'xxx'}), Arg('FOO', {'FOO': 'xxx'}), True),
+            (Arg('FOO', {'FOO': 'xxx'}, allow_empty=True, default='dev', format='lib-%s.so'),
+             Arg('FOO', {'FOO': 'xxx'}, allow_empty=True, default='dev', format='lib-%s.so'),
+             True),
+            (Arg('FOO', {'FOO': 'x'}),
+             Arg('FOO', {'BAR': 'x'}),
+             False),
+            (Arg('FOO', {'FOO': 'x'}),
+             Arg('FOO', {'FOO': 'y'}),
+             False),
+            (Arg('FOO', {}, allow_empty=False),
+             Arg('FOO', {}, allow_empty=True),
+             False),
+            (Arg('FOO', {}, default='dev'),
+             Arg('FOO', {}, default='prod'),
+             False),
+            (Arg('FOO', {}, format='lib-%s.so'),
+             Arg('FOO', {}, format='lib-%s.dll'),
+             False),
+            (Arg('FOO', {}), None, False),
+            (Arg('FOO', {}), 'FOO', False),
+
+            (Arg('FOO', {}) + 'X', Arg('FOO', {}) + 'X', True),
+            ('X' + Arg('FOO', {}), 'X' + Arg('FOO', {}), True),
+            (Arg('FOO', {}) + Arg('X', {}), Arg('FOO', {}) + Arg('X', {}), True),
+            (Arg('FOO', {}) + Env('X'), Arg('FOO', {}) + Env('X'), True),
+            (Arg('FOO', {}) + PathArg('X'), Arg('FOO', {}) + PathArg('X'), True),
+
+            (Arg('FOO', {}), Arg('FOO', {}) + 'X', False),
+            (Arg('FOO', {}), 'X' + Arg('FOO', {}), False),
+            (Arg('FOO', {}), Arg('FOO', {}) + Arg('X', {}), False),
+            (Arg('FOO', {}), Arg('FOO', {}) + Env('X'), False),
+            (Arg('FOO', {}), Arg('FOO', {}) + PathArg('X'), False),
+        ])
+    def test_eq_other(self, arg1, arg2, expected):
+        assert (arg1 == arg2) is expected
+        assert (arg2 == arg1) is expected
+
 
 def stub_arg(v):
     return Arg('A', {'A': v})
@@ -353,3 +432,33 @@ class TestJoinpath:
 
         assert isinstance(p, PathArg)
         assert p.evaluate() == str(expected)
+
+    def test_eq_self(self):
+        p = PathArg('a')
+
+        assert p == p
+
+    @pytest.mark.parametrize(
+        'p1, p2, expected', [
+            (PathArg('a'), PathArg('a'), True),
+            (PathArg('a', 'b'), PathArg('a', 'b'), True),
+            (PathArg('a'), PathArg('c'), False),
+            (PathArg('a', 'b'), PathArg('a', 'c'), False),
+            (PathArg('a'), None, False),
+            (PathArg('a'), 'a', False),
+
+            (PathArg('a') + 'X', PathArg('a') + 'X', True),
+            ('X' + PathArg('a'), 'X' + PathArg('a'), True),
+            (PathArg('a') + Arg('X', {}), PathArg('a') + Arg('X', {}), True),
+            (PathArg('a') + Env('X'), PathArg('a') + Env('X'), True),
+            (PathArg('a') + PathArg('x'), PathArg('a') + PathArg('x'), True),
+
+            (PathArg('a'), PathArg('a') + 'X', False),
+            (PathArg('a'), 'X' + PathArg('a'), False),
+            (PathArg('a'), PathArg('a') + Env('X'), False),
+            (PathArg('a'), PathArg('a') + Arg('X', {}), False),
+            (PathArg('a'), PathArg('a') + PathArg('b'), False),
+        ])
+    def test_eq_other(self, p1, p2, expected):
+        assert (p1 == p2) is expected
+        assert (p2 == p1) is expected

@@ -28,11 +28,11 @@ class ArgumentBase(abc.ABC):
 
     def _join(self, o, left=False):
         util.assert_type(o, str, ArgumentBase)
-        ne = self._copy()
-        ne._original = self
-        ne._other = o
-        ne._left = left
-        return ne
+        a = self._copy()
+        a._original = self
+        a._other = o
+        a._left = left
+        return a
 
     @abc.abstractmethod
     def _copy(self):
@@ -74,6 +74,15 @@ class ArgumentBase(abc.ABC):
 
     def __repr__(self):
         return str(self)
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+        if other is None:
+            return False
+        if type(other) is not type(self):
+            return NotImplemented
+        return self.__dict__ == other.__dict__
 
 
 def eval_arg(a, fail_on_unknown=True):
