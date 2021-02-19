@@ -14,54 +14,44 @@ from ceryle.util import std_capture
 FILE_DIR = os.path.dirname(__file__)
 
 
-def test_new_command():
-    # command part strings by list
-    command = Command(['ls', '-a'])
-    assert command.cmd == ['ls', '-a']
-    assert str(command) == '[ls -a]'
+def stub_env():
+    return Env('FOO')
 
-    # syntax sugar
-    command = Command('ls -a')
-    assert command.cmd == ['ls', '-a']
-    assert str(command) == '[ls -a]'
 
-    # syntax sugar with double quoted
-    command = Command('echo "a b"')
-    assert command.cmd == ['echo', 'a b']
-    assert str(command) == '[echo "a b"]'
+def stub_arg():
+    return Arg('BAR', {})
 
-    command = Command(' foo "a b" c  d  ')
-    assert command.cmd == ['foo', 'a b', 'c', 'd']
-    assert str(command) == '[foo "a b" c d]'
 
-    # with escape sequence
-    command = Command('echo a\\"b')
-    assert command.cmd == ['echo', 'a\\"b']
-    assert str(command) == '[echo a\\"b]'
+def stub_path_arg():
+    return PathArg('a', 'b')
 
-    command = Command('echo a \\"b')
-    assert command.cmd == ['echo', 'a', '\\"b']
-    assert str(command) == '[echo a \\"b]'
 
-    command = Command('echo a b\\"')
-    assert command.cmd == ['echo', 'a', 'b\\"']
-    assert str(command) == '[echo a b\\"]'
-
-    command = Command('echo a \\"')
-    assert command.cmd == ['echo', 'a', '\\"']
-    assert str(command) == '[echo a \\"]'
-
-    command = Command('echo a\\"b c')
-    assert command.cmd == ['echo', 'a\\"b', 'c']
-    assert str(command) == '[echo a\\"b c]'
-
-    command = Command('echo a\\"b c "d e"')
-    assert command.cmd == ['echo', 'a\\"b', 'c', 'd e']
-    assert str(command) == '[echo a\\"b c "d e"]'
-
-    # env and arg
-    command = Command(['do-some', Env('FOO'), Arg('BAR', {})])
-    assert str(command) == '[do-some env(FOO) arg(BAR)]'
+@pytest.mark.parametrize(
+    'cmd_in, cmd, cmd_str', [
+        (['ls', '-a'], ['ls', '-a'], '[ls -a]'),
+        ('ls -a', ['ls', '-a'], '[ls -a]'),
+        # syntax sugar with double quoted
+        ('echo "a b"', ['echo', 'a b'], '[echo "a b"]'),
+        (' foo "a b" c  d  ', ['foo', 'a b', 'c', 'd'], '[foo "a b" c d]'),
+        # with escape sequence
+        ('echo a\\"b', ['echo', 'a\\"b'], '[echo a\\"b]'),
+        ('echo a \\"b', ['echo', 'a', '\\"b'], '[echo a \\"b]'),
+        ('echo a b\\"', ['echo', 'a', 'b\\"'], '[echo a b\\"]'),
+        ('echo a \\"', ['echo', 'a', '\\"'], '[echo a \\"]'),
+        ('echo a\\"b c', ['echo', 'a\\"b', 'c'], '[echo a\\"b c]'),
+        ('echo a\\"b c "d e"', ['echo', 'a\\"b', 'c', 'd e'], '[echo a\\"b c "d e"]'),
+        # env and arg
+        (['do-some', stub_env(), stub_arg(), stub_path_arg()],
+         ['do-some', stub_env(), stub_arg(), stub_path_arg()],
+         f'[do-some {stub_env()} {stub_arg()} {stub_path_arg()}]'),
+        (stub_env(), [stub_env()], f'[{stub_env()}]'),
+        (stub_arg(), [stub_arg()], f'[{stub_arg()}]'),
+        (stub_path_arg(), [stub_path_arg()], f'[{stub_path_arg()}]'),
+    ])
+def test_new_command(cmd_in, cmd, cmd_str):
+    command = Command(cmd_in)
+    assert command.cmd == cmd
+    assert str(command) == cmd_str
 
 
 def test_raise_if_invalid_command():

@@ -106,6 +106,8 @@ def extract_cmd(cmd):
                 break
             parts.append(s)
             trimmed = trimmed[seed:].lstrip()
+    elif isinstance(cmd, ArgumentBase):
+        parts = [cmd]
     else:
         parts = util.assert_type(cmd, list)
     if util.is_win() and isinstance(parts[0], str) and parts[0].startswith('./'):
