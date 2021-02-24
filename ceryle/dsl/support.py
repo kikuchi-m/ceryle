@@ -148,7 +148,7 @@ class PathArg(ArgumentBase):
         super().__init__('PathArg')
         if len(segments) == 0:
             raise ValueError('require at least 1 segment')
-        self._segments = [util.assert_type(seg, str, ArgumentBase) for seg in segments]
+        self._segments = [util.assert_type(seg, str, pathlib.Path, ArgumentBase) for seg in segments]
 
     def _copy(self):
         return PathArg(*self._segments)
@@ -162,7 +162,7 @@ class PathArg(ArgumentBase):
 
 
 def _eval_path_seg(s):
-    if isinstance(s, str):
+    if isinstance(s, str) or isinstance(s, pathlib.Path):
         return s
     if isinstance(s, ArgumentBase):
         return s.evaluate()

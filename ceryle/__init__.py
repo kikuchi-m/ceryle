@@ -25,7 +25,6 @@ from .tasks.runner import TaskRunner, RunCache
 from .dsl import TaskFileError, NoArgumentError, NoEnvironmentError
 from .dsl.loader import TaskFileLoader, ExtensionLoader, TaskDefinition
 from .dsl.aggregate_loader import AggregateTaskFileLoader, load_task_files
-from .dsl.support import joinpath as path
 
 import datetime as dt
 import logging

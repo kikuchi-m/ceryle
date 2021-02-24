@@ -327,6 +327,10 @@ class TestPathArg:
     @pytest.mark.parametrize(
         'path, expected', [
             (('x',), pathlib.Path('x')),
+            (('x', 'y'), pathlib.Path('x/y')),
+            ((pathlib.Path('x'),), pathlib.Path('x')),
+            (('x', pathlib.Path('y')), pathlib.Path('x/y')),
+            ((pathlib.Path('x'), pathlib.Path('y')), pathlib.Path('x/y')),
             ((stub_arg('x'),), pathlib.Path('x')),
             (('a', stub_arg('x')), pathlib.Path('a', 'x')),
             ((stub_arg('x'), 'b'), pathlib.Path('x', 'b')),
