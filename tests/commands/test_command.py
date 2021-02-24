@@ -74,7 +74,7 @@ class TestAnyPlatform:
             command = Command('./scripts/sample1', cwd=FILE_DIR)
             assert command.execute().return_code == 0
             lines = [l.rstrip() for l in o.getvalue().splitlines()]
-            assert lines == ['hello', 'good-by']
+            assert lines == ['hello', 'good-bye']
 
     def test_execute_script_with_error(self):
         with std_capture() as (o, e):
@@ -97,6 +97,21 @@ class TestAnyPlatform:
         assert len(result.stdout) == 0
         assert len(result.stderr) == 1
         assert result.stderr[0].rstrip() == 'sample error'
+
+    def test_execute_script_quiet(self):
+        with std_capture() as (o, e):
+            command = Command('./scripts/sample1', cwd=FILE_DIR, quiet=True)
+            result = command.execute()
+            assert result.return_code == 0
+            assert result.stdout == ['hello', 'good-bye']
+            lines = [l.rstrip() for l in o.getvalue().splitlines()]
+            assert lines == []
+
+    def test_execute_script_quiet_with_error(self):
+        with std_capture() as (o, e):
+            command = Command('./scripts/stderr', cwd=FILE_DIR, quiet=True)
+            assert command.execute().return_code == 3
+            assert re.match('.*sample error.*', e.getvalue().rstrip())
 
     def test_execute_with_inputs_as_args(self):
         with std_capture() as (o, e):
@@ -122,7 +137,7 @@ class TestAnyPlatform:
                 command = Command('./sample1')
                 assert command.execute(context=str(context)).return_code == 0
                 lines = [l.rstrip() for l in o.getvalue().splitlines()]
-                assert lines == ['hello', 'good-by']
+                assert lines == ['hello', 'good-bye']
 
     def test_execute_with_context_and_cwd(self):
         with tempfile.TemporaryDirectory() as tmpd:
@@ -138,7 +153,7 @@ class TestAnyPlatform:
                 command = Command('./sample1', cwd=sub_dir)
                 assert command.execute(context=str(context)).return_code == 0
                 lines = [l.rstrip() for l in o.getvalue().splitlines()]
-                assert lines == ['hello', 'good-by']
+                assert lines == ['hello', 'good-bye']
 
     def test_execute_absolute_cwd(self):
         with tempfile.TemporaryDirectory() as tmpd1, tempfile.TemporaryDirectory() as tmpd2:
@@ -154,7 +169,7 @@ class TestAnyPlatform:
                 command = Command('./sample1', cwd=str(cwd))
                 assert command.execute(context=str(context)).return_code == 0
                 lines = [l.rstrip() for l in o.getvalue().splitlines()]
-                assert lines == ['hello', 'good-by']
+                assert lines == ['hello', 'good-bye']
 
 
 @pytest.mark.skipif(platform.system() == 'Windows', reason='Not a Windows platform')

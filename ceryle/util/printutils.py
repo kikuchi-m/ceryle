@@ -53,8 +53,17 @@ class StderrPrinter(Printer):
         print_err(line, font=self._font)
 
 
-def print_stream(s, error=False):
-    printer = StderrPrinter() if error else StdoutPrinter()
+class QuietPrinter(Printer):
+    def printline(self, line):
+        logger.debug(line)
+
+
+def print_stream(s, error=False, quiet=False):
+    printer = {
+        1: StdoutPrinter,
+        2: StderrPrinter,
+        4: QuietPrinter,
+    }[quiet << 2 or error << 1 or 1]()
     out = []
     for line in s:
         decoded = str.rstrip(line.decode() if isinstance(line, bytes) else line)

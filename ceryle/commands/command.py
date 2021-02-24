@@ -15,10 +15,11 @@ logger = logging.getLogger(__name__)
 
 
 class Command(Executable):
-    def __init__(self, cmd, cwd=None, inputs_as_args=False, env={}):
+    def __init__(self, cmd, cwd=None, inputs_as_args=False, quiet=False, env={}):
         self._cmd = extract_cmd(cmd)
         self._cwd = util.assert_type(cwd, None, str, pathlib.Path, ArgumentBase)
         self._as_args = util.assert_type(inputs_as_args, bool)
+        self._quiet = quiet
         self._env = util.assert_type(env, dict)
 
     def execute(self, context=None, inputs=[], timeout=None):
@@ -42,9 +43,9 @@ class Command(Executable):
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if communicate:
             stds = proc.communicate(input=os.linesep.join(inputs).encode(), timeout=timeout)
-            o, e = print_std_streams(*[std.decode().rstrip().split(os.linesep) for std in stds])
+            o, e = print_std_streams(*[std.decode().rstrip().split(os.linesep) for std in stds], quiet=self._quiet)
         else:
-            o, e = print_std_streams(proc.stdout, proc.stderr)
+            o, e = print_std_streams(proc.stdout, proc.stderr, quiet=self._quiet)
             proc.wait()
 
         res = ExecutionResult(proc.returncode, stdout=o, stderr=e)
@@ -137,9 +138,9 @@ def next_part(cmdstr):
     return cmdstr.strip(), -1
 
 
-def print_std_streams(stdout, stderr):
+def print_std_streams(stdout, stderr, quiet=False):
     with ThreadPoolExecutor(max_workers=2) as executor:
-        return executor.map(util.print_stream, [stdout, stderr], [False, True])
+        return executor.map(util.print_stream, [stdout, stderr], [False, True],  [quiet, False])
 
 
 class CommandFormatError(CeryleException):

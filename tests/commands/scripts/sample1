@@ -1,4 +1,4 @@
 #!/bin/bash
 
 echo hello
-echo good-by
+echo good-bye
