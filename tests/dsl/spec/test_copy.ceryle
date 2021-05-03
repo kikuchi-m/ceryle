@@ -1,0 +1,17 @@
+{
+    'file-to-file': [
+        copy('source/file.txt', 'destination/file.txt'),
+        copy('source/file.txt', 'destination/new_name.txt'),
+    ],
+
+    'file-into-directory': [
+        mkdir('destination'),
+        copy('source/file.txt', 'destination'),
+    ],
+
+    'glob-pattern': [
+        mkdir('destination'),
+        copy('source', 'destination', glob_pattern='*.txt'),
+        copy('source', 'destination', glob_pattern='**/*.md'),
+    ],
+}

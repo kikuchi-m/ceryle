@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 class Copy(Executable):
-    def __init__(self, src, dst, glob=None):
+    def __init__(self, src, dst, glob_pattern=None):
         self._src = util.assert_type(src, str, pathlib.Path, ArgumentBase)
         self._dst = util.assert_type(dst, str, pathlib.Path, ArgumentBase)
-        self._glob = util.assert_type(glob, None, str)
+        self._glob = util.assert_type(glob_pattern, None, str)
 
     def execute(self, *args, context=None, **kwargs):
         [src, dst], _ = self.preprocess([self._src, self._dst], {})

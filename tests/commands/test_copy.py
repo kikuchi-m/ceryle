@@ -246,7 +246,7 @@ def test_copy_glob_files():
             assert p.is_file() is True
         assert dstd.exists() is False
 
-        copy = Copy('d1', 'dst_dir', glob='*.txt')
+        copy = Copy('d1', 'dst_dir', glob_pattern='*.txt')
         res = copy.execute(context=tmpd)
 
         assert isinstance(res, ExecutionResult)
@@ -284,7 +284,7 @@ def test_copy_glob_files_recursive():
             assert p.is_file() is True
         assert dstd.exists() is False
 
-        copy = Copy('d1', 'dst_dir', glob='**/*.txt')
+        copy = Copy('d1', 'dst_dir', glob_pattern='**/*.txt')
         res = copy.execute(context=tmpd)
 
         assert isinstance(res, ExecutionResult)

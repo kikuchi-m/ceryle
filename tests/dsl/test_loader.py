@@ -179,6 +179,9 @@ class TestExecutableSpec(DSLSpecBase):
     def test_mkdir(self):
         self.load('test_mkdir.ceryle')
 
+    def test_copy(self):
+        self.load('test_copy.ceryle')
+
 
 class TestTaskFileSpec(DSLSpecBase):
     def test_with_context(self):
