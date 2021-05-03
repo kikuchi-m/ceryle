@@ -5,7 +5,7 @@ import setuptools
 
 def read_version():
     with open(pathlib.Path(__file__).parent.joinpath('ceryle/__init__.py')) as fp:
-        m = re.search(r"^__version__ = '([\d]+(?:\.[\d]+)*)'", fp.read())
+        m = re.search(r"^__version__ = '([\d]+(?:\.[\d]+)*((a|b|rc)[\d]+)?(\.post[\d]+)?(\.dev[\d]+)?)'", fp.read())
         if m:
             return m.group(1)
         raise RuntimeError('version not fount')
