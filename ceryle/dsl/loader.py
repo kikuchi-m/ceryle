@@ -11,7 +11,7 @@ from ceryle.commands.command import Command
 from ceryle.commands.copy import Copy
 from ceryle.commands.remove import Remove
 from ceryle.commands.executable import executable, executable_with
-from ceryle.commands.builtin import save_input_to
+from ceryle.commands.builtin import mkdir, save_input_to
 from ceryle.tasks.task import SingleValueCommandInput
 from ceryle.tasks.condition import Condition
 from ceryle.dsl.parser import parse_tasks
@@ -96,6 +96,7 @@ def _prepare_vars(global_vars, local_vars, additional_args):
         copy=Copy,
         remove=Remove,
         save_input_to=save_input_to,
+        mkdir=mkdir,
         executable=executable,
         executable_with=executable_with,
         condition=Condition,

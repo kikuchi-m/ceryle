@@ -89,3 +89,9 @@ def save_input_to(path, overwrite=False, context=None, inputs=[]):
     with open(p, 'wb') as fp:
         fp.write(os.linesep.join(inputs).encode())
     return ExecutionResult(0)
+
+
+@executable
+def mkdir(*targets, context=None):
+    for t in targets:
+        pathlib.Path(context, t).mkdir(parents=True, exist_ok=True)

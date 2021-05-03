@@ -176,6 +176,9 @@ class TestExecutableSpec(DSLSpecBase):
         assert len(tg.tasks) == 1
         assert isinstance(tg.tasks[0].executable, ExecutableWrapper)
 
+    def test_mkdir(self):
+        self.load('test_mkdir.ceryle')
+
 
 class TestTaskFileSpec(DSLSpecBase):
     def test_with_context(self):

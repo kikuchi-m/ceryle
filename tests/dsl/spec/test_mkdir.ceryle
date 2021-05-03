@@ -1,0 +1,10 @@
+{
+    'mkdir-task': [
+        mkdir('dir1/subdir'),
+        mkdir(path('dir2/subdir')),
+        mkdir(arg('TARGET_DIR1')),
+        mkdir(env('TARGET_DIR2')),
+        mkdir(path('dist', arg('SUB_DIR'))),
+        mkdir('dir3', 'dir4', 'dir5'),
+    ],
+}
