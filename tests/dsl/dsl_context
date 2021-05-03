@@ -1,7 +1,0 @@
-context = 'foo/bar'
-
-{
-    'dummy': [
-        command('dummy'),
-    ]
-}

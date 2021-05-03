@@ -1,0 +1,7 @@
+{
+    'test-command': [
+        command(['my.sh', arg('X1')]),
+        command(['my.sh', arg('X2', allow_empty=True)]),
+        command(['my.sh', arg('X3', default='Y3', format='X3=%(X3)s')]),
+    ],
+}

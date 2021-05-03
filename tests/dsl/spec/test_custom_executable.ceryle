@@ -1,0 +1,10 @@
+@executable
+def my_exec(a):
+    # write your code
+    return 0
+
+{
+    'test-task': [
+        my_exec(2),
+    ]
+}

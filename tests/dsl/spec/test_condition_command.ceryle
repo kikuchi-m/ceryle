@@ -1,0 +1,6 @@
+{
+    'conditional-task': [{
+        'conditional_on': command('do some test'),
+        'run': command('do when test passed'),
+    }],
+}

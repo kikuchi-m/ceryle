@@ -1,0 +1,10 @@
+@executable
+def extension1():
+    # write your code
+    return ceryle.ExecutionResult(0, stdout=['foo'])
+
+
+@executable
+def extension2(a):
+    # write your code
+    return 0

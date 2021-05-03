@@ -1,0 +1,6 @@
+{
+    'conditional-task': [{
+        'conditional_on': condition.fail(command('test something')),
+        'run': command('do when test failed'),
+    }],
+}

@@ -1,0 +1,20 @@
+{
+    'group1': {
+        'dependencies': ['group2', 'group3'],
+        'tasks': [{
+            'run': command(['ls']),
+        }],
+    },
+
+    'group2': {
+        'tasks': [{
+            'run': command(['ls']),
+        }],
+    },
+
+    'group3': {
+        'tasks': [{
+            'run': command(['ls']),
+        }],
+    },
+}

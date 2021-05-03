@@ -25,7 +25,7 @@ if sys.version_info[1] < 8:
         return ast.Module(body)
 else:
     def ast_module(body):
-        return ast.Module(body,  [])
+        return ast.Module(body, [])
 
 
 class FileLoaderBase(abc.ABC):

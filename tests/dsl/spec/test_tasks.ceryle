@@ -1,0 +1,9 @@
+{
+    'test-tasks': {
+        'tasks': [{
+            'run': command(['ls']),
+        }, {
+            'run': command(['ls', '-l']),
+        }],
+    },
+}

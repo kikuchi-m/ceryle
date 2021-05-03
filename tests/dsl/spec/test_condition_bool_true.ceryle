@@ -1,0 +1,6 @@
+{
+    'conditional-task': [{
+        'conditional_on': True,
+        'run': command('do always'),
+    }],
+}

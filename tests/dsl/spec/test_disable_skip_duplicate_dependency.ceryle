@@ -1,0 +1,23 @@
+{
+    'group1': {
+        'dependencies': [
+            'group2',
+            'group3',
+            'group2',
+            'group3',
+        ],
+    },
+
+    'group2': {
+        'allow_skip': False,
+        'tasks': [
+            command('do some command'),
+        ],
+    },
+
+    'group3': {
+        'tasks': [
+            command('do some command'),
+        ],
+    },
+}

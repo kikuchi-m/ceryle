@@ -3,116 +3,226 @@ import pathlib
 
 import pytest
 
-from ceryle import ExecutionResult, TaskGroup, TaskFileLoader, ExtensionLoader
+from ceryle import Command, TaskFileLoader, ExtensionLoader
 from ceryle import TaskFileError
 from ceryle.commands.executable import ExecutableWrapper
+from ceryle.tasks.condition import Condition
+from ceryle.tasks.task import CommandInput, SingleValueCommandInput, MultiCommandInput
+from ceryle.dsl.support import Arg, Env, PathArg
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+CONTEXT = pathlib.Path(SCRIPT_DIR, 'spec')
 
 
-def file_path(f):
-    return pathlib.Path(SCRIPT_DIR, f)
+def spec_file(name):
+    return CONTEXT / name
 
 
-def test_load_task_file():
-    p = file_path('dsl_spec')
-    context = p.parent
-    loader = TaskFileLoader(p, str(context))
-    task_def = loader.load()
-
-    assert task_def.default_task == 'foo'
-
-    tasks = dict([(g.name, g) for g in task_def.tasks])
-    task_names = tasks.keys()
-    task_groups = [
-        'foo', 'bar', 'simple', 'shorten',
-        'pipe', 'pipe2',
-        'task_attributes', 'task_group_attributes',
-        'args',
-    ]
-    for name in task_groups:
-        assert name in task_names
-        g = tasks[name]
-        assert isinstance(g, TaskGroup)
-        assert g.filename == p
-        assert g.context == context
+class DSLSpecBase:
+    def load(self, name, context=None):
+        return TaskFileLoader(spec_file(name), context or CONTEXT).load()
 
 
-def test_load_task_file_with_context(mocker):
-    test_file = file_path('dsl_context')
-    context = test_file.parent
-    loader = TaskFileLoader(test_file, context)
-    task_def = loader.load()
+class TestTaskGroupSpec(DSLSpecBase):
+    def test_dependency(self):
+        task_def = self.load('test_dependency.ceryle')
 
-    assert task_def.tasks[0].context == context.joinpath('foo/bar')
+        assert len(task_def.tasks) == 3
 
+        tg1 = task_def.find_task_group('group1')
+        assert tg1.dependencies == ['group2', 'group3']
 
-def test_load_task_file_no_task_def(mocker):
-    test_file = file_path('dsl_no_task_def')
-    context = str(test_file.parent)
-    loader = TaskFileLoader(test_file, context)
-    with pytest.raises(TaskFileError) as e:
-        loader.load()
-    assert str(e.value) == f'No task definition found: {test_file}'
+    def test_disable_skip_duplicate_dependency(self):
+        task_def = self.load('test_disable_skip_duplicate_dependency.ceryle')
+
+        tg2 = task_def.find_task_group('group2')
+        assert tg2.allow_skip is False
 
 
-def test_load_task_file_not_dict(mocker):
-    test_file = file_path('dsl_not_dict')
-    context = str(test_file.parent)
-    loader = TaskFileLoader(test_file, context)
-    with pytest.raises(TaskFileError) as e:
-        loader.load()
-    assert str(e.value) == f'Not task definition, declare by dict form: {test_file}'
+class TestTaskSpec(DSLSpecBase):
+    def test_tasks(self):
+        task_def = self.load('test_tasks.ceryle')
+
+        tg = task_def.find_task_group('test-tasks')
+        assert tg is not None
+        assert len(tg.tasks) == 2
+
+    def test_simple_tasks(self):
+        task_def = self.load('test_simple_tasks.ceryle')
+
+        tg = task_def.find_task_group('test-tasks')
+        assert tg is not None
+        assert len(tg.tasks) == 2
+
+    def test_tasks_only(self):
+        task_def = self.load('test_tasks_only.ceryle')
+
+        tg = task_def.find_task_group('test-tasks')
+        assert tg is not None
+        assert len(tg.tasks) == 2
+
+    def test_pipe_in_same_group(self):
+        task_def = self.load('test_pipe_in_same_group.ceryle')
+
+        pipe = task_def.find_task_group('pipe')
+        assert pipe.tasks[0].stdout_key == 'PIPE_OUTPUT'
+        assert pipe.tasks[1].command_input == CommandInput('PIPE_OUTPUT')
+
+    def test_pipe_with_group(self):
+        task_def = self.load('test_pipe_with_group.ceryle')
+
+        pipe = task_def.find_task_group('pipe')
+        assert pipe.tasks[1].command_input == CommandInput('pipe', 'PIPE_OUTPUT')
+
+    def test_pipe_as_single_value(self):
+        task_def = self.load('test_pipe_as_single_value.ceryle')
+
+        pipe = task_def.find_task_group('pipe')
+        assert pipe.tasks[1].command_input == SingleValueCommandInput('PIPE_OUTPUT')
+
+    def test_pipe_multiple_inputs(self):
+        task_def = self.load('test_pipe_multiple_inputs.ceryle')
+
+        pipe = task_def.find_task_group('pipe')
+        assert pipe.tasks[2].command_input == MultiCommandInput('PIPE_OUTPUT1', ('pipe', 'PIPE_OUTPUT2'))
+
+    def test_ignore_failure(self):
+        task_def = self.load('test_ignore_failure.ceryle')
+
+        task = task_def.find_task_group('test-task')
+        assert task.tasks[0].ignore_failure is True
+
+    @pytest.mark.parametrize(
+        'ceryle_file', [
+            'test_condition_command.ceryle',
+            'test_condition_has_input.ceryle',
+            'test_condition_no_input.ceryle',
+            'test_condition_fail.ceryle',
+            'test_condition_expression.ceryle',
+            'test_condition_win.ceryle',
+            'test_condition_mac.ceryle',
+            'test_condition_linux.ceryle',
+            'test_condition_all.ceryle',
+            'test_condition_any.ceryle',
+            'test_condition_bool_true.ceryle',
+            'test_condition_bool_false.ceryle',
+        ])
+    def test_conditions(self, ceryle_file):
+        task_def = self.load(ceryle_file)
+
+        task = task_def.find_task_group('conditional-task')
+        assert isinstance(task.tasks[0].condition, Condition)
 
 
-def test_load_task_file_contains_custome_executable():
-    test_file = file_path('dsl_executable')
-    context = str(test_file.parent)
-    loader = TaskFileLoader(test_file, context)
-    task_def = loader.load()
+class TestExecutableSpec(DSLSpecBase):
+    def test_command(self):
+        task_def = self.load('test_command.ceryle')
 
-    foo = task_def.tasks[0]
+        tg = task_def.find_task_group('test-command')
 
-    assert isinstance(foo, TaskGroup)
-    assert foo.name == 'foo'
-    assert len(foo.tasks) == 1
-    assert isinstance(foo.tasks[0].executable, ExecutableWrapper)
+        assert isinstance(tg.tasks[0].executable, Command)
+        assert tg.tasks[0].executable.cmd == ['echo', 'a', 'b']
 
-    exe_res = foo.tasks[0].executable.execute()
-    assert isinstance(exe_res, ExecutionResult)
-    assert exe_res.return_code == 127
+        assert isinstance(tg.tasks[1].executable, Command)
+        assert tg.tasks[1].executable.cmd == ['echo', 'a', 'b']
+
+    def test_command_options(self):
+        task_def = self.load('test_command_options.ceryle')
+
+        tg = task_def.find_task_group('test-command')
+
+        assert tg.tasks[0].executable.cmd == ['echo', 'a', 'b']
+        assert tg.tasks[0].executable.cwd is None
+        assert tg.tasks[0].executable.inputs_as_args is False
+        assert tg.tasks[0].executable.quiet is False
+        assert tg.tasks[0].executable.env == {}
+
+        assert tg.tasks[1].executable.cmd == ['echo', 'a', 'b']
+        assert tg.tasks[1].executable.cwd == './x/y'
+        assert tg.tasks[1].executable.inputs_as_args is True
+        assert tg.tasks[1].executable.quiet is True
+        assert tg.tasks[1].executable.env == {'MY_ENV': 'foo'}
+
+    def test_command_with_arg(self):
+        task_def = self.load('test_command_with_arg.ceryle')
+
+        tg = task_def.find_task_group('test-command')
+
+        assert tg.tasks[0].executable.cmd == ['my.sh', Arg('X1', {})]
+        assert tg.tasks[1].executable.cmd == ['my.sh', Arg('X2', {}, allow_empty=True)]
+        assert tg.tasks[2].executable.cmd == ['my.sh', Arg('X3', {}, default='Y3', format='X3=%(X3)s')]
+
+    def test_command_with_env(self):
+        task_def = self.load('test_command_with_env.ceryle')
+
+        tg = task_def.find_task_group('test-command')
+
+        assert tg.tasks[0].executable.cmd == ['my.sh', Env('E1')]
+        assert tg.tasks[1].executable.cmd == ['my.sh', Env('E2', allow_empty=True)]
+        assert tg.tasks[2].executable.cmd == ['my.sh', Env('E3', default='XX', format='E3=%(E3)s')]
+
+    def test_command_with_patharg(self):
+        task_def = self.load('test_command_with_patharg.ceryle')
+
+        tg = task_def.find_task_group('test-command')
+
+        assert tg.tasks[0].executable.cmd == ['my.sh', PathArg('a', 'b')]
+
+    def test_custom_executable(self):
+        task_def = self.load('test_custom_executable.ceryle')
+
+        tg = task_def.find_task_group('test-task')
+
+        assert len(tg.tasks) == 1
+        assert isinstance(tg.tasks[0].executable, ExecutableWrapper)
 
 
-def test_load_extension_file():
-    loader = ExtensionLoader(file_path('dsl_no_task_def_executable'))
-    extensions = loader.load()
+class TestTaskFileSpec(DSLSpecBase):
+    def test_with_context(self):
+        task_def = self.load('test_with_context.ceryle', context=CONTEXT)
 
-    assert 'cmd_x' in extensions
-    assert 'cmd_y' in extensions
+        tg = task_def.find_task_group('test-task')
 
-    cmd_x = extensions['cmd_x']()
-    assert isinstance(cmd_x, ExecutableWrapper)
+        assert tg.context == CONTEXT / 'foo' / 'bar'
 
-    cmd_x_res = cmd_x.execute()
-    assert isinstance(cmd_x_res, ExecutionResult)
-    assert cmd_x_res.return_code == 0
-    assert cmd_x_res.stdout == ['cmd_x']
+    def test_no_task_def(self):
+        with pytest.raises(TaskFileError) as e:
+            self.load('test_no_task_def.ceryle')
 
-    cmd_y = extensions['cmd_y']()
-    assert isinstance(cmd_y, ExecutableWrapper)
+        task_file = spec_file('test_no_task_def.ceryle')
+        assert str(e.value) == f'No task definition found: {task_file}'
 
-    cmd_y_res = cmd_y.execute()
-    assert isinstance(cmd_y_res, ExecutionResult)
-    assert cmd_y_res.return_code == 0
-    assert cmd_y_res.stdout == ['cmd_y']
+    def test_not_dict(self):
+        with pytest.raises(TaskFileError) as e:
+            self.load('test_not_dict.ceryle')
+
+        task_file = spec_file('test_not_dict.ceryle')
+        assert str(e.value) == f'Not task definition, declare by dict form: {task_file}'
 
 
-def test_load_extension_multiple():
-    loader1 = ExtensionLoader(file_path('dsl_multiple1'))
-    loader2 = ExtensionLoader(file_path('dsl_multiple2'))
+class TestExtensionFileSpec:
+    def load(self, name, local_vars={}):
+        return ExtensionLoader(spec_file(name)).load(local_vars=local_vars)
 
-    ex1 = loader1.load()
-    ex2 = loader2.load(local_vars=ex1)
+    def test_extensions(self):
+        extensions = self.load('test_extensions.ceryle')
 
-    assert 'my_cmd1' in ex2
-    assert 'my_cmd2' in ex2
+        assert 'extension1' in extensions
+
+        extension1 = extensions['extension1']()
+        assert isinstance(extension1, ExecutableWrapper)
+
+        assert 'extension2' in extensions
+
+        extension2 = extensions['extension2'](1)
+        assert isinstance(extension2, ExecutableWrapper)
+
+    def test_load_extension_with_local_vars(self):
+        lvars = {
+            'pre_defined_var': 1,
+        }
+
+        extensions = self.load('test_extensions.ceryle', local_vars=lvars)
+
+        assert 'pre_defined_var' in extensions
+        assert extensions['pre_defined_var'] == 1

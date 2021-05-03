@@ -1,0 +1,6 @@
+{
+    'test-command': [
+        command(['echo', 'a', 'b']),
+        command('echo a b'),
+    ],
+}

@@ -1,0 +1,12 @@
+{
+    'conditional-task': [{
+        'conditional_on': condition.NO_INPUT,
+        'run': command('after pre-task'),
+        'input': ('pre-task', 'OUT1'),
+    }],
+
+    'pre-task': [{
+        'run': command('do some command'),
+        'stdout': 'OUT1',
+    }],
+}

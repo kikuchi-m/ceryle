@@ -1,0 +1,7 @@
+context = 'foo/bar'
+
+{
+    'test-task': [
+        command('do in context directory'),
+    ]
+}

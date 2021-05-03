@@ -1,0 +1,7 @@
+{
+    'test-task': [{
+        'run': command(['false']),
+        'ignore_failure': True,
+    }],
+}
+

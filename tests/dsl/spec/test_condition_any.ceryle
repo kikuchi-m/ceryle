@@ -1,0 +1,9 @@
+{
+    'conditional-task': [{
+        'conditional_on': condition.any(
+            command('do some test1'),
+            command('do some test2'),
+        ),
+        'run': command('do when any of conditions passed'),
+    }],
+}

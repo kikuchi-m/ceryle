@@ -1,0 +1,6 @@
+{
+    'conditional-task': [{
+        'conditional_on': condition.MAC,
+        'run': command('do when macOS'),
+    }],
+}

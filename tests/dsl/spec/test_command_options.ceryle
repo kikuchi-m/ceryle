@@ -1,0 +1,10 @@
+{
+    'test-command': [
+        command(['echo', 'a', 'b']),
+        command(['echo', 'a', 'b'],
+                cwd='./x/y',
+                inputs_as_args=True,
+                quiet=True,
+                env={'MY_ENV': 'foo'}),
+    ],
+}

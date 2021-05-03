@@ -1,0 +1,16 @@
+{
+    'conditional-task': [{
+        'conditional_on': condition.all(
+            condition.MAC,
+            condition.HAS_INPUT,
+            command('do some test'),
+        ),
+        'run': command('after pre-task'),
+        'input': ('pre-task', 'OUT1'),
+    }],
+
+    'pre-task': [{
+        'run': command('do some command'),
+        'stdout': 'OUT1',
+    }],
+}

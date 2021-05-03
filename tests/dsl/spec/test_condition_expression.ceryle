@@ -1,0 +1,6 @@
+{
+    'conditional-task': [{
+        'conditional_on': condition.expression(arg('BUILD_TYPE', format='"%(BUILD_TYPE)s" == "RELEASE"')),
+        'run': command('do release build'),
+    }],
+}

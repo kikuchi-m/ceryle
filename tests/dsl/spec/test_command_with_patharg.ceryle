@@ -1,0 +1,5 @@
+{
+    'test-command': [
+        command(['my.sh', path('a', 'b')]),
+    ],
+}

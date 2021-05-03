@@ -1,3 +1,0 @@
-@executable
-def my_cmd2():
-    return 255

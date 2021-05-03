@@ -1,0 +1,6 @@
+{
+    'conditional-task': [{
+        'conditional_on': condition.WIN,
+        'run': command('do when Windows'),
+    }],
+}

@@ -1,0 +1,7 @@
+{
+    'test-command': [
+        command(['my.sh', env('E1')]),
+        command(['my.sh', env('E2', allow_empty=True)]),
+        command(['my.sh', env('E3', default='XX', format='E3=%(E3)s')]),
+    ],
+}

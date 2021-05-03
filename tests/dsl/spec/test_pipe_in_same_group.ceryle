@@ -1,0 +1,9 @@
+{
+    'pipe': [{
+        'run': command('echo foo'),
+        'stdout': 'PIPE_OUTPUT',
+    }, {
+        'run': command('cat'),
+        'input': 'PIPE_OUTPUT',
+    }],
+}

@@ -1,0 +1,6 @@
+{
+    'conditional-task': [{
+        'conditional_on': False,
+        'run': command('skip always'),
+    }],
+}

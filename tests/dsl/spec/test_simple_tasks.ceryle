@@ -1,0 +1,8 @@
+{
+    'test-tasks': {
+        'tasks': [
+            command(['ls']),
+            command(['ls', '-l']),
+        ],
+    },
+}

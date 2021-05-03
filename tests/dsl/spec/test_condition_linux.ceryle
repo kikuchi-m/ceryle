@@ -1,0 +1,6 @@
+{
+    'conditional-task': [{
+        'conditional_on': condition.LINUX,
+        'run': command('do when Linux'),
+    }],
+}
