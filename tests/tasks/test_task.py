@@ -2,6 +2,7 @@ import pytest
 
 from ceryle import Command, ExecutionResult, Task
 from ceryle import IllegalOperation
+from ceryle.tasks.condition import Condition
 from ceryle.tasks.task import CommandInput, SingleValueCommandInput, MultiCommandInput
 
 
@@ -44,6 +45,7 @@ def test_run_ignore_failure(mocker):
     t = Task(executable, ignore_failure=True)
     success = t.run('context')
 
+    assert t.ignore_failure is True
     assert success is True
     executable.execute.assert_called_once()
 
@@ -120,6 +122,20 @@ def test_get_stds_raise_before_run(mocker):
     with pytest.raises(IllegalOperation) as ex2:
         t.stderr()
     assert str(ex2.value) == 'task is not run yet'
+
+
+@pytest.mark.parametrize(
+    'condition', [
+        Command('test condition'),
+        True,
+        False,
+    ])
+def test_has_condition(mocker, condition):
+    executable = Command('do some')
+
+    t = Task(executable, conditional_on=condition)
+
+    assert isinstance(t.condition, Condition)
 
 
 def test_run_conditional_on_true(mocker):

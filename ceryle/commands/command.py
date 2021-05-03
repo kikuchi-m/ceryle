@@ -81,6 +81,22 @@ class Command(Executable):
     def cmd_str(self):
         return ' '.join([quote_if_needed(p) for p in self._cmd])
 
+    @property
+    def cwd(self):
+        return self._cwd
+
+    @property
+    def inputs_as_args(self):
+        return self._as_args
+
+    @property
+    def quiet(self):
+        return self._quiet
+
+    @property
+    def env(self):
+        return self._env.copy()
+
     def __str__(self):
         return self._cmd_log_message()
 

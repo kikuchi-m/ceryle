@@ -77,6 +77,14 @@ class Task:
             raise ceryle.IllegalOperation('task is not run yet')
         return self._res.stderr
 
+    @property
+    def ignore_failure(self):
+        return self._ignore_failure
+
+    @property
+    def condition(self):
+        return self._condition
+
 
 def _to_command_input(input):
     if input is None:
