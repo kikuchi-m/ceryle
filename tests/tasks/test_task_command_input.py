@@ -79,6 +79,15 @@ class TestCommandInput:
 
         assert ci != other
 
+    @pytest.mark.parametrize('key, expected', [
+        (['A'], 'A'),
+        (['A', 'B'], '(A, B)'),
+    ])
+    def test_str(self, key, expected):
+        ci = CommandInput(*key)
+
+        assert str(ci) == expected
+
 
 class TestSingleValueCommandInput:
 
@@ -153,6 +162,15 @@ class TestSingleValueCommandInput:
         ci = SingleValueCommandInput(*args)
 
         assert ci != other
+
+    @pytest.mark.parametrize('key, expected', [
+        (['A'], 'A (as single value)'),
+        (['A', 'B'], '(A, B) (as single value)'),
+    ])
+    def test_str(self, key,  expected):
+        ci = SingleValueCommandInput(*key)
+
+        assert str(ci) == expected
 
 
 class TestMultiCommandInput:
@@ -248,3 +266,17 @@ class TestMultiCommandInput:
         ci = MultiCommandInput(*args)
 
         assert ci != other
+
+    @pytest.mark.parametrize('key, expected', [
+        (['A'], '[A]'),
+        ([('A', 'B')], '[(A, B)]'),
+        ([CommandInput('A')], '[A]'),
+        ([SingleValueCommandInput('A')], '[A (as single value)]'),
+        (['A', 'B'], '[A, B]'),
+        ([('A', 'B'), 'C'], '[(A, B), C]'),
+        ([SingleValueCommandInput('A', 'B'), CommandInput('C')], '[(A, B) (as single value), C]'),
+    ])
+    def test_str(self, key,  expected):
+        ci = MultiCommandInput(*key)
+
+        assert str(ci) == expected

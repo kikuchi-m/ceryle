@@ -212,7 +212,9 @@ class CommandInput(CommandInputBase):
             return util.getin(register, *self._key)
 
     def __str__(self):
-        return str(self._key)
+        if isinstance(self._key, str):
+            return str(self._key)
+        return '(%s)' % ', '.join(self._key)
 
     def __eq__(self, other):
         return isinstance(other, CommandInput) and self._key == other._key
@@ -231,7 +233,7 @@ class SingleValueCommandInput(CommandInputBase):
         return out and [os.linesep.join(out)]
 
     def __str__(self):
-        return f'str(self._input) (as single value)'
+        return f'{str(self._input)} (as single value)'
 
     def __eq__(self, other):
         return isinstance(other, SingleValueCommandInput) and self._input == other._input
@@ -254,7 +256,8 @@ class MultiCommandInput(CommandInputBase):
         return None
 
     def __str__(self):
-        return str(self._key)
+        s = ', '.join([str(k) for k in self._key])
+        return '[%s]' % s
 
     def __eq__(self, other):
         return isinstance(other, MultiCommandInput) and self._key == other._key
