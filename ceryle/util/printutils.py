@@ -73,7 +73,7 @@ class Output(AbstractContextManager):
     def writeline(self, line):
         if self._impl.closed:
             raise IOError('output is already closed')
-        self._impl.writeline((line if isinstance(line, bytes) else line.encode()).rstrip())
+        self._impl.writeline((line if isinstance(line, bytes) else line.encode()).rstrip(Output.ENCODED_SEP))
 
     def __enter__(self):
         self._impl = Output._MemOut(self, self._max_lines_on_memory)
@@ -182,7 +182,7 @@ class Output(AbstractContextManager):
 
         def lines(self):
             with open(self._tf.name) as fp:
-                return [s.rstrip() for s in fp]
+                return [s.rstrip(os.linesep) for s in fp]
 
         def clean(self):
             self._tf.close()

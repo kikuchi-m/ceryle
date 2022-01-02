@@ -11,10 +11,10 @@ class TestOutputMemory:
     def test_writeline(self):
         with Output(100) as output:
             output.writeline('aaa')
-            output.writeline('bbb')
+            output.writeline('bbb ')
             output.writeline('ccc')
 
-        assert output.lines() == ['aaa', 'bbb', 'ccc']
+        assert output.lines() == ['aaa', 'bbb ', 'ccc']
 
     def test_raise_when_already_closed(self):
         with Output(100) as output:
@@ -50,10 +50,10 @@ class TestOutputFile:
     def test_writeline(self):
         with Output(2) as output:
             output.writeline('aaa')
-            output.writeline('bbb')
+            output.writeline('bbb ')
             output.writeline('ccc')
 
-        assert output.lines() == ['aaa', 'bbb', 'ccc']
+        assert output.lines() == ['aaa', 'bbb ', 'ccc']
 
     def test_raise_when_already_closed(self):
         with Output(2) as output:
