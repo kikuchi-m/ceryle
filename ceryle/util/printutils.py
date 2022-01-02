@@ -4,6 +4,9 @@ import os
 import re
 import sys
 
+from contextlib import AbstractContextManager
+from tempfile import NamedTemporaryFile
+
 WARN_FONT = '38;5;221'
 ERROR_FONT = '38;5;160'
 
@@ -56,6 +59,129 @@ class StderrPrinter(Printer):
 class QuietPrinter(Printer):
     def printline(self, line):
         logger.debug(line)
+
+
+class Output(AbstractContextManager):
+    ENCODED_SEP = os.linesep.encode()
+
+    def __init__(self, max_lines_on_memory):
+        self._max_lines_on_memory = max_lines_on_memory
+        self._impl = None
+
+    def writeline(self, line):
+        if self._impl.closed:
+            raise IOError('output is already closed')
+        self._impl.writeline((line if isinstance(line, bytes) else line.encode()).rstrip())
+
+    def __enter__(self):
+        self._impl = Output._MemOut(self, self._max_lines_on_memory)
+        return self
+
+    def __exit__(self, *exc):
+        self._impl.exit()
+
+    def lines(self):
+        if self._impl.cleaned:
+            raise IOError('output is already closed')
+        return self._impl.lines()
+
+    def clean(self):
+        self._impl.clean()
+
+    class _OutputImpl(metaclass=abc.ABCMeta):
+        @abc.abstractmethod
+        def writeline(self, line):
+            pass
+
+        @abc.abstractmethod
+        def exit(self):
+            pass
+
+        @property
+        @abc.abstractproperty
+        def closed(self):
+            pass
+
+        @abc.abstractmethod
+        def lines(self):
+            pass
+
+        @abc.abstractmethod
+        def clean(self):
+            pass
+
+        @property
+        @abc.abstractproperty
+        def cleaned(self):
+            pass
+
+    class _MemOut(_OutputImpl):
+        def __init__(self, output, max_lines):
+            self._max_lines = max_lines
+            self._output = output
+            self._lines = []
+            self._closed = False
+            self._cleaned = False
+
+        def writeline(self, line):
+            self._lines.append(line)
+            if len(self._lines) > self._max_lines:
+                o = Output._FileOut()
+                for line in self._lines:
+                    o.writeline(line)
+                self._output._impl = o
+
+        def exit(self):
+            self._closed = True
+
+        @property
+        def closed(self):
+            return self._closed
+
+        def lines(self):
+            return [s.decode() for s in self._lines]
+
+        def clean(self):
+            self._closed = True
+            self._cleaned = True
+
+        @property
+        def cleaned(self):
+            return self._cleaned
+
+    class _FileOut(_OutputImpl):
+        def __init__(self):
+            self._tf = NamedTemporaryFile()
+            self._flush_per_lines = 100
+            self._buf_lines = 0
+            self._deleted = False
+
+        def writeline(self, line):
+            self._tf.file.write(line + Output.ENCODED_SEP)
+            buf = self._buf_lines
+            if (buf := buf + 1) >= self._flush_per_lines:
+                self._tf.file.flush()
+                buf = 0
+            self._buf_lines = buf
+
+        def exit(self):
+            self._tf.file.close()
+
+        @property
+        def closed(self):
+            return self._tf.closed
+
+        def lines(self):
+            with open(self._tf.name) as fp:
+                return [s.rstrip() for s in fp]
+
+        def clean(self):
+            self._tf.close()
+            self._deleted = True
+
+        @property
+        def cleaned(self):
+            return self._deleted
 
 
 def print_stream(s, error=False, quiet=False):

@@ -4,7 +4,71 @@ import pytest
 
 from ceryle.util.capture import std_capture
 from ceryle.util import print_stream, indent_s
-from ceryle.util.printutils import decorate, ERROR_FONT, StdoutPrinter, StderrPrinter, QuietPrinter
+from ceryle.util.printutils import decorate, ERROR_FONT, StdoutPrinter, StderrPrinter, QuietPrinter, Output
+
+
+class TestOutputMemory:
+    def test_writeline(self):
+        with Output(100) as output:
+            output.writeline('aaa')
+            output.writeline('bbb')
+            output.writeline('ccc')
+
+        assert output.lines() == ['aaa', 'bbb', 'ccc']
+
+    def test_raise_when_already_closed(self):
+        with Output(100) as output:
+            pass
+
+        with pytest.raises(IOError):
+            output.writeline('ccc')
+
+    def test_clean(self):
+        with Output(100) as output:
+            output.writeline('aaa')
+
+        output.clean()
+
+        with pytest.raises(IOError):
+            output.lines()
+
+
+class TestOutputFile:
+    def test_to_be_file_when_exceeded_threshold(self):
+        with Output(2) as output:
+            output.writeline('aaa')
+            output.writeline('bbb')
+            output.writeline('ccc')
+
+        assert isinstance(output._impl, Output._FileOut)
+
+    def test_writeline(self):
+        with Output(2) as output:
+            output.writeline('aaa')
+            output.writeline('bbb')
+            output.writeline('ccc')
+
+        assert output.lines() == ['aaa', 'bbb', 'ccc']
+
+    def test_raise_when_already_closed(self):
+        with Output(2) as output:
+            output.writeline('aaa')
+            output.writeline('bbb')
+            output.writeline('ccc')
+
+        with pytest.raises(IOError):
+            output.writeline('ccc')
+
+    def test_clean(self):
+        with Output(2) as output:
+            output.writeline('aaa')
+            output.writeline('bbb')
+            output.writeline('ccc')
+
+        output.clean()
+
+        with pytest.raises(IOError):
+            output.lines()
 
 
 def test_stdout_printline():
