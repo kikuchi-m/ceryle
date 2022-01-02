@@ -32,5 +32,5 @@ def _to_task(raw_task, group):
     if isinstance(raw_task, Executable):
         return Task(raw_task)
     if RUN not in raw_task:
-        raise TaskFileError(f'{RUN}` is not declared in a task of {group}')
+        raise TaskFileError(f'`{RUN}` is not declared in a task of {group}')
     return Task(raw_task.pop(RUN), **raw_task)
