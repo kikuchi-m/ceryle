@@ -1,8 +1,10 @@
 import abc
 import logging
+import warnings
 
 import ceryle.util as util
 from ceryle.dsl.support import eval_arg
+from ceryle.util.printutils import Output
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +24,23 @@ class Executable(abc.ABC):
         return processed_args, processed_kwargs
 
 
+def _validate_std(output):
+    if isinstance(output, Output):
+        return output, None
+    lines = [util.assert_type(s, str) for s in util.assert_type(output, list)]
+    return Output.from_lines(lines), lines
+
+
 class ExecutionResult:
+    STDOUT = 1
+    STDERR = 2
+
     def __init__(self, return_code, stdout=[], stderr=[]):
-        self._return_code = return_code
-        self._stdout = [util.assert_type(l, str) for l in stdout]
-        self._stderr = [util.assert_type(l, str) for l in stderr]
+        self._return_code = util.assert_type(return_code, int)
+        self._outs = {
+            ExecutionResult.STDOUT: _validate_std(stdout),
+            ExecutionResult.STDERR: _validate_std(stderr),
+        }
 
     @property
     def return_code(self):
@@ -34,14 +48,27 @@ class ExecutionResult:
 
     @property
     def stdout(self):
-        return [*self._stdout]
+        warnings.warn('`stdout` is removed in future, use `get_output()` instead', DeprecationWarning)
+        return self._std(ExecutionResult.STDOUT)
 
     @property
     def stderr(self):
-        return [*self._stderr]
+        warnings.warn('`stderr` is removed in future, use `get_output()` instead', DeprecationWarning)
+        return self._std(ExecutionResult.STDERR)
+
+    def _std(self, std):
+        o, lines = self._outs[std]
+        if lines is not None:
+            return lines.copy()
+        return o.lines()
+
+    def get_output(self, std):
+        return self._outs[std][0]
 
     def __str__(self):
-        return f'{self.__class__.__name__}(return_code={self.return_code}, stdout={self.stdout}, stderr={self.stderr})'
+        n = self.__class__.__name__
+        r = self.return_code
+        return f'{n}(return_code={r}, stdout={self._stdout}, stderr={self._stderr})'
 
 
 class ExecutableWrapper(Executable):
