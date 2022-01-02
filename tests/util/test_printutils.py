@@ -32,6 +32,11 @@ class TestOutputMemory:
         with pytest.raises(IOError):
             output.lines()
 
+    def test_from_lines(self):
+        output = Output.from_lines(['aaa', 'bbb'])
+
+        assert output.lines() == ['aaa', 'bbb']
+
 
 class TestOutputFile:
     def test_to_be_file_when_exceeded_threshold(self):

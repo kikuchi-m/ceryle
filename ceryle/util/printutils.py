@@ -7,6 +7,8 @@ import sys
 from contextlib import AbstractContextManager
 from tempfile import NamedTemporaryFile
 
+import ceryle.util as util
+
 WARN_FONT = '38;5;221'
 ERROR_FONT = '38;5;160'
 
@@ -87,6 +89,13 @@ class Output(AbstractContextManager):
 
     def clean(self):
         self._impl.clean()
+
+    @staticmethod
+    def from_lines(lines):
+        ls = [util.assert_type(s, str).encode() for s in util.assert_type(lines, list)]
+        with Output(len(ls)) as o:
+            o._impl._lines = ls
+        return o
 
     class _OutputImpl(metaclass=abc.ABCMeta):
         @abc.abstractmethod
