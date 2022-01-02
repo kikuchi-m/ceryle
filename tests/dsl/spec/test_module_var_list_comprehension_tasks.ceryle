@@ -1,0 +1,7 @@
+VARS = [f'{v}' for v in range(1, 4)]
+
+{
+    'mod_vars': [
+        *[command(['echo', v]) for v in VARS],
+    ],
+}

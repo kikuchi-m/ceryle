@@ -1,0 +1,7 @@
+VARS = ['a', 'b']
+
+{
+    'mod_vars': [
+        command(['echo', *VARS]),
+    ],
+}

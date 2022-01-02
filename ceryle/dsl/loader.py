@@ -89,9 +89,6 @@ def _prepare_vars(global_vars, local_vars, additional_args):
     gvars = global_vars.copy()
     gvars.update(
         ceryle=ceryle,
-    )
-    lvars = local_vars.copy()
-    lvars.update(
         command=Command,
         copy=Copy,
         remove=Remove,
@@ -105,7 +102,8 @@ def _prepare_vars(global_vars, local_vars, additional_args):
         arg=arg_fun,
         as_single_value=SingleValueCommandInput,
     )
-    return gvars, lvars
+    gvars.update(**local_vars)
+    return gvars, local_vars.copy()
 
 
 class TaskDefinition:

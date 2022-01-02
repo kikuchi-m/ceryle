@@ -182,6 +182,30 @@ class TestExecutableSpec(DSLSpecBase):
     def test_copy(self):
         self.load('test_copy.ceryle')
 
+    def test_module_var(self):
+        task_def = self.load('test_module_var.ceryle')
+
+        tg = task_def.find_task_group('mod_vars')
+
+        assert tg.tasks[0].executable.cmd == ['echo', 'a', 'b']
+
+    def test_module_var_list_comprehension(self):
+        task_def = self.load('test_module_var_list_comprehension.ceryle')
+
+        tg = task_def.find_task_group('mod_vars')
+
+        assert tg.tasks[0].executable.cmd == ['echo', '1', '2', '3']
+
+    def test_module_var_list_comprehension_tasks(self):
+        task_def = self.load('test_module_var_list_comprehension_tasks.ceryle')
+
+        tg = task_def.find_task_group('mod_vars')
+
+        assert len(tg.tasks) == 3
+        assert tg.tasks[0].executable.cmd == ['echo', '1']
+        assert tg.tasks[1].executable.cmd == ['echo', '2']
+        assert tg.tasks[2].executable.cmd == ['echo', '3']
+
 
 class TestTaskFileSpec(DSLSpecBase):
     def test_with_context(self):
