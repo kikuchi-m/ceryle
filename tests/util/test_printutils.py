@@ -1,3 +1,4 @@
+import os
 import re
 
 import pytest
@@ -76,32 +77,80 @@ class TestOutputFile:
             output.lines()
 
 
-def test_stdout_printline():
-    p = StdoutPrinter()
-    with std_capture() as (o, _):
-        p.printline('default')
-        assert 'default' == o.getvalue().rstrip()
+class TestStdoutPrinter:
+    def test_printline(self):
+        p = StdoutPrinter()
+        with std_capture() as (o, _), p.open_output():
+            p.printline('default 1 ')
+            p.printline('default 2 ')
+
+            assert o.getvalue().rstrip(os.linesep).split(os.linesep) == [
+                'default 1 ',
+                'default 2 ',
+            ]
+
+    def test_stdout_printline_warn(self):
+        p = StdoutPrinter(warning_patterns=['^waruning'])
+        with std_capture() as (o, _), p.open_output():
+            p.printline('warning some... 1 ')
+            p.printline('warning some... 2 ')
+
+            assert o.getvalue().rstrip(os.linesep).split(os.linesep) == [
+                'warning some... 1 ',
+                'warning some... 2 ',
+            ]
+
+    def test_output(self):
+        p = StdoutPrinter()
+        with p.open_output():
+            p.printline('out 1')
+            p.printline('out 2')
+
+        o = p.get_output()
+
+        assert o.lines() == ['out 1', 'out 2']
 
 
-def test_stdout_printline_warn():
-    p = StdoutPrinter(warning_patterns=['^waruning'])
-    with std_capture() as (o, _):
-        p.printline('warning some...')
-        assert 'warning some...' == o.getvalue().rstrip()
+class TestSTderrPrinter:
+    def test_printline(self):
+        p = StderrPrinter()
+        with std_capture() as (_, e), p.open_output():
+            p.printline('some error 1 ')
+            p.printline('some error 2 ')
+
+            lines = e.getvalue().rstrip(os.linesep).split(os.linesep)
+
+            assert re.match('.*some error 1 .*', lines[0])
+            assert re.match('.*some error 2 .*', lines[1])
+
+    def test_output(self):
+        p = StderrPrinter()
+        with std_capture() as (_, e), p.open_output():
+            p.printline('out 1')
+            p.printline('out 2')
+
+        o = p.get_output()
+
+        assert o.lines() == ['out 1', 'out 2']
 
 
-def test_stderr_printline():
-    p = StderrPrinter()
-    with std_capture() as (_, e):
-        p.printline('some error')
-        assert re.match('.*some error.*', e.getvalue().rstrip())
+class TestQuietPrinter:
+    def test_printline(self):
+        p = QuietPrinter()
+        with std_capture() as (o, _), p.open_output():
+            p.printline('default')
 
+            assert '' == o.getvalue().rstrip()
 
-def test_silent_printline():
-    p = QuietPrinter()
-    with std_capture() as (o, _):
-        p.printline('default')
-        assert '' == o.getvalue().rstrip()
+    def test_output(self):
+        p = QuietPrinter()
+        with std_capture() as (o, _), p.open_output():
+            p.printline('out 1')
+            p.printline('out 2')
+
+        o = p.get_output()
+
+        assert o.lines() == ['out 1', 'out 2']
 
 
 def gen_lines():
@@ -115,8 +164,8 @@ def gen_lines():
         b'CR\r',
         b'CRLF\r\n',
     ]
-    for l in lines:
-        yield l
+    for line in lines:
+        yield line
 
 
 def test_print_stream():
@@ -127,7 +176,7 @@ def test_print_stream():
 
 
 def test_print_stream_error():
-    lines = [decorate(l, ERROR_FONT) for l in ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF']]
+    lines = [decorate(line, ERROR_FONT) for line in ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF']]
     with std_capture() as (_, e):
         out = print_stream(gen_lines(), error=True)
         assert lines == e.getvalue().splitlines()

@@ -24,14 +24,30 @@ def decorate(s, sgr_pattern):
 
 
 class Printer(metaclass=abc.ABCMeta):
+    def __init__(self):
+        self._out = None
+
     @abc.abstractmethod
     def printline(self, line):
         pass
 
+    def open_output(self, max_lines_on_memory=100):
+        self._out = Output(max_lines_on_memory)
+        return self._out
+
+    def get_output(self):
+        return self._out
+
+    def _writeline(self, line):
+        self._out.writeline(line)
+
 
 class StdoutPrinter(Printer):
-    def __init__(self, warning_patterns=[], warning_font=WARN_FONT,
+    def __init__(self,
+                 warning_patterns=[],
+                 warning_font=WARN_FONT,
                  decorate_patterns=[]):
+        super(Printer).__init__()
         self._warn = [re.compile(p) for p in warning_patterns]
         self._warn_font = warning_font
         self._decorations = [(re.compile(p), f) for p, f in decorate_patterns]
@@ -39,6 +55,7 @@ class StdoutPrinter(Printer):
     def printline(self, line):
         logger.debug(line)
         print(self.decorate(line))
+        self._writeline(line)
 
     def decorate(self, line):
         for r in self._warn:
@@ -52,15 +69,21 @@ class StdoutPrinter(Printer):
 
 class StderrPrinter(Printer):
     def __init__(self, font=ERROR_FONT):
+        super(Printer).__init__()
         self._font = font
 
     def printline(self, line):
         print_err(line, font=self._font)
+        self._writeline(line)
 
 
 class QuietPrinter(Printer):
+    def __init__(self, font=ERROR_FONT):
+        super(Printer).__init__()
+
     def printline(self, line):
         logger.debug(line)
+        self._writeline(line)
 
 
 class Output(AbstractContextManager):
@@ -200,10 +223,11 @@ def print_stream(s, error=False, quiet=False):
         4: QuietPrinter,
     }[quiet << 2 or error << 1 or 1]()
     out = []
-    for line in s:
-        decoded = str.rstrip(line.decode() if isinstance(line, bytes) else line)
-        printer.printline(decoded)
-        out.append(decoded)
+    with printer.open_output():
+        for line in s:
+            decoded = str.rstrip(line.decode() if isinstance(line, bytes) else line)
+            printer.printline(decoded)
+            out.append(decoded)
     return out
 
 
@@ -214,7 +238,7 @@ def print_out(*lines, level=logging.DEBUG):
 
 def print_err(*lines, font=ERROR_FONT):
     logger.debug(os.linesep.join(lines))
-    print(*[decorate(l, font) for l in lines], sep=os.linesep, file=sys.stderr)
+    print(*[decorate(lines, font) for lines in lines], sep=os.linesep, file=sys.stderr)
 
 
 def indent_s(s, depth):
