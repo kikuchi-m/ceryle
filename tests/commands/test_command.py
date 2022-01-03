@@ -70,22 +70,28 @@ class TestAnyPlatform:
         with std_capture() as (o, e):
             command = Command('./scripts/sample1', cwd=FILE_DIR)
             assert command.execute().return_code == 0
-            lines = [l.rstrip() for l in o.getvalue().splitlines()]
+            lines = [line.rstrip(os.linesep) for line in o.getvalue().splitlines()]
             assert lines == ['hello', 'good-bye']
 
     def test_execute_script_with_error(self):
         with std_capture() as (o, e):
             command = Command('./scripts/stderr', cwd=FILE_DIR)
             assert command.execute().return_code == 3
-            assert re.match('.*sample error.*', e.getvalue().rstrip())
+            assert re.match('.*sample error.*', e.getvalue().rstrip(os.linesep))
 
     def test_execute_command_return_stdout(self):
         command = Command('echo foo')
         result = command.execute()
         assert result.return_code == 0
         assert len(result.stdout) == 1
-        assert result.stdout[0].rstrip() == 'foo'
+        assert result.stdout[0].rstrip(os.linesep) == 'foo'
         assert len(result.stderr) == 0
+
+    def test_execute_command_preserve_trailing_whitespace(self):
+        command = Command(['echo', 'foo '])
+        result = command.execute()
+        assert len(result.stdout) == 1
+        assert result.stdout[0].rstrip(os.linesep) == 'foo '
 
     def test_execute_command_return_stderr(self):
         command = Command('./scripts/stderr', cwd=FILE_DIR)
@@ -93,7 +99,7 @@ class TestAnyPlatform:
         assert result.return_code == 3
         assert len(result.stdout) == 0
         assert len(result.stderr) == 1
-        assert result.stderr[0].rstrip() == 'sample error'
+        assert result.stderr[0].rstrip(os.linesep) == 'sample error'
 
     def test_execute_script_quiet(self):
         with std_capture() as (o, e):
@@ -101,14 +107,14 @@ class TestAnyPlatform:
             result = command.execute()
             assert result.return_code == 0
             assert result.stdout == ['hello', 'good-bye']
-            lines = [l.rstrip() for l in o.getvalue().splitlines()]
+            lines = [line.rstrip(os.linesep) for line in o.getvalue().splitlines()]
             assert lines == []
 
     def test_execute_script_quiet_with_error(self):
         with std_capture() as (o, e):
             command = Command('./scripts/stderr', cwd=FILE_DIR, quiet=True)
             assert command.execute().return_code == 3
-            assert re.match('.*sample error.*', e.getvalue().rstrip())
+            assert re.match('.*sample error.*', e.getvalue().rstrip(os.linesep))
 
     def test_execute_with_inputs_as_args(self):
         with std_capture() as (o, e):
@@ -116,9 +122,9 @@ class TestAnyPlatform:
             result = command.execute(inputs=['foo', 'bar'], timeout=3)
             assert result.return_code == 0
             assert len(result.stdout) == 1
-            assert result.stdout[0].rstrip() == 'foo bar'
+            assert result.stdout[0].rstrip(os.linesep) == 'foo bar'
 
-            lines = [l.rstrip() for l in o.getvalue().splitlines()]
+            lines = [line.rstrip(os.linesep) for line in o.getvalue().splitlines()]
             assert lines == ['foo bar']
 
     def test_execute_with_context(self):
@@ -133,7 +139,7 @@ class TestAnyPlatform:
             with std_capture() as (o, e):
                 command = Command('./sample1')
                 assert command.execute(context=str(context)).return_code == 0
-                lines = [l.rstrip() for l in o.getvalue().splitlines()]
+                lines = [line.rstrip(os.linesep) for line in o.getvalue().splitlines()]
                 assert lines == ['hello', 'good-bye']
 
     def test_execute_with_context_and_cwd(self):
@@ -149,7 +155,7 @@ class TestAnyPlatform:
             with std_capture() as (o, e):
                 command = Command('./sample1', cwd=sub_dir)
                 assert command.execute(context=str(context)).return_code == 0
-                lines = [l.rstrip() for l in o.getvalue().splitlines()]
+                lines = [line.rstrip(os.linesep) for line in o.getvalue().splitlines()]
                 assert lines == ['hello', 'good-bye']
 
     def test_execute_absolute_cwd(self):
@@ -165,11 +171,11 @@ class TestAnyPlatform:
             with std_capture() as (o, e):
                 command = Command('./sample1', cwd=str(cwd))
                 assert command.execute(context=str(context)).return_code == 0
-                lines = [l.rstrip() for l in o.getvalue().splitlines()]
+                lines = [line.rstrip(os.linesep) for line in o.getvalue().splitlines()]
                 assert lines == ['hello', 'good-bye']
 
 
-@pytest.mark.skipif(platform.system() == 'Windows', reason='Not a Windows platform')
+@pytest.mark.skipif(platform.system() == 'Windows', reason='Not a Posix platform')
 class TestForPosix:
     def test_new_command_by_relative_path(self):
         command = Command(['./dosome', '-a'])
@@ -186,7 +192,7 @@ class TestForPosix:
         with std_capture() as (o, e):
             command = Command(cmd_in)
             assert command.execute().return_code == 0
-            assert o.getvalue().rstrip() == stdout
+            assert o.getvalue().rstrip(os.linesep) == stdout
 
     def test_execute_with_inputs(self):
         with std_capture() as (o, e):
@@ -194,10 +200,10 @@ class TestForPosix:
             result = command.execute(inputs=['foo', 'bar'], timeout=3)
             assert result.return_code == 0
             assert len(result.stdout) == 2
-            assert result.stdout[0].rstrip() == 'foo'
-            assert result.stdout[1].rstrip() == 'bar'
+            assert result.stdout[0].rstrip(os.linesep) == 'foo'
+            assert result.stdout[1].rstrip(os.linesep) == 'bar'
 
-            lines = [l.rstrip() for l in o.getvalue().splitlines()]
+            lines = [line.rstrip(os.linesep) for line in o.getvalue().splitlines()]
             assert lines == ['foo', 'bar']
 
     def test_execute_with_environment_variables(self):
@@ -284,7 +290,7 @@ class TestForWin:
         with std_capture() as (o, e):
             command = Command(cmd_in)
             assert command.execute().return_code == 0
-            assert o.getvalue().rstrip() == stdout
+            assert o.getvalue().rstrip(os.linesep) == stdout
 
     def test_execute_with_inputs(self):
         with std_capture() as (o, e):
@@ -292,10 +298,10 @@ class TestForWin:
             result = command.execute(inputs=['foo', 'bar', 'baz'], timeout=3)
             assert result.return_code == 0
             assert len(result.stdout) == 2
-            assert result.stdout[0].rstrip() == 'bar'
-            assert result.stdout[1].rstrip() == 'baz'
+            assert result.stdout[0].rstrip(os.linesep) == 'bar'
+            assert result.stdout[1].rstrip(os.linesep) == 'baz'
 
-            lines = [l.rstrip() for l in o.getvalue().splitlines()]
+            lines = [line.rstrip(os.linesep) for line in o.getvalue().splitlines()]
             assert lines == ['bar', 'baz']
 
     def test_execute_with_environment_variables(self):
