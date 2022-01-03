@@ -233,7 +233,7 @@ def print_stream(s, error=False, quiet=False):
         for line in s:
             stripped = line.rstrip(ENCODED_LINESEPS) if isinstance(line, bytes) else line.rstrip(DECODED_LINESEPS)
             printer.printline(stripped)
-    return printer.get_output().lines()
+    return printer.get_output()
 
 
 def print_out(*lines, level=logging.DEBUG):

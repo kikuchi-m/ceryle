@@ -179,24 +179,27 @@ def gen_lines():
 def test_print_stream():
     with std_capture() as (o, _):
         out = print_stream(gen_lines())
-        assert ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF'] == o.getvalue().splitlines()
-        assert ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF'] == out
+
+        assert o.getvalue().splitlines() == ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF']
+        assert out.lines() == ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF']
 
 
 def test_print_stream_error():
     lines = [decorate(line, ERROR_FONT) for line in ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF']]
     with std_capture() as (_, e):
         out = print_stream(gen_lines(), error=True)
-        assert lines == e.getvalue().splitlines()
-        assert ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF'] == out
+
+        assert e.getvalue().splitlines() == lines
+        assert out.lines() == ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF']
 
 
 @pytest.mark.parametrize('error', [False, True])
 def test_print_stream_quiet(error):
     with std_capture() as (o, _):
         out = print_stream(gen_lines(), error=error, quiet=True)
-        assert [] == o.getvalue().splitlines()
-        assert ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF'] == out
+
+        assert o.getvalue().splitlines() == []
+        assert out.lines() == ['plain', 'LF', 'CR', 'CRLF', 'plain', 'LF', 'CR', 'CRLF']
 
 
 def test_indent_s():
