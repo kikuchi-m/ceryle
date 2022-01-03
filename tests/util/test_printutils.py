@@ -9,11 +9,15 @@ from ceryle.util.printutils import decorate, ERROR_FONT, StdoutPrinter, StderrPr
 
 
 class TestOutputMemory:
-    def test_writeline(self):
+    @pytest.mark.parametrize(
+        'lines', [
+            ['aaa', 'bbb ', 'ccc'],
+            [b'aaa', b'bbb ', b'ccc'],
+        ])
+    def test_writeline(self, lines):
         with Output(100) as output:
-            output.writeline('aaa')
-            output.writeline('bbb ')
-            output.writeline('ccc')
+            for line in lines:
+                output.writeline(line)
 
         assert output.lines() == ['aaa', 'bbb ', 'ccc']
 
@@ -48,11 +52,15 @@ class TestOutputFile:
 
         assert isinstance(output._impl, Output._FileOut)
 
-    def test_writeline(self):
+    @pytest.mark.parametrize(
+        'lines', [
+            ['aaa', 'bbb ', 'ccc'],
+            [b'aaa', b'bbb ', b'ccc'],
+        ])
+    def test_writeline(self, lines):
         with Output(2) as output:
-            output.writeline('aaa')
-            output.writeline('bbb ')
-            output.writeline('ccc')
+            for line in lines:
+                output.writeline(line)
 
         assert output.lines() == ['aaa', 'bbb ', 'ccc']
 
