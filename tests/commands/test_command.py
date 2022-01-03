@@ -54,16 +54,13 @@ def test_new_command(cmd_in, cmd, cmd_str):
     assert str(command) == cmd_str
 
 
-def test_raise_if_invalid_command():
+@pytest.mark.parametrize('cmd', [None, 1, object()])
+def test_raise_when_not_cmd(cmd):
     with pytest.raises(TypeError):
-        Command(None)
+        Command(cmd)
 
-    with pytest.raises(TypeError):
-        Command(1)
 
-    with pytest.raises(TypeError):
-        Command(object())
-
+def test_raise_when_invalid_format_cmd():
     with pytest.raises(CommandFormatError, match=r'invalid command format: \[a b "c d\]'):
         Command('a b "c d')
 
