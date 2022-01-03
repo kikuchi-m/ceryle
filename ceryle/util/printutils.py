@@ -11,6 +11,8 @@ import ceryle.util as util
 
 WARN_FONT = '38;5;221'
 ERROR_FONT = '38;5;160'
+ENCODED_LINESEPS = '\r\n'.encode()
+DECODED_LINESEPS = '\r\n'
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +43,9 @@ class Printer(metaclass=abc.ABCMeta):
     def _writeline(self, line):
         self._out.writeline(line)
 
+    def _decode(self, line):
+        return line.decode() if isinstance(line, bytes) else line
+
 
 class StdoutPrinter(Printer):
     def __init__(self,
@@ -53,8 +58,9 @@ class StdoutPrinter(Printer):
         self._decorations = [(re.compile(p), f) for p, f in decorate_patterns]
 
     def printline(self, line):
-        logger.debug(line)
-        print(self.decorate(line))
+        decoded = self._decode(line)
+        logger.debug(decoded)
+        print(self.decorate(decoded))
         self._writeline(line)
 
     def decorate(self, line):
@@ -73,7 +79,8 @@ class StderrPrinter(Printer):
         self._font = font
 
     def printline(self, line):
-        print_err(line, font=self._font)
+        decoded = self._decode(line)
+        print_err(decoded, font=self._font)
         self._writeline(line)
 
 
@@ -87,8 +94,6 @@ class QuietPrinter(Printer):
 
 
 class Output(AbstractContextManager):
-    ENCODED_SEP = os.linesep.encode()
-
     def __init__(self, max_lines_on_memory):
         self._max_lines_on_memory = max_lines_on_memory
         self._impl = None
@@ -96,7 +101,7 @@ class Output(AbstractContextManager):
     def writeline(self, line):
         if self._impl.closed:
             raise IOError('output is already closed')
-        self._impl.writeline((line if isinstance(line, bytes) else line.encode()).rstrip(Output.ENCODED_SEP))
+        self._impl.writeline(line if isinstance(line, bytes) else line.encode())
 
     def __enter__(self):
         self._impl = Output._MemOut(self, self._max_lines_on_memory)
@@ -182,6 +187,8 @@ class Output(AbstractContextManager):
             return self._cleaned
 
     class _FileOut(_OutputImpl):
+        LINESEP = os.linesep.encode()
+
         def __init__(self):
             self._tf = NamedTemporaryFile()
             self._flush_per_lines = 100
@@ -189,7 +196,7 @@ class Output(AbstractContextManager):
             self._deleted = False
 
         def writeline(self, line):
-            self._tf.file.write(line + Output.ENCODED_SEP)
+            self._tf.file.write(line + Output._FileOut.LINESEP)
             buf = self._buf_lines
             if (buf := buf + 1) >= self._flush_per_lines:
                 self._tf.file.flush()
@@ -222,13 +229,11 @@ def print_stream(s, error=False, quiet=False):
         2: StderrPrinter,
         4: QuietPrinter,
     }[quiet << 2 or error << 1 or 1]()
-    out = []
     with printer.open_output():
         for line in s:
-            decoded = str.rstrip(line.decode() if isinstance(line, bytes) else line)
-            printer.printline(decoded)
-            out.append(decoded)
-    return out
+            stripped = line.rstrip(ENCODED_LINESEPS) if isinstance(line, bytes) else line.rstrip(DECODED_LINESEPS)
+            printer.printline(stripped)
+    return printer.get_output().lines()
 
 
 def print_out(*lines, level=logging.DEBUG):
